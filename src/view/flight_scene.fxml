@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="768.0" prefWidth="1366.0" stylesheets="@flight_scene.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <ScrollPane fx:id="rootScrollPane" fitToWidth="true" hbarPolicy="NEVER" layoutX="6.0" layoutY="-14.0" prefHeight="768.0" prefWidth="1366.0" styleClass="root-scroll" vbarPolicy="AS_NEEDED" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="6.0" AnchorPane.rightAnchor="-6.0" AnchorPane.topAnchor="-14.0">
+            <content>
+                <VBox alignment="TOP_CENTER" fillWidth="true" spacing="24.0" styleClass="root-pane">
+                    <padding>
+                        <Insets bottom="32.0" left="24.0" right="24.0" top="24.0" />
+                    </padding>
+                    <children>
+                        <VBox fx:id="pageContainer" maxWidth="1180.0" prefWidth="1180.0" spacing="22.0" styleClass="page-container">
+                            <children>
+                                <HBox fx:id="headerBar" alignment="CENTER_LEFT" styleClass="top-bar">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                            <children>
+                                                <Label prefHeight="53.0" prefWidth="36.0" styleClass="logo-mark" text=":)" />
+                                                <VBox spacing="0.0">
+                                                    <children>
+                                                        <Label styleClass="brand-top" text="Travel via" />
+                                                        <Label styleClass="brand-main" text="VIA" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+
+                                        <Region HBox.hgrow="ALWAYS" />
+
+                                        <HBox alignment="CENTER_RIGHT" spacing="16.0">
+                                            <children>
+                                                <Label fx:id="accountStatusLabel" styleClass="muted-text" text="Not signed in" />
+                                                <Button fx:id="loginButton" mnemonicParsing="false" prefHeight="38.0" prefWidth="104.0" styleClass="dark-pill-button" text="login" />
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </HBox>
+
+                                <VBox fx:id="flightSummarySection" alignment="TOP_LEFT" spacing="20.0">
+                                    <children>
+                                        <Label styleClass="section-title" text="Outbound Flight Details:" />
+
+                                        <HBox alignment="CENTER" spacing="18.0" styleClass="timeline-row">
+                                            <children>
+                                                <VBox alignment="CENTER" spacing="3.0">
+                                                    <children>
+                                                        <Label fx:id="departureTimeLabel" styleClass="time-text" text="18:25" />
+                                                        <Label fx:id="departureCityLabel" styleClass="city-text" text="BERLIN" />
+                                                    </children>
+                                                </VBox>
+
+                                                <Separator prefWidth="170.0" styleClass="route-separator" />
+
+                                                <VBox alignment="CENTER" spacing="2.0">
+                                                    <children>
+                                                        <Label fx:id="transferCountLabel" styleClass="transfer-text" text="1 TRANSFER" />
+                                                        <Label fx:id="travelDurationLabel" styleClass="transfer-text" text="4H 50" />
+                                                        <Label fx:id="transferCityLabel" styleClass="city-text" text="PARIS" />
+                                                    </children>
+                                                </VBox>
+
+                                                <Separator prefWidth="170.0" styleClass="route-separator" />
+
+                                                <VBox alignment="CENTER" spacing="3.0">
+                                                    <children>
+                                                        <Label fx:id="arrivalTimeLabel" styleClass="time-text" text="23:15" />
+                                                        <Label fx:id="arrivalCityLabel" styleClass="city-text" text="ROME" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+
+                                <VBox fx:id="bookingBoard" spacing="20.0" styleClass="booking-board">
+                                    <padding>
+                                        <Insets bottom="22.0" left="32.0" right="32.0" top="24.0" />
+                                    </padding>
+                                    <children>
+                                        <VBox fx:id="passengerCardsContainer" spacing="16.0">
+                                            <children>
+                                                <VBox fx:id="passengerOneCard" spacing="16.0" styleClass="passenger-card">
+                                                    <padding>
+                                                        <Insets bottom="20.0" left="20.0" right="20.0" top="18.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                            <children>
+                                                                <Label styleClass="passenger-title" text="Passenger 1:" />
+                                                                <TextField fx:id="passengerOneFirstNameField" prefWidth="180.0" promptText="NAME" styleClass="ghost-field" />
+                                                                <TextField fx:id="passengerOneLastNameField" prefWidth="180.0" promptText="LASTNAME" styleClass="ghost-field" />
+                                                                <Region HBox.hgrow="ALWAYS" />
+                                                                <Label styleClass="counter-group-label" text="Carry on:" />
+                                                                <Spinner fx:id="passengerOneCarryOnSpinner" amountToStepBy="1" editable="false" initialValue="0" max="9" min="0" prefWidth="96.0" styleClass="qty-spinner" />
+                                                                <Label styleClass="counter-group-label" text="Baggage:" />
+                                                                <Spinner fx:id="passengerOneBaggageSpinner" amountToStepBy="1" editable="false" initialValue="0" max="9" min="0" prefWidth="96.0" styleClass="qty-spinner" />
+                                                            </children>
+                                                        </HBox>
+
+                                                        <Label styleClass="route-leg" text="Berlin → Paris" />
+
+                                                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                                            <children>
+                                                                <Label styleClass="class-label" text="Class:" />
+                                                                <ComboBox fx:id="passengerOneSegmentOneClassCombo" prefWidth="180.0" styleClass="class-combo" value="ECONOMY">
+                                                                    <items>
+                                                                        <FXCollections fx:factory="observableArrayList">
+                                                                            <String fx:value="ECONOMY" />
+                                                                            <String fx:value="BUSINESS" />
+                                                                        </FXCollections>
+                                                                    </items>
+                                                                </ComboBox>
+                                                <Region prefHeight="48.0" prefWidth="45.0" />
+                                                                <TextField fx:id="passengerOneSegmentOneSeatField" editable="false" prefHeight="42.0" prefWidth="170.0" styleClass="ghost-field seat-field" text="12A" />
+                                                                <Button fx:id="passengerOneSegmentOneChooseSeatButton" mnemonicParsing="false" prefWidth="152.0" styleClass="dark-pill-button" text="Choose seat" />
+                                                            </children>
+                                                        </HBox>
+
+                                                        <Label styleClass="route-leg" text="Paris → Italy" />
+
+                                                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                                            <children>
+                                                                <Label styleClass="class-label" text="Class:" />
+                                                                <ComboBox fx:id="passengerOneSegmentTwoClassCombo" prefWidth="180.0" styleClass="class-combo" value="ECONOMY">
+                                                                    <items>
+                                                                        <FXCollections fx:factory="observableArrayList">
+                                                                            <String fx:value="ECONOMY" />
+                                                                            <String fx:value="BUSINESS" />
+                                                                        </FXCollections>
+                                                                    </items>
+                                                                </ComboBox>
+                                                <Region prefHeight="48.0" prefWidth="45.0" />
+                                                                <TextField fx:id="passengerOneSegmentTwoSeatField" editable="false" prefHeight="42.0" prefWidth="170.0" styleClass="ghost-field seat-field" text="14C" />
+                                                                <Button fx:id="passengerOneSegmentTwoChooseSeatButton" mnemonicParsing="false" prefWidth="152.0" styleClass="dark-pill-button" text="Choose seat" />
+                                                            </children>
+                                                        </HBox>
+                                                    </children>
+                                                </VBox>
+
+                                                <VBox fx:id="passengerTwoCard" spacing="16.0" styleClass="passenger-card">
+                                                    <padding>
+                                                        <Insets bottom="20.0" left="20.0" right="20.0" top="18.0" />
+                                                    </padding>
+                                                    <children>
+                                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                            <children>
+                                                                <Label styleClass="passenger-title" text="Passenger 2:" />
+                                                                <TextField fx:id="passengerTwoFirstNameField" prefWidth="180.0" promptText="NAME" styleClass="ghost-field" />
+                                                                <TextField fx:id="passengerTwoLastNameField" prefWidth="180.0" promptText="LASTNAME" styleClass="ghost-field" />
+                                                                <Region HBox.hgrow="ALWAYS" />
+                                                                <Label styleClass="counter-group-label" text="Carry on:" />
+                                                                <Spinner fx:id="passengerTwoCarryOnSpinner" amountToStepBy="1" editable="false" initialValue="0" max="9" min="0" prefWidth="96.0" styleClass="qty-spinner" />
+                                                                <Label styleClass="counter-group-label" text="Baggage:" />
+                                                                <Spinner fx:id="passengerTwoBaggageSpinner" amountToStepBy="1" editable="false" initialValue="0" max="9" min="0" prefWidth="96.0" styleClass="qty-spinner" />
+                                                            </children>
+                                                        </HBox>
+
+                                                        <Label styleClass="route-leg" text="Berlin -&gt; Paris" />
+
+                                                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                                            <children>
+                                                                <Label styleClass="class-label" text="Class:" />
+                                                                <ComboBox fx:id="passengerTwoSegmentOneClassCombo" prefWidth="180.0" styleClass="class-combo" value="ECONOMY">
+                                                                    <items>
+                                                                        <FXCollections fx:factory="observableArrayList">
+                                                                            <String fx:value="ECONOMY" />
+                                                                            <String fx:value="BUSINESS" />
+                                                                        </FXCollections>
+                                                                    </items>
+                                                                </ComboBox>
+                                                                <TextField fx:id="passengerTwoSegmentOneSeatField" editable="false" prefWidth="170.0" styleClass="ghost-field seat-field" text="15B" />
+                                                                <Button fx:id="passengerTwoSegmentOneChooseSeatButton" mnemonicParsing="false" prefWidth="152.0" styleClass="dark-pill-button" text="Choose seat" />
+                                                            </children>
+                                                        </HBox>
+
+                                                        <Label styleClass="route-leg" text="Paris -&gt; Italy" />
+
+                                                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                                            <children>
+                                                                <Label styleClass="class-label" text="Class:" />
+                                                                <ComboBox fx:id="passengerTwoSegmentTwoClassCombo" prefWidth="180.0" styleClass="class-combo" value="ECONOMY">
+                                                                    <items>
+                                                                        <FXCollections fx:factory="observableArrayList">
+                                                                            <String fx:value="ECONOMY" />
+                                                                            <String fx:value="BUSINESS" />
+                                                                        </FXCollections>
+                                                                    </items>
+                                                                </ComboBox>
+                                                                <TextField fx:id="passengerTwoSegmentTwoSeatField" editable="false" prefWidth="170.0" styleClass="ghost-field seat-field" text="18D" />
+                                                                <Button fx:id="passengerTwoSegmentTwoChooseSeatButton" mnemonicParsing="false" prefWidth="152.0" styleClass="dark-pill-button" text="Choose seat" />
+                                                            </children>
+                                                        </HBox>
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </VBox>
+
+                                        <VBox fx:id="fareSection" alignment="TOP_LEFT" spacing="8.0">
+                                            <children>
+                                                <Label fx:id="fareTitleLabel" styleClass="fare-title" text="Fare details:" />
+                                                <Label fx:id="carryOnFareLineLabel" styleClass="fare-line" text="+ carry on      - 50 Eur" />
+                                                <Label fx:id="baggageFareLineLabel" styleClass="fare-line" text="+ baggage x3    - 10 Eur" />
+                                            </children>
+                                        </VBox>
+
+                                        <Region VBox.vgrow="ALWAYS" />
+
+                                        <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                                            <children>
+                                                <Button fx:id="confirmButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="130.0" styleClass="dark-pill-button" text="CONFIRM" />
+                                                <Button fx:id="cancelButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="130.0" styleClass="dark-pill-button" text="CANCEL" />
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</AnchorPane>
