@@ -29,6 +29,7 @@ public class PassengerLuggage
   {
     return quantity * luggageType.getExtraPrice();
   }
+  //
 
   void setPassengerInternal(Passenger passenger)
   {

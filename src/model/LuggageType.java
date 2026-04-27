@@ -77,4 +77,5 @@ public class LuggageType
   {
     return name + extraPrice;
   }
+  //
 }

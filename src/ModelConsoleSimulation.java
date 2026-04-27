@@ -110,5 +110,6 @@ public class ModelConsoleSimulation
     plane.addSeat(new Seat(10, "3B", 3, SeatClass.Economy));
     plane.addSeat(new Seat(11, "3C", 3, SeatClass.Economy));
     plane.addSeat(new Seat(12, "3D", 3, SeatClass.Economy));
+    //try
   }
 }

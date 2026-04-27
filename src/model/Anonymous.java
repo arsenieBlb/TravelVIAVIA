@@ -32,4 +32,5 @@ public class Anonymous
     this.flightSearchService = Objects.requireNonNull(flightSearchService,
         "Flight search service is required.");
   }
+  //
 }
