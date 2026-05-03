@@ -28,4 +28,6 @@ public interface Model
 
     void removeFlight(Flight flight);
 
+    List<LuggageType> getLuggageTypes();
+
 }

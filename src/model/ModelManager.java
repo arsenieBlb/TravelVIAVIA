@@ -39,6 +39,7 @@ public class ModelManager implements Model
     {
         return flightSearchService.searchFlights(criteria);
     }
+
     @Override
     public Flight getFlightDetails(int flightId)
     {
@@ -164,5 +165,10 @@ public class ModelManager implements Model
     public FlightSearchService getFlightSearchService()
     {
         return flightSearchService;
+    }
+
+    @Override
+    public List<LuggageType> getLuggageTypes() {
+        return databaseLoader.getLuggageTypes();
     }
 }
