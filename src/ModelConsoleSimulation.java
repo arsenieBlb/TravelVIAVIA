@@ -13,7 +13,7 @@ public class ModelConsoleSimulation extends Application
     public void start(Stage primaryStage) {
         Model model = new ModelManager();
 
-        ViewModelFactory viewModelFactory = new ViewModelFactory(null);
+        ViewModelFactory viewModelFactory = new ViewModelFactory(model);
         ViewHandler viewHandler = new ViewHandler(viewModelFactory);
 
         viewHandler.start(primaryStage);

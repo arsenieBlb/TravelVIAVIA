@@ -4,6 +4,7 @@ import javafx.beans.property.*;
 import model.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class FlightSceneViewModel
     private StringProperty arrivalCity = new SimpleStringProperty("");
     private StringProperty departureTime = new SimpleStringProperty("");
     private StringProperty arrivalTime = new SimpleStringProperty("");
-
+    
     private StringProperty passengerOneFirstName = new SimpleStringProperty("");
     private StringProperty passengerOneLastName = new SimpleStringProperty("");
     private IntegerProperty passengerOneBaggageCount = new SimpleIntegerProperty(0);
@@ -29,22 +30,49 @@ public class FlightSceneViewModel
 
     private ObjectProperty<Flight> selectedFlight = new SimpleObjectProperty<>();
 
+    private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
     public FlightSceneViewModel(model.Model model)
     {
         this.model = model;
+
+        // loads the first available flight from the database and shows it on screen
+        loadFirstFlight();
+    }
+
+    // grabs the first flight from the database and fills in all the labels
+    private void loadFirstFlight()
+    {
+        if (model == null) {
+            return;
+        }
+
+        SearchCriteria criteria = new SearchCriteria();
+        List<Flight> flights = model.searchFlights(criteria);
+
+        if (flights != null && !flights.isEmpty())
+        {
+            Flight flight = flights.get(0);
+            setSelectedFlight(flight);
+
+            departureCity.set(flight.getDepartureCity().getCityName().toUpperCase());
+            arrivalCity.set(flight.getArrivalCity().getCityName().toUpperCase());
+            departureTime.set(flight.getDepartureTime().format(timeFormatter));
+            arrivalTime.set(flight.getArrivalTime().format(timeFormatter));
+            
+            flightNumber.set(flight.getFlightNumber());
+        }
     }
 
     public void confirmBooking()
     {
-        try
-        {
+        try {
             List<Passenger> passengers = new ArrayList<>();
 
             Passenger p1 = new Passenger(1, passengerOneFirstName.get(), passengerOneLastName.get());
 
-            if (passengerOneBaggageCount.get() > 0)
-            {
-                // In theory, the type of luggage should be derived from the model... in short, we'll figure it out
+            if (passengerOneBaggageCount.get() > 0) {
+                // luggage type will come from the database in a future update
             }
 
             passengers.add(p1);
@@ -54,11 +82,8 @@ public class FlightSceneViewModel
                 model.createBooking(selectedFlight.get(), passengers);
                 System.out.println("Booking confirmed!");
             }
-
-        }
-        catch (Exception e)
-        {
-            System.err.println("Booking failed: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Failed to make booking");
         }
     }
 
@@ -66,7 +91,6 @@ public class FlightSceneViewModel
     {
         return passengerOneFirstName;
     }
-
     public StringProperty passengerOneLastNameProperty()
     {
         return passengerOneLastName;
@@ -76,9 +100,8 @@ public class FlightSceneViewModel
     {
         return passengerOneBaggageCount;
     }
-
-    public StringProperty PassengerTwoFirstNameProperty()
-    {
+    
+    public StringProperty PassengerTwoFirstNameProperty() {
         return passengerTwoFirstName;
     }
 
@@ -108,7 +131,8 @@ public class FlightSceneViewModel
         this.selectedFlight.set(flight);
         updateTotalPrice();
     }
-
+    
+    // recalculates total price using the base price from the database
     private void updateTotalPrice()
     {
         if (selectedFlight.get() != null)
@@ -118,8 +142,7 @@ public class FlightSceneViewModel
         }
     }
 
-    public void clear()
-    {
+    public void clear() {
         passengerOneFirstName.set("");
         passengerOneLastName.set("");
         passengerOneBaggageCount.set(0);

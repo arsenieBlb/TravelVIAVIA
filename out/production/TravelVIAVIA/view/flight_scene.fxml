@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="768.0" prefWidth="1366.0" stylesheets="@flight_scene.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane prefHeight="768.0" prefWidth="1366.0" stylesheets="@flight_scene.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.FlightSceneViewController">
     <children>
         <ScrollPane fx:id="rootScrollPane" fitToWidth="true" hbarPolicy="NEVER" layoutX="6.0" layoutY="-14.0" prefHeight="768.0" prefWidth="1366.0" styleClass="root-scroll" vbarPolicy="AS_NEEDED" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="6.0" AnchorPane.rightAnchor="-6.0" AnchorPane.topAnchor="-14.0">
             <content>
@@ -222,8 +222,8 @@
 
                                         <HBox alignment="CENTER_RIGHT" spacing="12.0">
                                             <children>
-                                                <Button fx:id="confirmButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="130.0" styleClass="dark-pill-button" text="CONFIRM" />
-                                                <Button fx:id="cancelButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="130.0" styleClass="dark-pill-button" text="CANCEL" />
+                                                <Button fx:id="confirmButton" onAction="#confirmButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="130.0" styleClass="dark-pill-button" text="CONFIRM" />
+                                                <Button fx:id="cancelButton" onAction="#cancelButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="130.0" styleClass="dark-pill-button" text="CANCEL" />
                                             </children>
                                         </HBox>
                                     </children>
