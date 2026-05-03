@@ -16,6 +16,7 @@ public class ModelManager implements Model
     private DatabaseLoader databaseLoader;
     private UserDAO userDAO;
     private BookingDAO bookingDAO;
+    private int nextSeatAssignmentId = 1;
 
     public ModelManager()
     {
@@ -75,15 +76,37 @@ public class ModelManager implements Model
     @Override
     public Booking createBooking(Flight flight, List<Passenger> passengers)
     {
+        return createBooking(flight, passengers, new ArrayList<>());
+    }
+
+    @Override
+    public Booking createBooking(Flight flight, List<Passenger> passengers,
+        List<Seat> selectedSeats)
+    {
         if (currentUser instanceof Customer customer)
         {
             Booking booking = customer.createBooking(flight, passengers);
+
+            if (selectedSeats != null)
+            {
+                for (int i = 0; i < passengers.size()
+                    && i < selectedSeats.size(); i++)
+                {
+                    Seat seat = selectedSeats.get(i);
+                    if (seat != null)
+                    {
+                        new SeatAssignment(nextSeatAssignmentId++,
+                            passengers.get(i), seat, flight);
+                    }
+                }
+            }
             
             // saves the booking to the database
             try {
                 bookingDAO.saveBooking(booking);
             } catch (SQLException e) {
                 System.out.println("Failed to save booking");
+                throw new IllegalStateException("Failed to save booking.", e);
             }
             return booking;
         }

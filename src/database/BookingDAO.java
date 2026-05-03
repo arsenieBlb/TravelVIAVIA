@@ -6,6 +6,7 @@ import model.Flight;
 import model.LuggageType;
 import model.Passenger;
 import model.PassengerLuggage;
+import model.SeatAssignment;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -115,6 +116,9 @@ public class BookingDAO
       connection.setAutoCommit(false);
       try
       {
+        int bookingId = getNextId(connection, "booking", "booking_id");
+        booking.setBookingId(bookingId);
+
         // inserts the booking record
         String bookingSql = "INSERT INTO flights.booking "
             + "(booking_id, flight_id, created_by_customer_id, "
@@ -137,7 +141,7 @@ public class BookingDAO
 
         // inserts each passenger and their luggage
         for (Passenger passenger : booking.getPassengers()) {
-          savePassenger(passenger, booking.getBookingId(), connection);
+          savePassenger(passenger, booking, connection);
         }
         
         connection.commit();
@@ -151,21 +155,26 @@ public class BookingDAO
   }
 
   // saves a single passenger and their luggage records
-  private void savePassenger(Passenger passenger, int bookingId,
+  private void savePassenger(Passenger passenger, Booking booking,
       Connection connection) throws SQLException
   {
+    passenger.setPassengerId(getNextId(connection, "passenger",
+        "passenger_id"));
+
     String sql = "INSERT INTO flights.passenger "
         + "(passenger_id, booking_id, first_name, last_name) "
         + "VALUES (?, ?, ?, ?)";
     PreparedStatement statement = connection.prepareStatement(sql);
     statement.setInt(1, passenger.getPassengerId());
-    statement.setInt(2, bookingId);
+    statement.setInt(2, booking.getBookingId());
     statement.setString(3, passenger.getFirstName());
     statement.setString(4, passenger.getLastName());
     statement.executeUpdate();
     // saves each luggage item for this passenger
     for (PassengerLuggage luggage : passenger.getPassengerLuggage())
     {
+      luggage.setPassengerLuggageId(getNextId(connection, "passenger_luggage",
+          "passenger_luggage_id"));
       String luggageSql = "INSERT INTO flights.passenger_luggage "
           + "(passenger_luggage_id, passenger_id, luggage_type_id, quantity) "
           + "VALUES (?, ?, ?, ?)";
@@ -176,6 +185,36 @@ public class BookingDAO
       luggageStatement.setInt(4, luggage.getQuantity());
       luggageStatement.executeUpdate();
     }
+
+    SeatAssignment seatAssignment = passenger.getSeatAssignment();
+    if (seatAssignment != null)
+    {
+      saveSeatAssignment(seatAssignment, connection);
+    }
+  }
+
+  private void saveSeatAssignment(SeatAssignment seatAssignment,
+      Connection connection) throws SQLException
+  {
+    String sql = "INSERT INTO flights.flight_seat "
+        + "(flight_id, seat_id, passenger_id, is_occupied) "
+        + "VALUES (?, ?, ?, TRUE)";
+    PreparedStatement statement = connection.prepareStatement(sql);
+    statement.setInt(1, seatAssignment.getFlight().getFlightId());
+    statement.setInt(2, seatAssignment.getSeat().getSeatId());
+    statement.setInt(3, seatAssignment.getPassenger().getPassengerId());
+    statement.executeUpdate();
+  }
+
+  private int getNextId(Connection connection, String tableName,
+      String columnName) throws SQLException
+  {
+    String sql = "SELECT COALESCE(MAX(" + columnName + "), 0) + 1 AS next_id "
+        + "FROM flights." + tableName;
+    PreparedStatement statement = connection.prepareStatement(sql);
+    ResultSet resultSet = statement.executeQuery();
+    resultSet.next();
+    return resultSet.getInt("next_id");
   }
 
   // finds a flight by ID in the provided list

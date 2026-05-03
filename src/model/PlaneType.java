@@ -5,15 +5,17 @@ public class PlaneType
   private int planeTypeId;
   private String typeName;
   private String model;
+  private int numberOfColumns;
   private int numberOfEconomySeats;
   private int numberOfBusinessSeats;
 
   public PlaneType(int planeTypeId, String typeName, String model,
-      int numberOfEconomySeats, int numberOfBusinessSeats)
+      int numberOfColumns, int numberOfEconomySeats, int numberOfBusinessSeats)
   {
     setPlaneTypeId(planeTypeId);
     setTypeName(typeName);
     setModel(model);
+    setNumberOfColumns(numberOfColumns);
     setNumberOfEconomySeats(numberOfEconomySeats);
     setNumberOfBusinessSeats(numberOfBusinessSeats);
     if (getTotalCapacity() <= 0)
@@ -67,6 +69,20 @@ public class PlaneType
       throw new IllegalArgumentException("Model is required.");
     }
     this.model = model;
+  }
+
+  public int getNumberOfColumns()
+  {
+    return numberOfColumns;
+  }
+
+  public void setNumberOfColumns(int numberOfColumns)
+  {
+    if (numberOfColumns <= 0)
+    {
+      throw new IllegalArgumentException("Number of columns must be positive.");
+    }
+    this.numberOfColumns = numberOfColumns;
   }
 
   public int getNumberOfEconomySeats()

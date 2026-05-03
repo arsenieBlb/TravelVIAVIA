@@ -25,41 +25,34 @@ public class PlaneDAO
     try (Connection connection = DatabaseConnection.getConnection())
     {
       String sql = "SELECT pt.id, pt.name, pt.model, pt.num_of_columns, "
-          + "s.num_of_seats, s.type "
+          + "business.num_of_seats AS business_seats, "
+          + "economy.num_of_seats AS economy_seats "
           + "FROM flights.plane_type pt "
-          + "JOIN flights.section s ON pt.plane_section = s.id";
+          + "LEFT JOIN flights.section business "
+          + "ON pt.business_section = business.id "
+          + "LEFT JOIN flights.section economy "
+          + "ON pt.economy_section = economy.id";
 
       PreparedStatement statement = connection.prepareStatement(sql);
       ResultSet resultSet = statement.executeQuery();
-
-      // groups the sections by plane type ID so we can count business vs economy seats
-      Map<Integer, int[]> seatCounts = new HashMap<>();
-      Map<Integer, String[]> planeInfo = new HashMap<>();
 
       while (resultSet.next()) {
         int id = resultSet.getInt("id");
         String name = resultSet.getString("name");
         String model = resultSet.getString("model");
-        int numSeats = resultSet.getInt("num_of_seats");
-        String type = resultSet.getString("type");
-
-        planeInfo.putIfAbsent(id, new String[] {name, model});
-
-        int[] counts = seatCounts.getOrDefault(id, new int[2]);
-        if ("Business".equalsIgnoreCase(type)) {
-          counts[0] = numSeats;
-        } else {
-          counts[1] = numSeats;
+        int numberOfColumns = resultSet.getInt("num_of_columns");
+        int businessSeats = resultSet.getInt("business_seats");
+        if (resultSet.wasNull()) {
+          businessSeats = 0;
         }
-        seatCounts.put(id, counts);
-      }
+        int economySeats = resultSet.getInt("economy_seats");
+        if (resultSet.wasNull()) {
+          economySeats = 0;
+        }
 
-      for (Map.Entry<Integer, String[]> entry : planeInfo.entrySet()) {
-        int id = entry.getKey();
-        String[] info = entry.getValue();
-        int[] counts = seatCounts.getOrDefault(id, new int[2]);
         planeTypes.add(
-            new PlaneType(id, info[0], info[1], counts[1], counts[0]));
+            new PlaneType(id, name, model, numberOfColumns, economySeats,
+                businessSeats));
       }
     }
 

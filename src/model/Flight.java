@@ -21,6 +21,7 @@ public class Flight
   private City arrivalCity;
   private final List<Booking> bookings;
   private final List<SeatAssignment> seatAssignments;
+  private final Set<Seat> occupiedSeats;
 
   public Flight(int flightId, String flightNumber, LocalDateTime departureTime,
       LocalDateTime arrivalTime, double basePrice, Carrier carrier, Plane plane,
@@ -28,6 +29,7 @@ public class Flight
   {
     this.bookings = new ArrayList<>();
     this.seatAssignments = new ArrayList<>();
+    this.occupiedSeats = new HashSet<>();
     setFlightId(flightId);
     setFlightNumber(flightNumber);
     setDepartureTime(departureTime);
@@ -46,6 +48,7 @@ public class Flight
     {
       assignedSeats.add(seatAssignment.getSeat());
     }
+    assignedSeats.addAll(occupiedSeats);
 
     List<Seat> availableSeats = new ArrayList<>();
     for (Seat seat : plane.getSeats())
@@ -109,6 +112,13 @@ public class Flight
     seatAssignments.add(seatAssignment);
   }
 
+  public void markSeatOccupied(Seat seat)
+  {
+    Objects.requireNonNull(seat, "Seat is required.");
+    validateSeatBelongsToPlane(seat);
+    occupiedSeats.add(seat);
+  }
+
   void removeSeatAssignment(SeatAssignment seatAssignment)
   {
     seatAssignments.remove(seatAssignment);
@@ -116,6 +126,10 @@ public class Flight
 
   boolean isSeatAssigned(Seat seat)
   {
+    if (occupiedSeats.contains(seat))
+    {
+      return true;
+    }
     for (SeatAssignment seatAssignment : seatAssignments)
     {
       if (seatAssignment.getSeat().equals(seat))

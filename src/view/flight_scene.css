@@ -238,3 +238,138 @@
     -fx-font-size: 32px;
     -fx-text-fill: #212121;
 }
+
+.seat-dialog {
+    -fx-font-family: "Poppins";
+}
+
+.seat-dialog > .content {
+    -fx-background-color: #f3f3f3;
+}
+
+.seat-map-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: #c7c7cc;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.seat-map-scroll > .viewport {
+    -fx-background-color: #f3f3f3;
+}
+
+.seat-map {
+    -fx-background-color: #f3f3f3;
+}
+
+.plane-front-label {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #4b4b4b;
+}
+
+.plane-nose {
+    -fx-font-family: "Consolas";
+    -fx-font-size: 15px;
+    -fx-text-fill: #707070;
+    -fx-text-alignment: center;
+}
+
+.seat-section-divider {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #666666;
+    -fx-padding: 10 0 4 38;
+}
+
+.seat-row-label {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #5a5a5a;
+    -fx-min-width: 30;
+    -fx-alignment: center-right;
+}
+
+.seat-aisle {
+    -fx-min-width: 24;
+}
+
+.seat-button {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-opacity: 1;
+}
+
+.business-seat-button {
+    -fx-font-size: 14px;
+    -fx-padding: 2 0 2 0;
+}
+
+.economy-seat-button {
+    -fx-font-size: 13px;
+}
+
+.seat-available {
+    -fx-background-color: #d9dde2;
+    -fx-border-color: #aeb4bb;
+    -fx-text-fill: #24272a;
+}
+
+.seat-available:hover {
+    -fx-background-color: #c7d5e8;
+    -fx-border-color: #6c8ebf;
+}
+
+.seat-taken {
+    -fx-background-color: #c94343;
+    -fx-border-color: #8d2424;
+    -fx-text-fill: #ffffff;
+    -fx-opacity: 1;
+}
+
+.seat-disabled {
+    -fx-background-color: #efefef;
+    -fx-border-color: #dddddd;
+    -fx-text-fill: #a5a5a5;
+    -fx-opacity: 1;
+}
+
+.seat-selected {
+    -fx-border-color: #111111;
+    -fx-border-width: 3;
+}
+
+.legend-swatch {
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+}
+
+.legend-available {
+    -fx-background-color: #d9dde2;
+    -fx-border-color: #aeb4bb;
+}
+
+.legend-taken {
+    -fx-background-color: #c94343;
+    -fx-border-color: #8d2424;
+}
+
+.legend-selected {
+    -fx-background-color: #d9dde2;
+    -fx-border-color: #111111;
+    -fx-border-width: 3;
+}
+
+.seat-legend-label {
+    -fx-font-family: "Poppins";
+    -fx-font-size: 13px;
+    -fx-text-fill: #333333;
+}

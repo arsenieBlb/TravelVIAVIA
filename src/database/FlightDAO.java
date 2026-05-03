@@ -4,6 +4,7 @@ import model.Carrier;
 import model.City;
 import model.Flight;
 import model.Plane;
+import model.Seat;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -64,9 +65,37 @@ public class FlightDAO
           flights.add(flight);
         }
       }
+
+      loadOccupiedSeats(flights, connection);
     }
 
     return flights;
+  }
+
+  // marks already booked seats as unavailable for the seat picker
+  private void loadOccupiedSeats(List<Flight> flights, Connection connection)
+      throws SQLException
+  {
+    String sql = "SELECT flight_id, seat_id FROM flights.flight_seat "
+        + "WHERE is_occupied = TRUE";
+    PreparedStatement statement = connection.prepareStatement(sql);
+    ResultSet resultSet = statement.executeQuery();
+
+    while (resultSet.next())
+    {
+      Flight flight = findFlightById(flights, resultSet.getInt("flight_id"));
+      if (flight == null)
+      {
+        continue;
+      }
+
+      Seat seat = findSeatById(flight.getPlane().getSeats(),
+          resultSet.getInt("seat_id"));
+      if (seat != null)
+      {
+        flight.markSeatOccupied(seat);
+      }
+    }
   }
   // finds a carrier by ID in the provided list
   private Carrier findCarrierById(List<Carrier> carriers, int id)
@@ -79,12 +108,36 @@ public class FlightDAO
     return null;
   }
 
+  private Flight findFlightById(List<Flight> flights, int id)
+  {
+    for (Flight flight : flights)
+    {
+      if (flight.getFlightId() == id)
+      {
+        return flight;
+      }
+    }
+    return null;
+  }
+
   // finds a plane by ID in the provided list
   private Plane findPlaneById(List<Plane> planes, int id) {
     for (Plane p : planes)
     {
       if (p.getPlaneId() == id) {
         return p;
+      }
+    }
+    return null;
+  }
+
+  private Seat findSeatById(List<Seat> seats, int id)
+  {
+    for (Seat seat : seats)
+    {
+      if (seat.getSeatId() == id)
+      {
+        return seat;
       }
     }
     return null;

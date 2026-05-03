@@ -51,9 +51,13 @@ CREATE TABLE plane_type(
     id INTEGER PRIMARY KEY ,
     name VARCHAR(100) UNIQUE,
     plane_section INTEGER,
+    business_section INTEGER,
+    economy_section INTEGER,
     num_of_columns INTEGER,
     model VARCHAR(20),
-    FOREIGN KEY (plane_section) REFERENCES section(id)
+    FOREIGN KEY (plane_section) REFERENCES section(id),
+    FOREIGN KEY (business_section) REFERENCES section(id),
+    FOREIGN KEY (economy_section) REFERENCES section(id)
 );
 
 CREATE TABLE plane(
@@ -68,7 +72,7 @@ CREATE TABLE city(
     city_id INTEGER PRIMARY KEY,
     city_name VARCHAR(100),
     country VARCHAR(100),
-    local_time TIME
+    local_time VARCHAR(20)
 );
 
 CREATE TABLE flight(
@@ -80,7 +84,7 @@ CREATE TABLE flight(
     departure_time TIMESTAMP,
     arrival_time TIMESTAMP,
     base_price DECIMAL(10,3),
-    flight_status VARCHAR(10),
+    flight_status VARCHAR(12),
     FOREIGN KEY (carrier_id) REFERENCES carrier(carrier_id),
     FOREIGN KEY (plane_id) REFERENCES plane(id),
     FOREIGN KEY (departure_city_id) REFERENCES city(city_id),
@@ -158,24 +162,78 @@ INSERT INTO luggage_type(luggage_type_id, name, description, max_weight_kg, extr
 (2, 'Baggage', 'Checked-in baggage', 23, 25.00);
 
 INSERT INTO section(id, num_of_seats, type) VALUES
-(1, 20, 'Business'),
-(2, 150, 'Economy');
+(1, 16, 'Business'),
+(2, 48, 'Economy');
 
 INSERT INTO seat(id, seat_label, section_id) VALUES
 (1, '1A', 1),
 (2, '1B', 1),
-(3, '2A', 1),
-(4, '2B', 1),
+(3, '1C', 1),
+(4, '1D', 1),
+(5, '2A', 1),
+(6, '2B', 1),
+(7, '2C', 1),
+(8, '2D', 1),
+(9, '3A', 1),
+(10, '3B', 1),
+(11, '3C', 1),
+(12, '3D', 1),
+(13, '4A', 1),
+(14, '4B', 1),
+(15, '4C', 1),
+(16, '4D', 1),
 (101, '10A', 2),
 (102, '10B', 2),
 (103, '10C', 2),
-(104, '11A', 2),
-(105, '11B', 2),
-(106, '11C', 2);
+(104, '10D', 2),
+(105, '10E', 2),
+(106, '10F', 2),
+(107, '11A', 2),
+(108, '11B', 2),
+(109, '11C', 2),
+(110, '11D', 2),
+(111, '11E', 2),
+(112, '11F', 2),
+(113, '12A', 2),
+(114, '12B', 2),
+(115, '12C', 2),
+(116, '12D', 2),
+(117, '12E', 2),
+(118, '12F', 2),
+(119, '13A', 2),
+(120, '13B', 2),
+(121, '13C', 2),
+(122, '13D', 2),
+(123, '13E', 2),
+(124, '13F', 2),
+(125, '14A', 2),
+(126, '14B', 2),
+(127, '14C', 2),
+(128, '14D', 2),
+(129, '14E', 2),
+(130, '14F', 2),
+(131, '15A', 2),
+(132, '15B', 2),
+(133, '15C', 2),
+(134, '15D', 2),
+(135, '15E', 2),
+(136, '15F', 2),
+(137, '16A', 2),
+(138, '16B', 2),
+(139, '16C', 2),
+(140, '16D', 2),
+(141, '16E', 2),
+(142, '16F', 2),
+(143, '17A', 2),
+(144, '17B', 2),
+(145, '17C', 2),
+(146, '17D', 2),
+(147, '17E', 2),
+(148, '17F', 2);
 
-INSERT INTO plane_type(id, name, plane_section, num_of_columns, model) VALUES
-(1, 'Jumbo Jet', 1, 10, 'Boeing 747-8'),
-(2, 'Regional Jet', 2, 4, 'Airbus A320');
+INSERT INTO plane_type(id, name, plane_section, business_section, economy_section, num_of_columns, model) VALUES
+(1, 'Jumbo Jet', 1, 1, 2, 6, 'Boeing 747-8'),
+(2, 'Regional Jet', 2, NULL, 2, 6, 'Airbus A320');
 
 INSERT INTO plane(id, plane_type, carrier_id) VALUES
 (501, 1, 1),
@@ -191,9 +249,6 @@ INSERT INTO city(city_id, city_name, country, local_time) VALUES
 (5, 'Madrid', 'Spain', 'UTC+2'),
 (6, 'Warsaw', 'Poland', 'UTC+2');
 
-ALTER TABLE city
-ALTER COLUMN local_time TYPE VARCHAR(20);
-
 INSERT INTO flight(flight_id, carrier_id, plane_id, departure_city_id,
                    arrival_city_id, departure_time, arrival_time, base_price, flight_status) VALUES
 (104, 1, 501, 3, 2,
@@ -202,9 +257,6 @@ INSERT INTO flight(flight_id, carrier_id, plane_id, departure_city_id,
  '2026-07-11 09:00:00', '2026-07-11 11:30:00', 55.00, 'Available'),
 (106, 1, 502, 6, 3,
  '2026-07-12 18:00:00', '2026-07-12 20:15:00', 75.00, 'Unavailable');
-
-ALTER TABLE flight
-ALTER COLUMN flight_status TYPE VARCHAR(12);
 
 INSERT INTO booking(booking_id, flight_id, created_by_customer_id, passenger_count, total_price) VALUES
 (1, 104, 2, 1, 90.00);
