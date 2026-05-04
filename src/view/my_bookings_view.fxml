@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fx:id="bookingsContentPane"
+            fitToWidth="true"
+            hbarPolicy="NEVER"
+            vbarPolicy="AS_NEEDED"
+            styleClass="page-scroll"
+            xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1">
+
+    <content>
+        <VBox spacing="18.0" styleClass="page-content">
+            <padding>
+                <Insets top="24.0" right="34.0" bottom="24.0" left="34.0"/>
+            </padding>
+            <children>
+                <Label text="My Bookings" styleClass="title-medium"/>
+
+                <!-- TEAM TODO: populate this with booking cards (custom nodes or cell factory) -->
+                <FlowPane fx:id="bookingsListPane" hgap="14.0" vgap="14.0" prefWrapLength="1250.0" styleClass="bookings-grid"/>
+
+                <VBox fx:id="emptyBookingsPane" alignment="CENTER" spacing="6.0" styleClass="empty-state-pane">
+                    <children>
+                        <Label text="No bookings yet" styleClass="empty-title"/>
+                        <Label text="Click the plus button to add your first booking" styleClass="empty-subtitle"/>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </content>
+</ScrollPane>
