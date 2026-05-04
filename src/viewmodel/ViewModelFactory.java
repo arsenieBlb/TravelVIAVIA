@@ -21,4 +21,15 @@ public class ViewModelFactory
         }
         return flightSceneViewModel;
     }
+
+    private SeatMapViewModel seatMapViewModel;
+
+    public SeatMapViewModel getSeatMapViewModel()
+    {
+        if (seatMapViewModel == null)
+        {
+            seatMapViewModel = new SeatMapViewModel(getFlightSceneViewModel());
+        }
+        return seatMapViewModel;
+    }
 }

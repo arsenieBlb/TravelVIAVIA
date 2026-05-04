@@ -55,7 +55,7 @@ public class ViewHandler {
             loader.setLocation(getClass().getResource(fxmlFile));
             Region root = loader.load();
             flightSceneViewController = loader.getController();
-            flightSceneViewController.init(root, this, viewModelFactory.getFlightSceneViewModel());
+            flightSceneViewController.init(root, this, viewModelFactory.getFlightSceneViewModel(), viewModelFactory.getSeatMapViewModel());
         }
         else
         {
