@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="verificationModal"
+           styleClass="modal-overlay"
+           xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1">
+
+    <children>
+        <VBox spacing="14.0" styleClass="modal-card">
+            <children>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Cancel Booking" styleClass="modal-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="closeVerificationButton" text="X" styleClass="btn-icon-plain"/>
+                    </children>
+                </HBox>
+
+                <Label text="Confirm your email address to cancel this booking." styleClass="subtle-body"/>
+
+                <VBox spacing="6.0">
+                    <children>
+                        <Label text="Email Address" styleClass="input-label"/>
+                        <TextField fx:id="verifyEmailField" promptText="Enter your email" styleClass="field-input"/>
+                        <!-- TEAM TODO: set visible + text when email mismatch -->
+                        <Label fx:id="verifyErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
+                    </children>
+                </VBox>
+
+                <HBox spacing="10.0">
+                    <children>
+                        <Button fx:id="cancelVerificationButton" text="Cancel" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="btn-outline"/>
+                        <!-- TEAM TODO: verify email + execute cancellation -->
+                        <Button fx:id="confirmVerificationButton" text="Confirm Cancellation" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="btn-danger"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</StackPane>
