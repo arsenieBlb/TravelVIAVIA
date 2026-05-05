@@ -20,6 +20,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fx:id="bookContentPane"
+            fx:controller="view.BookFlightViewController"
             fitToWidth="true"
             hbarPolicy="NEVER"
             vbarPolicy="AS_NEEDED"
@@ -89,16 +90,21 @@
                                         <Label text="PASSENGERS" styleClass="field-label"/>
                                         <HBox alignment="CENTER" spacing="8.0" styleClass="spinner-box">
                                             <children>
-                                                <!-- TEAM TODO: decrement vm.passengerCount -->
-                                                <Button fx:id="decreasePassengersButton" text="-" styleClass="btn-icon-plain"/>
-                                                <TextField fx:id="passengerCountField"
-                                                           text="1"
-                                                           editable="false"
-                                                           alignment="CENTER"
-                                                           prefWidth="54.0"
-                                                           styleClass="spinner-field"/>
-                                                <!-- TEAM TODO: increment vm.passengerCount -->
-                                                <Button fx:id="increasePassengersButton" text="+" styleClass="btn-icon-plain"/>
+                                                <Button fx:id="decreasePassengersButton"
+                                                        text="-"
+                                                        onAction="#onDecrementClick"
+                                                        styleClass="btn-icon-plain"/>
+
+                                                <Label fx:id="passengerLabel"
+                                                       text="1"
+                                                       alignment="CENTER"
+                                                       prefWidth="54.0"
+                                                       styleClass="spinner-field"/>
+
+                                                <Button fx:id="increasePassengersButton"
+                                                        text="+"
+                                                        onAction="#onIncrementClick"
+                                                        styleClass="btn-icon-plain"/>
                                             </children>
                                         </HBox>
                                     </children>

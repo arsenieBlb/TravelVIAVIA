@@ -7,6 +7,8 @@ public class ViewModelFactory
 
     private Model model;
     private FlightSceneViewModel flightSceneViewModel;
+    private SeatMapViewModel seatMapViewModel;
+    private BookFlightViewModel bookFlightViewModel;
 
     public ViewModelFactory(Model model)
     {
@@ -22,8 +24,6 @@ public class ViewModelFactory
         return flightSceneViewModel;
     }
 
-    private SeatMapViewModel seatMapViewModel;
-
     public SeatMapViewModel getSeatMapViewModel()
     {
         if (seatMapViewModel == null)
@@ -31,5 +31,14 @@ public class ViewModelFactory
             seatMapViewModel = new SeatMapViewModel(getFlightSceneViewModel());
         }
         return seatMapViewModel;
+    }
+
+    public BookFlightViewModel getBookFlightViewModel()
+    {
+        if (bookFlightViewModel == null)
+        {
+            bookFlightViewModel = new BookFlightViewModel(model);
+        }
+        return bookFlightViewModel;
     }
 }

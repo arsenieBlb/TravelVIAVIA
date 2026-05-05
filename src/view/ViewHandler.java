@@ -13,6 +13,7 @@ public class ViewHandler {
     private Scene scene;
     private FlightSceneViewController flightSceneViewController;
     private ViewModelFactory viewModelFactory;
+    private BookFlightViewController bookFlightViewController;
 
     public ViewHandler(ViewModelFactory viewModelFactory)
     {
@@ -47,20 +48,42 @@ public class ViewHandler {
         }
     }
 
-    public Region loadFlightSceneView(String fxmlFile) throws IOException
-    {
-        if (flightSceneViewController == null)
-        {
+    public Region loadFlightSceneView(String fxmlFile) throws IOException {
+        if (flightSceneViewController == null) {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource(fxmlFile));
             Region root = loader.load();
             flightSceneViewController = loader.getController();
-            flightSceneViewController.init(root, this, viewModelFactory.getFlightSceneViewModel(), viewModelFactory.getSeatMapViewModel());
-        }
-        else
-        {
+
+            BookFlightViewController bookCtrl = (BookFlightViewController) loader.getNamespace().get("bookViewController");
+
+            flightSceneViewController.init(root, this,
+                    viewModelFactory.getFlightSceneViewModel(),
+                    viewModelFactory.getSeatMapViewModel());
+
+            if (bookCtrl != null) {
+                bookCtrl.init(viewModelFactory.getBookFlightViewModel(), root, this);
+            }
+        } else {
             flightSceneViewController.reset();
         }
         return flightSceneViewController.getRoot();
+    }
+
+    public Region loadBookFlightView(String fxmlFile) throws IOException
+    {
+        if (bookFlightViewController == null)
+        {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource(fxmlFile));
+            Region root = loader.load();
+            bookFlightViewController = loader.getController();
+            bookFlightViewController.init(viewModelFactory.getBookFlightViewModel(), root, this);
+        }
+        else
+        {
+            bookFlightViewController.reset();
+        }
+        return bookFlightViewController.getRoot();
     }
 }
