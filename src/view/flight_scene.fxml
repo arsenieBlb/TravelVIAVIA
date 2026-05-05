@@ -12,11 +12,11 @@
 
 <StackPane fx:id="root"
            fx:controller="view.FlightSceneViewController"
-           prefWidth="1440.0"
-           prefHeight="920.0"
+           prefWidth="1500.0"
+           prefHeight="750.0"
            stylesheets="@flight_scene.css"
            xmlns="http://javafx.com/javafx/17"
-           xmlns:fx="http://javafx.com/fxml/1">
+           xmlns:fx="http://fxml.com/fxml/1">
 
     <children>
         <BorderPane styleClass="app-root">
@@ -37,7 +37,6 @@
                                         </StackPane>
                                         <VBox spacing="2.0">
                                             <children>
-                                                <!-- TEAM TODO: bind this to vm.pageTitle -->
                                                 <Label fx:id="pageTitleLabel" text="Travel via VIA" styleClass="title-large"/>
                                                 <Label text="Book flights worldwide" styleClass="subtle-caption"/>
                                             </children>
@@ -49,10 +48,8 @@
 
                                 <HBox alignment="CENTER_RIGHT" spacing="12.0">
                                     <children>
-                                        <!-- TEAM TODO: bind auth status text -->
                                         <Label fx:id="authStatusLabel" text="Not signed in" styleClass="auth-status"/>
-                                        <!-- TEAM TODO: wire Login/Sign Out action -->
-                                        <Button fx:id="authButton" text="Login" styleClass="btn-primary"/>
+                                        <Button fx:id="authButton" text="Login" onAction="#loginButton" styleClass="btn-primary"/>
                                     </children>
                                 </HBox>
                             </children>
@@ -63,14 +60,12 @@
                                 <Insets top="0.0" right="34.0" bottom="0.0" left="34.0"/>
                             </padding>
                             <children>
-                                <!-- TEAM TODO: switch content stack to Book view -->
                                 <Button fx:id="bookTabButton" text="BOOK A FLIGHT">
                                     <styleClass>
                                         <String fx:value="tab-btn"/>
                                         <String fx:value="tab-btn-active"/>
                                     </styleClass>
                                 </Button>
-                                <!-- TEAM TODO: switch content stack to Bookings view -->
                                 <Button fx:id="bookingsTabButton" text="MY BOOKINGS" styleClass="tab-btn"/>
                             </children>
                         </HBox>
@@ -83,17 +78,19 @@
                     <children>
                         <StackPane fx:id="bookViewWrapper">
                             <children>
-                                <fx:include fx:id="bookView" source="book_flight_view.fxml"/>
+                                <fx:include fx:id="bookViewController" source="book_flight_view.fxml"/>
                             </children>
                         </StackPane>
+
                         <StackPane fx:id="bookingsViewWrapper" visible="false" managed="false">
                             <children>
-                                <fx:include fx:id="bookingsView" source="my_bookings_view.fxml"/>
+                                <fx:include fx:id="bookingsViewController" source="my_bookings_view.fxml"/>
                             </children>
                         </StackPane>
+
                         <StackPane fx:id="passengerViewWrapper" visible="false" managed="false">
                             <children>
-                                <fx:include fx:id="passengerView" source="passenger_details_view.fxml"/>
+                                <fx:include fx:id="passengerViewController" source="passenger_details_view.fxml"/>
                             </children>
                         </StackPane>
                     </children>
@@ -101,58 +98,22 @@
             </center>
         </BorderPane>
 
-        <!-- TEAM TODO: show only when bookings screen is active -->
-        <Button fx:id="floatingAddBookingButton"
-                text="+"
-                styleClass="floating-btn"
-                visible="false"
-                managed="false"
-                StackPane.alignment="BOTTOM_RIGHT">
-            <StackPane.margin>
-                <Insets right="34.0" bottom="30.0"/>
-            </StackPane.margin>
-        </Button>
-
-        <StackPane fx:id="addBookingDialogWrapper" visible="false" managed="false">
-            <children>
-                <fx:include fx:id="addBookingDialog" source="add_booking_dialog.fxml"/>
-            </children>
-        </StackPane>
-        <StackPane fx:id="loginDialogWrapper" visible="false" managed="false">
-            <children>
-                <fx:include fx:id="loginDialog" source="login_dialog.fxml"/>
-            </children>
-        </StackPane>
-        <StackPane fx:id="registerDialogWrapper" visible="false" managed="false">
-            <children>
-                <fx:include fx:id="registerDialog" source="register_dialog.fxml"/>
-            </children>
-        </StackPane>
-        <StackPane fx:id="adminLoginDialogWrapper" visible="false" managed="false">
-            <children>
-                <fx:include fx:id="adminLoginDialog" source="admin_login_dialog.fxml"/>
-            </children>
-        </StackPane>
-        <StackPane fx:id="verificationDialogWrapper" visible="false" managed="false">
-            <children>
-                <fx:include fx:id="verificationDialog" source="email_verification_dialog.fxml"/>
-            </children>
-        </StackPane>
-        <StackPane fx:id="cancellationDialogWrapper" visible="false" managed="false">
-            <children>
-                <fx:include fx:id="cancellationDialog" source="cancellation_dialog.fxml"/>
-            </children>
-        </StackPane>
-        <StackPane fx:id="bookingDetailsDialogWrapper" visible="false" managed="false">
-            <children>
-                <fx:include fx:id="bookingDetailsDialog" source="booking_details_dialog.fxml"/>
-            </children>
-        </StackPane>
         <StackPane fx:id="seatMapDialogWrapper" visible="false" managed="false">
             <children>
                 <fx:include fx:id="seatMapDialog" source="seat_map_dialog.fxml"/>
             </children>
         </StackPane>
+
+        <StackPane fx:id="loginDialogWrapper" visible="false" managed="false">
+            <children>
+                <fx:include fx:id="loginDialog" source="login_dialog.fxml"/>
+            </children>
+        </StackPane>
+
+        <StackPane fx:id="bookingDetailsDialogWrapper" visible="false" managed="false">
+            <children>
+                <fx:include fx:id="bookingDetailsDialog" source="booking_details_dialog.fxml"/>
+            </children>
+        </StackPane>
     </children>
 </StackPane>
-

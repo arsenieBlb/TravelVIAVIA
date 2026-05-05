@@ -14,6 +14,7 @@ public class ViewHandler {
     private FlightSceneViewController flightSceneViewController;
     private ViewModelFactory viewModelFactory;
     private BookFlightViewController bookFlightViewController;
+    private SeatMapViewController seatMapViewController;
 
     public ViewHandler(ViewModelFactory viewModelFactory)
     {
@@ -55,15 +56,14 @@ public class ViewHandler {
             Region root = loader.load();
             flightSceneViewController = loader.getController();
 
-            BookFlightViewController bookCtrl = (BookFlightViewController) loader.getNamespace().get("bookViewController");
-
-            flightSceneViewController.init(root, this,
-                    viewModelFactory.getFlightSceneViewModel(),
-                    viewModelFactory.getSeatMapViewModel());
+            BookFlightViewController bookCtrl = (BookFlightViewController) loader.getNamespace().get("bookViewControllerController");
 
             if (bookCtrl != null) {
                 bookCtrl.init(viewModelFactory.getBookFlightViewModel(), root, this);
             }
+
+            flightSceneViewController.init(root, this,
+                    viewModelFactory.getFlightSceneViewModel());
         } else {
             flightSceneViewController.reset();
         }
@@ -85,5 +85,22 @@ public class ViewHandler {
             bookFlightViewController.reset();
         }
         return bookFlightViewController.getRoot();
+    }
+
+    public Region loadSeatMapView(String fxmlFile) throws IOException
+    {
+        if (seatMapViewController == null)
+        {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource(fxmlFile));
+            Region root = loader.load();
+            seatMapViewController = loader.getController();
+            seatMapViewController.init(root, this, viewModelFactory.getSeatMapViewModel());
+        }
+        else
+        {
+            seatMapViewController.reset();
+        }
+        return seatMapViewController.getRoot();
     }
 }

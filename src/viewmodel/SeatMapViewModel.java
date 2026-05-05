@@ -50,4 +50,8 @@ public class SeatMapViewModel {
     public void cancelSelection() {
         temporarySelection.set(null);
     }
+
+    public void clear() {
+        currentPassengerNumber = Integer.parseInt(null);
+    }
 }

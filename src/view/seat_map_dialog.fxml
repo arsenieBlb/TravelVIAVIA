@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <StackPane fx:id="seatModal"
+           fx:controller="view.SeatMapViewController"
            styleClass="modal-overlay"
            xmlns="http://javafx.com/javafx/17"
            xmlns:fx="http://javafx.com/fxml/1">

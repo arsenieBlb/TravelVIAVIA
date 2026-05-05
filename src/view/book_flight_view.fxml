@@ -168,10 +168,10 @@
                             <children>
                                 <GridPane hgap="16.0" vgap="8.0">
                                     <columnConstraints>
-                                        <ColumnConstraints hgrow="ALWAYS"/>
-                                        <ColumnConstraints hgrow="ALWAYS"/>
-                                        <ColumnConstraints hgrow="ALWAYS"/>
-                                    </columnConstraints>
+                                    <ColumnConstraints percentWidth="33.3" hgrow="SOMETIMES"/>
+                                    <ColumnConstraints percentWidth="33.4" hgrow="SOMETIMES"/>
+                                    <ColumnConstraints percentWidth="33.3" hgrow="SOMETIMES"/>
+                                </columnConstraints>
                                     <children>
                                         <VBox spacing="4.0" GridPane.columnIndex="0">
                                             <children>
@@ -196,9 +196,9 @@
 
                                 <GridPane hgap="16.0" vgap="8.0">
                                     <columnConstraints>
-                                        <ColumnConstraints hgrow="ALWAYS"/>
-                                        <ColumnConstraints hgrow="ALWAYS"/>
-                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                        <ColumnConstraints percentWidth="33.3" hgrow="SOMETIMES"/>
+                                        <ColumnConstraints percentWidth="33.4" hgrow="SOMETIMES"/>
+                                        <ColumnConstraints percentWidth="33.3" hgrow="SOMETIMES"/>
                                     </columnConstraints>
                                     <children>
                                         <VBox spacing="4.0" GridPane.columnIndex="0">
