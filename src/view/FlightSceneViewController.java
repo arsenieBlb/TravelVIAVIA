@@ -52,6 +52,7 @@ public class FlightSceneViewController {
                     depCol.setCellValueFactory(cellData -> new SimpleStringProperty(
                             cellData.getValue().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm"))));
 
+                    depCol.setSortable(false);
                     durCol.setCellValueFactory(cellData ->
                             new SimpleStringProperty(cellData.getValue().getDurationString())
                     );
@@ -89,6 +90,36 @@ public class FlightSceneViewController {
                             }
                         }
                     });
+
+                    ComboBox<String> sortCombo = (ComboBox<String>) root.lookup("#sortByCombo");
+
+                    if (sortCombo != null) {
+                        sortCombo.getItems().setAll(
+                                "Price (Low to High)",
+                                "Duration (Shortest First)",
+                                "Departure (Early First)"
+                        );
+                        sortCombo.getSelectionModel().selectFirst();
+
+                        sortCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                            if (newVal != null) {
+                                flightSceneViewModel.sortFlights(newVal);
+                            }
+                        });
+                    }
+
+                    ComboBox<String> airlineCombo = (ComboBox<String>) root.lookup("#airlineCombo");
+
+                    if (airlineCombo != null) {
+                        airlineCombo.getItems().setAll(flightSceneViewModel.getUniqueCarriers());
+
+                        airlineCombo.getItems().add(0, "All Airlines");
+                        airlineCombo.getSelectionModel().selectFirst();
+
+                        airlineCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                            flightSceneViewModel.filterByCarrier(newVal);
+                        });
+                    }
 
                     Label resultCountLabel = (Label) root.lookup("#resultCountLabel");
                     if (resultCountLabel != null) {
