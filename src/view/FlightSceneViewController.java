@@ -125,6 +125,8 @@ public class FlightSceneViewController {
                     if (resultCountLabel != null) {
                         resultCountLabel.textProperty().bind(Bindings.size(flightSceneViewModel.getFilteredFlights()).asString());
                     }
+                    
+                    setupLoginModals();
                 }
             }
         });
@@ -133,5 +135,91 @@ public class FlightSceneViewController {
     public Region getRoot() { return root; }
     public void reset() { flightSceneViewModel.clear(); }
 
-    @FXML public void loginButton() { /*  */ }
+    @FXML public void loginButton() {
+        if (flightSceneViewModel.getLoggedInUser() == null) {
+            StackPane loginDialog = (StackPane) root.lookup("#loginDialogWrapper");
+            if (loginDialog != null) {
+                loginDialog.setVisible(true);
+                loginDialog.setManaged(true);
+            }
+        } else {
+            flightSceneViewModel.logout();
+            updateAuthUI();
+        }
+    }
+    
+    private void updateAuthUI() {
+        Label authStatusLabel = (Label) root.lookup("#authStatusLabel");
+        Button authButton = (Button) root.lookup("#authButton");
+        model.User user = flightSceneViewModel.getLoggedInUser();
+        if (authStatusLabel != null && authButton != null) {
+            if (user == null) {
+                authStatusLabel.setText("Not signed in");
+                authButton.setText("Login");
+            } else {
+                authStatusLabel.setText("Signed in as " + user.getEmail());
+                authButton.setText("Logout");
+            }
+        }
+    }
+
+    private void setupLoginModals() {
+        StackPane loginWrapper = (StackPane) root.lookup("#loginDialogWrapper");
+        StackPane registerWrapper = (StackPane) root.lookup("#registerDialogWrapper");
+
+        Button closeLogin = (Button) root.lookup("#closeLoginButton");
+        Button submitLogin = (Button) root.lookup("#loginSubmitButton");
+        TextField loginEmail = (TextField) root.lookup("#loginEmailField");
+        PasswordField loginPass = (PasswordField) root.lookup("#loginPasswordField");
+        Button switchRegister = (Button) root.lookup("#switchToRegisterButton");
+
+        if (closeLogin != null) closeLogin.setOnAction(e -> { loginWrapper.setVisible(false); loginWrapper.setManaged(false); });
+        
+        if (submitLogin != null) submitLogin.setOnAction(e -> {
+            boolean success = flightSceneViewModel.login(loginEmail.getText(), loginPass.getText());
+            if (success) {
+                loginWrapper.setVisible(false); loginWrapper.setManaged(false);
+                loginEmail.clear(); loginPass.clear();
+                updateAuthUI();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid email or password");
+                alert.show();
+            }
+        });
+
+        if (switchRegister != null) switchRegister.setOnAction(e -> {
+            loginWrapper.setVisible(false); loginWrapper.setManaged(false);
+            if (registerWrapper != null) { registerWrapper.setVisible(true); registerWrapper.setManaged(true); }
+        });
+
+        Button closeRegister = (Button) root.lookup("#closeRegisterButton");
+        Button submitRegister = (Button) root.lookup("#registerSubmitButton");
+        TextField regName = (TextField) root.lookup("#registerNameField");
+        TextField regLast = (TextField) root.lookup("#registerLastNameField");
+        TextField regEmail = (TextField) root.lookup("#registerEmailField");
+        PasswordField regPass = (PasswordField) root.lookup("#registerPasswordField");
+        Button backToLogin = (Button) root.lookup("#backToLoginFromRegisterButton");
+
+        if (closeRegister != null) closeRegister.setOnAction(e -> { registerWrapper.setVisible(false); registerWrapper.setManaged(false); });
+
+        if (submitRegister != null) submitRegister.setOnAction(e -> {
+            boolean success = flightSceneViewModel.register(regName.getText(), regLast.getText(), regEmail.getText(), regPass.getText());
+            if (success) {
+                flightSceneViewModel.login(regEmail.getText(), regPass.getText());
+                registerWrapper.setVisible(false); registerWrapper.setManaged(false);
+                regName.clear(); regLast.clear(); regEmail.clear(); regPass.clear();
+                updateAuthUI();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Registration failed or email already exists.");
+                alert.show();
+            }
+        });
+
+        if (backToLogin != null) backToLogin.setOnAction(e -> {
+            registerWrapper.setVisible(false); registerWrapper.setManaged(false);
+            if (loginWrapper != null) { loginWrapper.setVisible(true); loginWrapper.setManaged(true); }
+        });
+        
+        updateAuthUI();
+    }
 }

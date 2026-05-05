@@ -28,7 +28,9 @@ public class ViewModelFactory
     {
         if (seatMapViewModel == null)
         {
-            seatMapViewModel = new SeatMapViewModel(getFlightSceneViewModel());
+            FlightSceneViewModel fvm = getFlightSceneViewModel();
+            seatMapViewModel = new SeatMapViewModel(fvm);
+            fvm.setSeatMapViewModel(seatMapViewModel);
         }
         return seatMapViewModel;
     }

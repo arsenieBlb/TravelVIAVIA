@@ -69,4 +69,41 @@ public class UserDAO
     return new Customer(userId, email, password, "Unknown", "User",
         flightSearchService);
   }
+
+  public boolean registerCustomer(String firstName, String lastName, String email, String password) throws SQLException {
+    try (Connection connection = DatabaseConnection.getConnection()) {
+      connection.setAutoCommit(false);
+      try {
+        String maxIdSql = "SELECT COALESCE(MAX(user_id), 0) FROM flights.users";
+        PreparedStatement maxIdStmt = connection.prepareStatement(maxIdSql);
+        ResultSet rs = maxIdStmt.executeQuery();
+        int newUserId = 1;
+        if (rs.next()) {
+           newUserId = rs.getInt(1) + 1;
+        }
+
+        String insertUserSql = "INSERT INTO flights.users (user_id, email, password_hash, user_type) VALUES (?, ?, ?, 'Customer')";
+        PreparedStatement insertUserStmt = connection.prepareStatement(insertUserSql);
+        insertUserStmt.setInt(1, newUserId);
+        insertUserStmt.setString(2, email);
+        insertUserStmt.setString(3, password);
+        insertUserStmt.executeUpdate();
+
+        String insertCustomerSql = "INSERT INTO flights.customer (customer_id, first_name, last_name) VALUES (?, ?, ?)";
+        PreparedStatement insertCustomerStmt = connection.prepareStatement(insertCustomerSql);
+        insertCustomerStmt.setInt(1, newUserId);
+        insertCustomerStmt.setString(2, firstName);
+        insertCustomerStmt.setString(3, lastName);
+        insertCustomerStmt.executeUpdate();
+
+        connection.commit();
+        return true;
+      } catch (SQLException e) {
+        connection.rollback();
+        return false;
+      } finally {
+        connection.setAutoCommit(true);
+      }
+    }
+  }
 }

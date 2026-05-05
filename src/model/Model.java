@@ -11,6 +11,8 @@ public interface Model
 
     boolean login(String email, String password);
 
+    boolean register(String firstName, String lastName, String email, String password);
+
     void logout();
 
     User getLoggedInUser();

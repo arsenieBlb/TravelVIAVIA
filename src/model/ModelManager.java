@@ -64,6 +64,16 @@ public class ModelManager implements Model
     }
 
     @Override
+    public boolean register(String firstName, String lastName, String email, String password) {
+        try {
+            return userDAO.registerCustomer(firstName, lastName, email, password);
+        } catch (SQLException e) {
+            System.out.println("Registration error connecting to database");
+            return false;
+        }
+    }
+
+    @Override
     public void logout() {
         this.currentUser = null;
     }

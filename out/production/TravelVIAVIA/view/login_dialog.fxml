@@ -47,8 +47,6 @@
 
                 <!-- TEAM TODO: open Register dialog -->
                 <Button fx:id="switchToRegisterButton" text="Create account" styleClass="btn-link"/>
-                <!-- TEAM TODO: open Admin Login dialog -->
-                <Button fx:id="switchToAdminButton" text="Login as admin" styleClass="btn-link"/>
             </children>
         </VBox>
     </children>
