@@ -25,6 +25,8 @@ public class BookFlightViewModel {
 
     private final IntegerProperty passengerCount = new SimpleIntegerProperty(1);
 
+    private final IntegerProperty resultCount = new SimpleIntegerProperty(0);
+
     private final ObjectProperty<LocalDate> travelDate = new SimpleObjectProperty<>(LocalDate.now());
 
     public BookFlightViewModel(Model model) {
@@ -98,13 +100,20 @@ public class BookFlightViewModel {
         }
     }
 
-    private void searchFlights() {
+    public void searchFlights() {
         SearchCriteria criteria = new SearchCriteria();
         criteria.setDepartureCity(departureCity.get());
         criteria.setArrivalCity(arrivalCity.get());
+        criteria.setDepartureDate(travelDate.get());
+        criteria.setPassengerCount(passengerCount.get());
 
         List<Flight> results = model.searchFlights(criteria);
+
         filteredFlights.setAll(results);
+
+        resultCount.set(results.size());
+
+        System.out.println("VM Search: Found " + results.size());
     }
 
     private void loadCitiesFromDatabase() {
@@ -156,5 +165,9 @@ public class BookFlightViewModel {
         arrivalCity.set(null);
         filteredFlights.clear();
         selectedFlight.set(null);
+    }
+
+    public IntegerProperty resultCountProperty() {
+        return resultCount;
     }
 }

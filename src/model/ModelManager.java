@@ -17,17 +17,22 @@ public class ModelManager implements Model
     private UserDAO userDAO;
     private BookingDAO bookingDAO;
     private int nextSeatAssignmentId = 1;
+    private List<Flight> allFlights;
 
     public ModelManager()
     {
         this.userDAO = new UserDAO();
         this.bookingDAO = new BookingDAO();
-        
+        this.allFlights = new ArrayList<>();
         this.databaseLoader = new DatabaseLoader();
 
-        // loads all flights, planes, cities, carriers from the database
         try {
             this.flightSearchService = databaseLoader.loadAll();
+
+            if (databaseLoader.getFlights() != null) {
+                this.allFlights.addAll(databaseLoader.getFlights());
+            }
+
         } catch (SQLException e) {
             System.out.println("Database error loading data");
             this.flightSearchService = new FlightSearchService();
@@ -37,7 +42,9 @@ public class ModelManager implements Model
     @Override
     public List<Flight> searchFlights(SearchCriteria criteria)
     {
-        return flightSearchService.searchFlights(criteria);
+        List<Flight> found = flightSearchService.searchFlights(this.allFlights, criteria);
+
+        return found;
     }
 
     @Override
@@ -46,7 +53,6 @@ public class ModelManager implements Model
         return flightSearchService.viewFlightDetails(flightId);
     }
 
-    // checks the database for matching email and password
     @Override
     public boolean login(String email, String password)
     {

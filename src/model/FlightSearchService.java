@@ -1,10 +1,9 @@
 package model;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class FlightSearchService
 {
@@ -64,19 +63,13 @@ public class FlightSearchService
     }
   }
 
-  public List<Flight> searchFlights(SearchCriteria criteria)
-  {
-    Objects.requireNonNull(criteria, "Search criteria is required.");
-    List<Flight> results = new ArrayList<>();
-    for (Flight flight : flights)
-    {
-      if (matchesCriteria(flight, criteria))
-      {
-        results.add(flight);
-      }
+    public List<Flight> searchFlights(List<Flight> allFlights, SearchCriteria criteria) {
+        if (allFlights == null) return new ArrayList<>();
+
+        return allFlights.stream()
+                .filter(flight -> flight.matchesCriteria(criteria))
+                .collect(Collectors.toList());
     }
-    return results;
-  }
 
   public Flight viewFlightDetails(Flight flight)
   {
@@ -101,33 +94,4 @@ public class FlightSearchService
     return flights;
   }
 
-  private boolean matchesCriteria(Flight flight, SearchCriteria criteria)
-  {
-    if (criteria.getDepartureCity() != null
-        && !criteria.getDepartureCity().equals(flight.getDepartureCity()))
-    {
-      return false;
-    }
-    if (criteria.getArrivalCity() != null
-        && !criteria.getArrivalCity().equals(flight.getArrivalCity()))
-    {
-      return false;
-    }
-
-    LocalDate departureDate = criteria.getDepartureDate();
-    if (departureDate != null
-        && !departureDate.equals(flight.getDepartureTime().toLocalDate()))
-    {
-      return false;
-    }
-
-    if (criteria.getSeatClass() != null)
-    {
-      return flight.getAvailableSeatsByClass(criteria.getSeatClass()).size()
-          >= criteria.getPassengerCount();
-    }
-
-    return flight.getAvailableSeats().size() >= criteria.getPassengerCount();
-  }
-  //
 }
