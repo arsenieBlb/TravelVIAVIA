@@ -30,4 +30,5 @@ public interface Model
 
     List<LuggageType> getLuggageTypes();
 
+    List<City> getAllCities();
 }

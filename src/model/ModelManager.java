@@ -171,4 +171,9 @@ public class ModelManager implements Model
     public List<LuggageType> getLuggageTypes() {
         return databaseLoader.getLuggageTypes();
     }
+
+    @Override
+    public List<City> getAllCities() {
+        return databaseLoader.getCities();
+    }
 }

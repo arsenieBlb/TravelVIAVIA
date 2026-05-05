@@ -24,8 +24,6 @@ public class FlightSceneViewModel
     private Model model;
 
     private StringProperty flightNumber = new SimpleStringProperty("");
-    private StringProperty departureCity = new SimpleStringProperty("");
-    private StringProperty arrivalCity = new SimpleStringProperty("");
     private StringProperty departureTime = new SimpleStringProperty("");
     private StringProperty arrivalTime = new SimpleStringProperty("");
     private StringProperty routeSummary = new SimpleStringProperty("");
@@ -74,7 +72,7 @@ public class FlightSceneViewModel
     }
 
     // grabs the first flight from the database and fills in all the labels
-    private void loadFirstFlight()
+    public void loadFirstFlight()
     {
         searchFlights();
         if (!filteredFlights.isEmpty()) {
@@ -349,8 +347,6 @@ public class FlightSceneViewModel
     }
 
     public StringProperty flightNumberProperty() { return flightNumber; }
-    public StringProperty departureCityProperty() { return departureCity; }
-    public StringProperty arrivalCityProperty() { return arrivalCity; }
     public StringProperty departureTimeProperty() { return departureTime; }
     public StringProperty arrivalTimeProperty() { return arrivalTime; }
     public StringProperty routeSummaryProperty() { return routeSummary; }

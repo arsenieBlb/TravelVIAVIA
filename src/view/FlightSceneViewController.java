@@ -1,12 +1,9 @@
 package view;
 
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -25,17 +22,13 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.application.Platform;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 public class FlightSceneViewController {
@@ -63,6 +56,7 @@ public class FlightSceneViewController {
 
     @FXML private StackPane seatMapDialogWrapper;
     @FXML private StackPane seatMapDialog;
+    @FXML
     private Region root;
     private ViewHandler viewHandler;
     private FlightSceneViewModel flightSceneViewModel;
@@ -123,7 +117,7 @@ public class FlightSceneViewController {
                     String.format("%.2f", cellData.getValue().getBasePrice())));
 
                 flightsTable.setItems(flightSceneViewModel.getFilteredFlights());
-                
+
                 flightsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
                     if (newSel != null) {
                         flightSceneViewModel.setSelectedFlight(newSel);
@@ -151,16 +145,6 @@ public class FlightSceneViewController {
             if (resultCountLabel != null) {
                 resultCountLabel.textProperty().bind(Bindings.size(flightSceneViewModel.getFilteredFlights()).asString());
             }
-
-            ComboBox<String> originCombo = (ComboBox<String>) root.lookup("#originCombo");
-            ComboBox<String> destCombo = (ComboBox<String>) root.lookup("#destinationCombo");
-            if (originCombo != null && destCombo != null) {
-                java.util.List<String> cities = flightSceneViewModel.getFilteredFlights().stream()
-                    .flatMap(f -> Stream.of(f.getDepartureCity().getCityName(), f.getArrivalCity().getCityName()))
-                    .distinct().sorted().collect(Collectors.toList());
-                originCombo.getItems().addAll(cities);
-                destCombo.getItems().addAll(cities);
-            }
         });
     }
 
@@ -172,44 +156,6 @@ public class FlightSceneViewController {
     public void reset()
     {
         flightSceneViewModel.clear();
-    }
-
-    public void confirmButton()
-    {
-        try
-        {
-            flightSceneViewModel.confirmBooking();
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Confirmation");
-            alert.setHeaderText(null);
-            alert.setContentText("Booking confirmed successfully!");
-            alert.showAndWait();
-        }
-        catch (RuntimeException exception)
-        {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Booking problem");
-            alert.setHeaderText(null);
-            alert.setContentText(exception.getMessage());
-            alert.showAndWait();
-        }
-
-        //will open a view later / will be modified
-    }
-
-    @FXML
-    public void cancelButton()
-    {
-        flightSceneViewModel.clear();
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Cancellation");
-        alert.setHeaderText(null);
-        alert.setContentText("Booking cancelled successfully!");
-        alert.showAndWait();
-
-        //will open a view later / will be modified
     }
 
     @FXML
@@ -250,7 +196,7 @@ public class FlightSceneViewController {
         Button okButton = (Button) seatMapDialog.lookup("#seatOkButton");
 
         okButton.setDisable(seatMapViewModel.temporarySelectionProperty().get() == null);
-        seatMapViewModel.temporarySelectionProperty().addListener((obs, oldV, newV) -> 
+        seatMapViewModel.temporarySelectionProperty().addListener((obs, oldV, newV) ->
             okButton.setDisable(newV == null));
 
         closeButton.setOnAction(e -> closeSeatPicker());
