@@ -1,4 +1,4 @@
-﻿.root {
+.root {
     -fx-font-family: "Outfit", "Segoe UI", "Arial", sans-serif;
 }
 
@@ -560,4 +560,35 @@
 .legend-selected {
     -fx-background-color: #2563eb;
     -fx-background-radius: 4;
+}
+
+.seat-button {
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+    -fx-background-radius: 8;
+}
+
+.seat-available {
+    -fx-background-color: #34d399;
+}
+
+.seat-available:hover {
+    -fx-background-color: #10b981;
+}
+
+.seat-taken {
+    -fx-background-color: #f87171;
+    -fx-cursor: default;
+}
+
+.seat-selected {
+    -fx-background-color: #2563eb;
+}
+
+.seat-disabled {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #94a3b8;
+    -fx-cursor: default;
 }
