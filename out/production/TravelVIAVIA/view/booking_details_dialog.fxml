@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="bookingDetailsModal"
+           styleClass="modal-overlay"
+           xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1">
+
+    <children>
+        <VBox spacing="14.0" styleClass="modal-card-large">
+            <children>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Booking Details" styleClass="modal-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="closeBookingDetailsButton" text="X" styleClass="btn-icon-plain"/>
+                    </children>
+                </HBox>
+
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="page-scroll" VBox.vgrow="ALWAYS">
+                    <content>
+                        <!-- TEAM TODO: render selected booking details tree here -->
+                        <VBox fx:id="bookingDetailsContent" spacing="10.0" styleClass="booking-details-content"/>
+                    </content>
+                </ScrollPane>
+
+                <HBox spacing="10.0">
+                    <children>
+                        <Button fx:id="closeBookingDetailsActionButton" text="Close" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="btn-outline"/>
+                        <!-- TEAM TODO: only show for non-manual bookings -->
+                        <Button fx:id="cancelBookingFromDetailsButton" text="Cancel Booking" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="btn-danger"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</StackPane>
