@@ -1,6 +1,7 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -157,6 +158,12 @@ public class Flight
         long hours = duration.toHours();
         int minutes = duration.toMinutesPart();
         return String.format("%dh %02dm", hours, minutes);
+    }
+
+    public long getDurationInSeconds() {
+        long start = departureTime.toEpochSecond(ZoneOffset.UTC);
+        long end = arrivalTime.toEpochSecond(ZoneOffset.UTC);
+        return end - start;
     }
 
   void validateSeatBelongsToPlane(Seat seat)

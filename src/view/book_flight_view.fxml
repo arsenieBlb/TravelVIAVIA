@@ -9,11 +9,13 @@
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
@@ -48,6 +50,7 @@
                                 <VBox spacing="6.0" GridPane.columnIndex="0">
                                     <children>
                                         <Label text="ORIGIN" styleClass="field-label"/>
+                                        <!-- TEAM TODO: bind items + selected origin -->
                                         <ComboBox fx:id="originCombo" styleClass="field-input" prefWidth="180.0"/>
                                     </children>
                                 </VBox>
@@ -109,11 +112,8 @@
 
                                 <VBox alignment="BOTTOM_CENTER" GridPane.columnIndex="5">
                                     <children>
-                                        <Button fx:id="searchFlightsButton"
-                                                text="Search flights"
-                                                onAction="#onSearchClick"
-                                                maxWidth="Infinity"
-                                                styleClass="btn-primary"/>
+                                        <!-- TEAM TODO: run search -->
+                                        <Button fx:id="searchFlightsButton" text="Search flights" maxWidth="Infinity" styleClass="btn-primary"/>
                                     </children>
                                 </VBox>
                             </children>
@@ -128,12 +128,13 @@
                         <Label text="Airline:" styleClass="inline-label"/>
                         <ComboBox fx:id="airlineCombo" prefWidth="170.0" styleClass="field-input"/>
                         <CheckBox fx:id="directOnlyCheck" text="Direct only" styleClass="check-inline"/>
-                        <Button fx:id="resetFiltersButton" text="Reset" styleClass="btn-text" onAction="#reset"/>
+                        <!-- TEAM TODO: reset filters + refresh list -->
+                        <Button fx:id="resetFiltersButton" text="Reset" styleClass="btn-text"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <HBox spacing="6.0" alignment="CENTER_RIGHT" styleClass="result-pill">
                             <children>
                                 <Label text="Results:" styleClass="result-pill-label"/>
-                                <Label fx:id="resultCountLabel" text="0" styleClass="result-pill-value"/>
+                                <Label fx:id="resultCountLabel" text="30" styleClass="result-pill-value"/>
                             </children>
                         </HBox>
                     </children>
@@ -144,6 +145,7 @@
                         <Label text="Outbound Flights" styleClass="section-title"/>
                         <VBox styleClass="card-table">
                             <children>
+                                <!-- TEAM TODO: bind table items to vm.filteredFlights -->
                                 <TableView fx:id="flightsTable" styleClass="flight-table" VBox.vgrow="ALWAYS">
                                     <columns>
                                         <TableColumn fx:id="routeColumn" text="From / To" prefWidth="260.0"/>
@@ -166,10 +168,10 @@
                             <children>
                                 <GridPane hgap="16.0" vgap="8.0">
                                     <columnConstraints>
-                                        <ColumnConstraints percentWidth="33.3" hgrow="SOMETIMES"/>
-                                        <ColumnConstraints percentWidth="33.4" hgrow="SOMETIMES"/>
-                                        <ColumnConstraints percentWidth="33.3" hgrow="SOMETIMES"/>
-                                    </columnConstraints>
+                                    <ColumnConstraints percentWidth="33.3" hgrow="SOMETIMES"/>
+                                    <ColumnConstraints percentWidth="33.4" hgrow="SOMETIMES"/>
+                                    <ColumnConstraints percentWidth="33.3" hgrow="SOMETIMES"/>
+                                </columnConstraints>
                                     <children>
                                         <VBox spacing="4.0" GridPane.columnIndex="0">
                                             <children>
@@ -213,6 +215,7 @@
                                         </VBox>
                                         <HBox alignment="BOTTOM_RIGHT" GridPane.columnIndex="2">
                                             <children>
+                                                <!-- TEAM TODO: route to PassengerDetails view -->
                                                 <Button fx:id="continueButton" text="Continue to passenger details" styleClass="btn-primary"/>
                                             </children>
                                         </HBox>
