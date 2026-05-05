@@ -352,6 +352,30 @@
     -fx-background-color: rgba(59, 130, 246, 0.12);
 }
 
+.flight-table .table-cell {
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 13px;
+    -fx-padding: 10 5 10 5;
+    -fx-alignment: CENTER-LEFT;
+}
+
+.flight-table .table-cell .text {
+    -fx-wrapping-width: 0;
+}
+
+.flight-table .table-column:first-child .table-cell {
+    -fx-font-weight: 600;
+}
+
+.flight-table .table-row-cell:selected .table-cell {
+    -fx-text-fill: #0f172a;
+}
+
+.flight-table .table-column:nth-child(5) .table-cell {
+    -fx-text-fill: #10b981;
+    -fx-font-weight: 700;
+}
+
 .summary-card {
     -fx-spacing: 8;
 }

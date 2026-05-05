@@ -351,9 +351,18 @@ public class FlightSceneViewModel
     public StringProperty arrivalTimeProperty() { return arrivalTime; }
     public StringProperty routeSummaryProperty() { return routeSummary; }
 
-    public void setSelectedFlight(Flight flight)
-    {
+    public void setSelectedFlight(Flight flight) {
         this.selectedFlight.set(flight);
+        if (flight != null) {
+            routeSummary.set(flight.getDepartureCity().getCityName() + " → " +
+                    flight.getArrivalCity().getCityName());
+
+            flightNumber.set(flight.getFlightNumber());
+
+            departureTime.set(flight.getDepartureTime().format(timeFormatter));
+            arrivalTime.set(flight.getArrivalTime().format(timeFormatter));
+        }
+
         clearSeatForPassenger(1);
         clearSeatForPassenger(2);
         updateTotalPrice();

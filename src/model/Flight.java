@@ -152,6 +152,13 @@ public class Flight
     return false;
   }
 
+    public String getDurationString() {
+        java.time.Duration duration = java.time.Duration.between(departureTime, arrivalTime);
+        long hours = duration.toHours();
+        int minutes = duration.toMinutesPart();
+        return String.format("%dh %02dm", hours, minutes);
+    }
+
   void validateSeatBelongsToPlane(Seat seat)
   {
     if (!plane.getSeats().contains(seat))
