@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <StackPane fx:id="adminModal"
+           fx:controller="view.AdminLoginDialogController"
            styleClass="modal-overlay"
            xmlns="http://javafx.com/javafx/17"
            xmlns:fx="http://javafx.com/fxml/1">
@@ -42,6 +43,7 @@
 
                 <!-- TEAM TODO: admin auth + role routing -->
                 <Button fx:id="adminSubmitButton" text="Login as Admin" styleClass="btn-dark"/>
+                <Label fx:id="adminErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
 
                 <Separator/>
 

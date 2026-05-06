@@ -17,6 +17,11 @@ public class ViewModelFactory
         this.model = model;
     }
 
+    public Model getModel()
+    {
+        return model;
+    }
+
     public FlightSceneViewModel getFlightSceneViewModel()
     {
         if (flightSceneViewModel == null)

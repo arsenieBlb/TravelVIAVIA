@@ -41,6 +41,26 @@ public class SeatMapViewModel {
         return passengerDetailsViewModel.getSeatClassForPassenger(currentPassengerNumber);
     }
 
+    public ObjectProperty<SeatClass> passengerOneSeatClassProperty() {
+        return passengerDetailsViewModel.seatClassPropertyForPassenger(1);
+    }
+
+    public ObjectProperty<SeatClass> passengerTwoSeatClassProperty() {
+        return passengerDetailsViewModel.seatClassPropertyForPassenger(2);
+    }
+
+    public Seat getSelectedSeatForPassenger(int passengerNumber) {
+        return passengerDetailsViewModel.getSelectedSeatForPassenger(passengerNumber);
+    }
+
+    public SeatClass getSeatClassForPassenger(int passengerNumber) {
+        return passengerDetailsViewModel.getSeatClassForPassenger(passengerNumber);
+    }
+
+    public void clearSeatForPassenger(int passengerNumber) {
+        passengerDetailsViewModel.clearSeatForPassenger(passengerNumber);
+    }
+
     public void confirmSelection() {
         if (temporarySelection.get() != null) {
             passengerDetailsViewModel.selectSeatForPassenger(currentPassengerNumber, temporarySelection.get());

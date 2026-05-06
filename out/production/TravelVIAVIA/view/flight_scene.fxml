@@ -110,6 +110,18 @@
             </children>
         </StackPane>
 
+        <StackPane fx:id="adminLoginDialogWrapper" visible="false" managed="false">
+            <children>
+                <fx:include fx:id="adminLoginDialog" source="admin_login_dialog.fxml"/>
+            </children>
+        </StackPane>
+
+        <StackPane fx:id="registerDialogWrapper" visible="false" managed="false">
+            <children>
+                <fx:include fx:id="registerDialog" source="register_dialog.fxml"/>
+            </children>
+        </StackPane>
+
         <StackPane fx:id="bookingDetailsDialogWrapper" visible="false" managed="false">
             <children>
                 <fx:include fx:id="bookingDetailsDialog" source="booking_details_dialog.fxml"/>

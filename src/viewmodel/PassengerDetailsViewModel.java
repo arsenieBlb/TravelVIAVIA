@@ -350,6 +350,12 @@ public class PassengerDetailsViewModel
     return form == null ? SeatClass.Economy : form.getSeatClass();
   }
 
+  public ObjectProperty<SeatClass> seatClassPropertyForPassenger(
+      int passengerNumber)
+  {
+    return ensurePassengerForm(passengerNumber).seatClassProperty();
+  }
+
   public Seat getSelectedSeatForPassenger(int passengerNumber)
   {
     PassengerForm form = getPassengerForm(passengerNumber);
@@ -383,6 +389,24 @@ public class PassengerDetailsViewModel
           "Another passenger already selected this seat.");
     }
     form.setSelectedSeat(seat);
+  }
+
+  public void clearSeatForPassenger(int passengerNumber)
+  {
+    PassengerForm form = getPassengerForm(passengerNumber);
+    if (form != null)
+    {
+      form.setSelectedSeat(null);
+    }
+  }
+
+  private PassengerForm ensurePassengerForm(int passengerNumber)
+  {
+    while (passengerForms.size() < passengerNumber)
+    {
+      passengerForms.add(createPassengerForm(passengerForms.size() + 1));
+    }
+    return passengerForms.get(passengerNumber - 1);
   }
 
   private PassengerForm getPassengerForm(int passengerNumber)

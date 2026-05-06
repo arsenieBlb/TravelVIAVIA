@@ -38,7 +38,7 @@ public class ModelManager implements Model
             System.out.println("Database error loading data");
             this.flightSearchService = new FlightSearchService();
         }
-        useDemoCustomer();
+        currentUser = null;
     }
 
     private void useDemoCustomer()
@@ -68,10 +68,6 @@ public class ModelManager implements Model
 
     private Customer getActiveCustomer()
     {
-        if (!(currentUser instanceof Customer))
-        {
-            useDemoCustomer();
-        }
         if (currentUser instanceof Customer customer)
         {
             return customer;

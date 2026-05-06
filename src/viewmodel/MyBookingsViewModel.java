@@ -38,6 +38,8 @@ public class MyBookingsViewModel
     else
     {
       customerName.set("Customer");
+      bookings.clear();
+      return;
     }
     List<Booking> currentBookings = model.getUserBookings().stream()
         .filter(booking -> !cancelledBookingIds.contains(booking.getBookingId()))

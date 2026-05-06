@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <StackPane fx:id="loginModal"
+           fx:controller="view.LoginDialogController"
            styleClass="modal-overlay"
            xmlns="http://javafx.com/javafx/17"
            xmlns:fx="http://javafx.com/fxml/1">
@@ -42,11 +43,13 @@
 
                 <!-- TEAM TODO: authenticate user -->
                 <Button fx:id="loginSubmitButton" text="Login" styleClass="btn-primary"/>
+                <Label fx:id="loginErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
 
                 <Separator/>
 
                 <!-- TEAM TODO: open Register dialog -->
                 <Button fx:id="switchToRegisterButton" text="Create account" styleClass="btn-link"/>
+                <Button fx:id="switchToAdminButton" text="Login as admin" styleClass="btn-link-dark"/>
             </children>
         </VBox>
     </children>
