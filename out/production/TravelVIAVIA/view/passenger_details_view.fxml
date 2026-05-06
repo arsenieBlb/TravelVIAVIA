@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fx:id="passengerContentPane"
+            fx:controller="view.PassengerDetailsViewController"
             fitToWidth="true"
             hbarPolicy="NEVER"
             vbarPolicy="AS_NEEDED"
@@ -69,13 +70,13 @@
                                 <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
                             </columnConstraints>
                             <children>
-                                <Label text="Base Fare (2 passengers)" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <Label fx:id="fareBaseTextLabel" text="Base Fare (2 passengers)" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                                 <Label fx:id="fareBaseLabel" text="EUR 1440" styleClass="fare-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
                                 <Label text="Carry-on (included)" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                                 <Label text="EUR 0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-                                <Label text="Baggage x2 @ EUR 65" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                <Label fx:id="fareBaggageTextLabel" text="Baggage x2 @ EUR 65" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
                                 <Label fx:id="fareBaggageLabel" text="EUR 130" styleClass="fare-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
                                 <Region GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2" styleClass="section-divider"/>

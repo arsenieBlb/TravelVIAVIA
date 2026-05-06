@@ -8,21 +8,21 @@ import model.SeatClass;
 import java.util.List;
 
 public class SeatMapViewModel {
-    private FlightSceneViewModel flightSceneViewModel;
+    private PassengerDetailsViewModel passengerDetailsViewModel;
     private int currentPassengerNumber;
     private ObjectProperty<Seat> temporarySelection = new SimpleObjectProperty<>();
 
-    public SeatMapViewModel(FlightSceneViewModel flightSceneViewModel) {
-        this.flightSceneViewModel = flightSceneViewModel;
+    public SeatMapViewModel(PassengerDetailsViewModel passengerDetailsViewModel) {
+        this.passengerDetailsViewModel = passengerDetailsViewModel;
     }
 
     public void startSelection(int passengerNumber) {
         this.currentPassengerNumber = passengerNumber;
-        this.temporarySelection.set(flightSceneViewModel.getSelectedSeatForPassenger(passengerNumber));
+        this.temporarySelection.set(passengerDetailsViewModel.getSelectedSeatForPassenger(passengerNumber));
     }
 
     public List<Seat> getSeats() {
-        return flightSceneViewModel.getSeatMapSeats();
+        return passengerDetailsViewModel.getSeatMapSeats();
     }
 
     public ObjectProperty<Seat> temporarySelectionProperty() {
@@ -30,20 +30,20 @@ public class SeatMapViewModel {
     }
 
     public boolean isSeatTaken(Seat seat) {
-        return flightSceneViewModel.isSeatTaken(seat);
+        return passengerDetailsViewModel.isSeatTaken(seat);
     }
 
     public boolean isSeatAlreadySelectedByOtherPassenger(Seat seat) {
-        return flightSceneViewModel.isSeatAlreadySelectedByOtherPassenger(seat, currentPassengerNumber);
+        return passengerDetailsViewModel.isSeatAlreadySelectedByOtherPassenger(seat, currentPassengerNumber);
     }
 
     public SeatClass getSelectedClass() {
-        return flightSceneViewModel.getSeatClassForPassenger(currentPassengerNumber);
+        return passengerDetailsViewModel.getSeatClassForPassenger(currentPassengerNumber);
     }
 
     public void confirmSelection() {
         if (temporarySelection.get() != null) {
-            flightSceneViewModel.selectSeatForPassenger(currentPassengerNumber, temporarySelection.get());
+            passengerDetailsViewModel.selectSeatForPassenger(currentPassengerNumber, temporarySelection.get());
         }
     }
     
@@ -52,6 +52,7 @@ public class SeatMapViewModel {
     }
 
     public void clear() {
-        currentPassengerNumber = Integer.parseInt(null);
+        currentPassengerNumber = 0;
+        temporarySelection.set(null);
     }
 }

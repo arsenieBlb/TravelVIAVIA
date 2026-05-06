@@ -6,6 +6,7 @@ import database.UserDAO;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ModelManager implements Model
@@ -32,6 +33,57 @@ public class ModelManager implements Model
             System.out.println("Database error loading data");
             this.flightSearchService = new FlightSearchService();
         }
+        useDemoCustomer();
+    }
+
+    private void useDemoCustomer()
+    {
+        try
+        {
+            Customer demoCustomer = userDAO.getCustomerById(2,
+                flightSearchService);
+            if (demoCustomer == null)
+            {
+                demoCustomer = userDAO.getFirstCustomer(flightSearchService);
+            }
+            if (demoCustomer != null)
+            {
+                currentUser = demoCustomer;
+                return;
+            }
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Could not load demo customer from database");
+        }
+
+        currentUser = new Customer(2, "j.doe@gmail.com", "1234b", "John",
+            "Doe", flightSearchService);
+    }
+
+    private Customer getActiveCustomer()
+    {
+        if (!(currentUser instanceof Customer))
+        {
+            useDemoCustomer();
+        }
+        if (currentUser instanceof Customer customer)
+        {
+            return customer;
+        }
+        throw new IllegalStateException("A customer account is required.");
+    }
+
+    private List<Flight> getLoadedFlights()
+    {
+        List<Flight> flights = databaseLoader.getFlights();
+        return flights == null ? Collections.emptyList() : flights;
+    }
+
+    private List<LuggageType> getLoadedLuggageTypes()
+    {
+        List<LuggageType> luggageTypes = databaseLoader.getLuggageTypes();
+        return luggageTypes == null ? Collections.emptyList() : luggageTypes;
     }
 
     @Override
@@ -84,34 +136,31 @@ public class ModelManager implements Model
     public Booking createBooking(Flight flight, List<Passenger> passengers,
         List<Seat> selectedSeats)
     {
-        if (currentUser instanceof Customer customer)
-        {
-            Booking booking = customer.createBooking(flight, passengers);
+        Customer customer = getActiveCustomer();
+        Booking booking = customer.createBooking(flight, passengers);
 
-            if (selectedSeats != null)
+        if (selectedSeats != null)
+        {
+            for (int i = 0; i < passengers.size()
+                && i < selectedSeats.size(); i++)
             {
-                for (int i = 0; i < passengers.size()
-                    && i < selectedSeats.size(); i++)
+                Seat seat = selectedSeats.get(i);
+                if (seat != null)
                 {
-                    Seat seat = selectedSeats.get(i);
-                    if (seat != null)
-                    {
-                        new SeatAssignment(nextSeatAssignmentId++,
-                            passengers.get(i), seat, flight);
-                    }
+                    new SeatAssignment(nextSeatAssignmentId++,
+                        passengers.get(i), seat, flight);
                 }
             }
-            
-            // saves the booking to the database
-            try {
-                bookingDAO.saveBooking(booking);
-            } catch (SQLException e) {
-                System.out.println("Failed to save booking");
-                throw new IllegalStateException("Failed to save booking.", e);
-            }
-            return booking;
         }
-        throw new IllegalStateException("Only registered customers can create bookings.");
+
+        // saves the booking to the database
+        try {
+            bookingDAO.saveBooking(booking);
+        } catch (SQLException e) {
+            System.out.println("Failed to save booking");
+            throw new IllegalStateException("Failed to save booking.", e);
+        }
+        return booking;
     }
 
     @Override
@@ -127,15 +176,52 @@ public class ModelManager implements Model
     @Override
     public List<Booking> getUserBookings()
     {
-        if (currentUser instanceof Customer customer)
+        Customer customer = getActiveCustomer();
+        try
         {
-            return customer.viewBookings();
+            return bookingDAO.getBookingsForCustomer(customer,
+                getLoadedFlights(), getLoadedLuggageTypes());
         }
-        if (currentUser instanceof Admin admin)
+        catch (SQLException e)
         {
-            return admin.viewBookings();
+            System.out.println("Failed to load bookings from database");
+            return new ArrayList<>(customer.viewBookings());
         }
-        return new ArrayList<>();
+    }
+
+    @Override
+    public Booking addBookingToCurrentUserById(int bookingId,
+        String passengerLastName)
+    {
+        Customer customer = getActiveCustomer();
+        try
+        {
+            if (!bookingDAO.bookingExists(bookingId))
+            {
+                throw new IllegalArgumentException("Booking ID was not found.");
+            }
+            if (!bookingDAO.bookingHasPassengerLastName(bookingId,
+                passengerLastName))
+            {
+                throw new IllegalArgumentException(
+                    "The last name does not match this booking.");
+            }
+
+            bookingDAO.linkBookingToCustomer(bookingId, customer.getUserId());
+            Booking booking = bookingDAO.getBookingById(bookingId, customer,
+                getLoadedFlights(), getLoadedLuggageTypes());
+            if (booking == null)
+            {
+                throw new IllegalArgumentException(
+                    "Booking exists, but its flight is not loaded.");
+            }
+            return booking;
+        }
+        catch (SQLException e)
+        {
+            throw new IllegalStateException(
+                "Could not add booking from the database.", e);
+        }
     }
 
     @Override
@@ -169,11 +255,12 @@ public class ModelManager implements Model
 
     @Override
     public List<LuggageType> getLuggageTypes() {
-        return databaseLoader.getLuggageTypes();
+        return getLoadedLuggageTypes();
     }
 
     @Override
     public List<City> getAllCities() {
-        return databaseLoader.getCities();
+        List<City> cities = databaseLoader.getCities();
+        return cities == null ? Collections.emptyList() : cities;
     }
 }

@@ -22,13 +22,17 @@ public class SeatMapViewController {
     @FXML private Button seatOkButton;
 
     private Region root;
+    private StackPane dialogWrapper;
     private ViewHandler viewHandler;
     private SeatMapViewModel seatMapViewModel;
 
-    public void init(Region root, ViewHandler viewHandler, SeatMapViewModel seatMapViewModel) {
+    public void init(Region root, ViewHandler viewHandler,
+                     SeatMapViewModel seatMapViewModel,
+                     StackPane dialogWrapper) {
         this.root = root;
         this.viewHandler = viewHandler;
         this.seatMapViewModel = seatMapViewModel;
+        this.dialogWrapper = dialogWrapper;
 
         seatOkButton.disableProperty().bind(seatMapViewModel.temporarySelectionProperty().isNull());
 
@@ -43,10 +47,24 @@ public class SeatMapViewController {
         });
     }
 
+    public void showForPassenger(int passengerNumber) {
+        seatMapViewModel.startSelection(passengerNumber);
+        seatModalTitleLabel.setText("Select a seat ("
+                + seatMapViewModel.getSelectedClass() + ")");
+
+        seatGridContainer.getChildren().clear();
+        seatGridContainer.getChildren().add(createPlaneNose());
+        seatGridContainer.getChildren().add(createSeatGrid(passengerNumber,
+                seatMapViewModel.getSeats(),
+                seatMapViewModel.temporarySelectionProperty()));
+
+        dialogWrapper.setVisible(true);
+        dialogWrapper.setManaged(true);
+    }
 
     private void closeSeatPicker() {
-        seatModal.setVisible(false);
-        seatModal.setManaged(false);
+        dialogWrapper.setVisible(false);
+        dialogWrapper.setManaged(false);
     }
 
     private ScrollPane createSeatScrollPane(int passengerNumber, List<Seat> seats,

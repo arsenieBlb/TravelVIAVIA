@@ -231,4 +231,22 @@ public class Booking
   {
     return "Booking #" + bookingId + " for " + flight.getFlightNumber();
   }
+
+  @Override public boolean equals(Object object)
+  {
+    if (this == object)
+    {
+      return true;
+    }
+    if (!(object instanceof Booking booking))
+    {
+      return false;
+    }
+    return bookingId == booking.bookingId;
+  }
+
+  @Override public int hashCode()
+  {
+    return Objects.hash(bookingId);
+  }
 }

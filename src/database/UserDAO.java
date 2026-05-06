@@ -12,6 +12,53 @@ import java.sql.SQLException;
 
 public class UserDAO
 {
+  public Customer getCustomerById(int userId,
+      FlightSearchService flightSearchService) throws SQLException
+  {
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "SELECT u.user_id, u.email, u.password_hash "
+          + "FROM flights.users u "
+          + "JOIN flights.customer c ON u.user_id = c.customer_id "
+          + "WHERE u.user_id = ?";
+
+      PreparedStatement statement = connection.prepareStatement(sql);
+      statement.setInt(1, userId);
+      ResultSet resultSet = statement.executeQuery();
+
+      if (resultSet.next())
+      {
+        return loadCustomer(resultSet.getInt("user_id"),
+            resultSet.getString("email"), resultSet.getString("password_hash"),
+            flightSearchService, connection);
+      }
+    }
+    return null;
+  }
+
+  public Customer getFirstCustomer(FlightSearchService flightSearchService)
+      throws SQLException
+  {
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "SELECT u.user_id, u.email, u.password_hash "
+          + "FROM flights.users u "
+          + "JOIN flights.customer c ON u.user_id = c.customer_id "
+          + "ORDER BY u.user_id LIMIT 1";
+
+      PreparedStatement statement = connection.prepareStatement(sql);
+      ResultSet resultSet = statement.executeQuery();
+
+      if (resultSet.next())
+      {
+        return loadCustomer(resultSet.getInt("user_id"),
+            resultSet.getString("email"), resultSet.getString("password_hash"),
+            flightSearchService, connection);
+      }
+    }
+    return null;
+  }
+
   // checks the users table for matching email and password, then loads the right user type
   public User login(String email, String password,
       FlightSearchService flightSearchService) throws SQLException {

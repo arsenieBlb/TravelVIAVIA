@@ -9,6 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <StackPane fx:id="addBookingModal"
+           fx:controller="view.AddBookingDialogController"
            styleClass="modal-overlay"
            xmlns="http://javafx.com/javafx/17"
            xmlns:fx="http://javafx.com/fxml/1">
@@ -37,6 +38,8 @@
                         <TextField fx:id="addBookingLastNameField" promptText="Enter your last name" styleClass="field-input"/>
                     </children>
                 </VBox>
+
+                <Label fx:id="addBookingErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
 
                 <HBox spacing="10.0">
                     <children>

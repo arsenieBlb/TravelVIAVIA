@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fx:id="bookingsContentPane"
+            fx:controller="view.MyBookingsViewController"
             fitToWidth="true"
             hbarPolicy="NEVER"
             vbarPolicy="AS_NEEDED"
