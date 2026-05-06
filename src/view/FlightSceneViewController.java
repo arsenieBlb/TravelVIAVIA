@@ -1,106 +1,131 @@
 package view;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import model.Flight;
-import viewmodel.FlightSceneViewModel;
+import model.Booking;
+import viewmodel.ViewModelFactory;
 
-import java.time.format.DateTimeFormatter;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.binding.Bindings;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.Label;
-import javafx.application.Platform;
+public class FlightSceneViewController
+{
+  @FXML private StackPane bookViewWrapper;
+  @FXML private StackPane bookingsViewWrapper;
+  @FXML private StackPane passengerViewWrapper;
+  @FXML private StackPane seatMapDialogWrapper;
+  @FXML private StackPane addBookingDialogWrapper;
+  @FXML private StackPane bookingDetailsDialogWrapper;
+  @FXML private Button bookTabButton;
+  @FXML private Button bookingsTabButton;
 
-public class FlightSceneViewController {
+  @FXML private BookFlightViewController bookViewControllerController;
+  @FXML private MyBookingsViewController bookingsViewControllerController;
+  @FXML private PassengerDetailsViewController passengerViewControllerController;
+  @FXML private SeatMapViewController seatMapDialogController;
+  @FXML private AddBookingDialogController addBookingDialogController;
+  @FXML private BookingDetailsDialogController bookingDetailsDialogController;
 
-    @FXML private StackPane seatMapDialogWrapper;
-    @FXML private StackPane seatMapDialog;
-    @FXML Button bookTabButton;
+  @FXML private Region root;
 
-    @FXML private Region root;
+  private ViewModelFactory viewModelFactory;
 
-    private ViewHandler viewHandler;
-    private FlightSceneViewModel flightSceneViewModel;
+  public void init(Region root, ViewHandler viewHandler,
+      ViewModelFactory viewModelFactory)
+  {
+    this.root = root;
+    this.viewModelFactory = viewModelFactory;
 
-    public void init(Region root, ViewHandler viewHandler, FlightSceneViewModel flightSceneViewModel) {
-        this.root = root;
-        this.viewHandler = viewHandler;
-        this.flightSceneViewModel = flightSceneViewModel;
+    bookViewControllerController.init(viewModelFactory.getBookFlightViewModel(),
+        bookViewWrapper, viewHandler);
+    bookingsViewControllerController.init(viewModelFactory.getMyBookingsViewModel(),
+        bookingsViewWrapper, viewHandler);
+    passengerViewControllerController.init(
+        viewModelFactory.getPassengerDetailsViewModel(), passengerViewWrapper,
+        viewHandler);
+    seatMapDialogController.init(root, viewHandler,
+        viewModelFactory.getSeatMapViewModel(), seatMapDialogWrapper);
+    addBookingDialogController.init(viewModelFactory.getMyBookingsViewModel(),
+        viewHandler, addBookingDialogWrapper);
+    bookingDetailsDialogController.init(viewModelFactory.getMyBookingsViewModel(),
+        viewHandler, bookingDetailsDialogWrapper);
 
-        Platform.runLater(() -> {
-            TableView<Flight> flightsTable = (TableView<Flight>) root.lookup("#flightsTable");
+    bookTabButton.setOnAction(event -> showBookFlight());
+    bookingsTabButton.setOnAction(event -> showMyBookings());
+  }
 
-            if (flightsTable != null) {
-                flightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+  public Region getRoot()
+  {
+    return root;
+  }
 
-                if (flightsTable.getColumns().size() >= 6) {
-                    TableColumn<Flight, String> routeCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(0);
-                    TableColumn<Flight, String> depCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(1);
-                    TableColumn<Flight, String> durCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(2);
-                    TableColumn<Flight, String> carCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(3);
-                    TableColumn<Flight, String> typeCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(4);
-                    TableColumn<Flight, String> priceCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(5);
+  public void reset()
+  {
+    viewModelFactory.getBookFlightViewModel().clear();
+  }
 
-                    routeCol.setCellValueFactory(cellData -> new SimpleStringProperty(
-                            cellData.getValue().getDepartureCity().getCityName() + " → " +
-                                    cellData.getValue().getArrivalCity().getCityName()));
+  public void showBookFlight()
+  {
+    showContent(bookViewWrapper);
+  }
 
-                    depCol.setCellValueFactory(cellData -> new SimpleStringProperty(
-                            cellData.getValue().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm"))));
+  public void showPassengerDetails()
+  {
+    showContent(passengerViewWrapper);
+    passengerViewControllerController.refresh();
+  }
 
-                    durCol.setCellValueFactory(cellData ->
-                            new SimpleStringProperty(cellData.getValue().getDurationString())
-                    );
+  public void showMyBookings()
+  {
+    showContent(bookingsViewWrapper);
+    bookingsViewControllerController.refresh();
+  }
 
-                    carCol.setCellValueFactory(cellData -> new SimpleStringProperty(
-                            cellData.getValue().getPlane().getCarrier().getName() + "\n" +
-                                    cellData.getValue().getFlightNumber()));
+  public void showSeatPicker(int passengerNumber)
+  {
+    seatMapDialogController.showForPassenger(passengerNumber);
+  }
 
-                    typeCol.setCellValueFactory(cellData -> new SimpleStringProperty("Direct"));
-                    priceCol.setCellValueFactory(cellData -> new SimpleStringProperty(
-                            String.format("€%.0f", cellData.getValue().getBasePrice())));
+  public void showAddBookingDialog()
+  {
+    addBookingDialogController.show();
+  }
 
-                    flightsTable.setItems(flightSceneViewModel.getFilteredFlights());
+  public void showBookingDetails(Booking booking)
+  {
+    bookingDetailsDialogController.show(booking);
+  }
 
-                    flightsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
-                        if (newSel != null) {
-                            flightSceneViewModel.setSelectedFlight(newSel);
+  public void refreshMyBookings()
+  {
+    bookingsViewControllerController.refresh();
+  }
 
-                            javafx.scene.Node summaryCard = root.lookup("#flightSummaryCard");
-                            if (summaryCard != null) {
-                                summaryCard.setVisible(true);
-                                summaryCard.setManaged(true);
+  private void showContent(StackPane visibleWrapper)
+  {
+    setVisible(bookViewWrapper, visibleWrapper == bookViewWrapper);
+    setVisible(bookingsViewWrapper, visibleWrapper == bookingsViewWrapper);
+    setVisible(passengerViewWrapper, visibleWrapper == passengerViewWrapper);
 
-                                Label routeLabel = (Label) root.lookup("#detailRouteLabel");
-                                Label dateLabel = (Label) root.lookup("#detailDateLabel");
-                                Label detailsLabel = (Label) root.lookup("#detailInfoLabel");
-                                Label priceLabel = (Label) root.lookup("#detailPriceLabel");
-                                Label aircraftLabel = (Label) root.lookup("#detailAircraftLabel");
-
-                                if (routeLabel != null) routeLabel.setText(newSel.getDepartureCity().getCityName() + " → " + newSel.getArrivalCity().getCityName());
-                                if (dateLabel != null) dateLabel.setText(newSel.getDepartureTime().format(DateTimeFormatter.ofPattern("MMM dd, yyyy - HH:mm")));
-                                if (detailsLabel != null) detailsLabel.setText(newSel.getDurationString() + " - Direct");
-                                if (priceLabel != null) priceLabel.setText(String.format("EUR %.0f", newSel.getBasePrice()));
-                                if (aircraftLabel != null) aircraftLabel.setText(newSel.getPlane().getPlaneType().getModel());
-                            }
-                        }
-                    });
-
-                    Label resultCountLabel = (Label) root.lookup("#resultCountLabel");
-                    if (resultCountLabel != null) {
-                        resultCountLabel.textProperty().bind(Bindings.size(flightSceneViewModel.getFilteredFlights()).asString());
-                    }
-                }
-            }
-        });
+    bookTabButton.getStyleClass().remove("tab-btn-active");
+    bookingsTabButton.getStyleClass().remove("tab-btn-active");
+    if (visibleWrapper == bookingsViewWrapper)
+    {
+      bookingsTabButton.getStyleClass().add("tab-btn-active");
     }
+    else
+    {
+      bookTabButton.getStyleClass().add("tab-btn-active");
+    }
+  }
 
-    public Region getRoot() { return root; }
-    public void reset() { flightSceneViewModel.clear(); }
+  private void setVisible(StackPane wrapper, boolean visible)
+  {
+    wrapper.setVisible(visible);
+    wrapper.setManaged(visible);
+  }
 
-    @FXML public void loginButton() { /*  */ }
+  @FXML public void loginButton()
+  {
+    // Dialog flow is not wired yet.
+  }
 }

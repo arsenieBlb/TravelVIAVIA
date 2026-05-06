@@ -98,7 +98,7 @@ public class BookFlightViewModel {
         }
     }
 
-    private void searchFlights() {
+    public void searchFlights() {
         SearchCriteria criteria = new SearchCriteria();
         criteria.setDepartureCity(departureCity.get());
         criteria.setArrivalCity(arrivalCity.get());
@@ -146,6 +146,7 @@ public class BookFlightViewModel {
 
     public ObservableList<Flight> getFilteredFlights() { return filteredFlights; }
     public ObjectProperty<Flight> selectedFlightProperty() { return selectedFlight; }
+    public Flight getSelectedFlight() { return selectedFlight.get(); }
     public ObservableList<City> getAllCities() { return allCities; }
     public ObservableList<City> getFilteredDestinations() { return filteredDestinations; }
     public ObjectProperty<City> departureCityProperty() { return departureCity; }
