@@ -29,9 +29,9 @@ public class Customer extends User
         new FlightSearchService());
   }
 
-  public List<Flight> searchFlights(SearchCriteria criteria)
+  public List<Flight> searchFlights(List<Flight> allFlights,SearchCriteria criteria)
   {
-    return flightSearchService.searchFlights(criteria);
+    return flightSearchService.searchFlights(allFlights, criteria);
   }
 
   public Flight viewFlightDetails(Flight flight)

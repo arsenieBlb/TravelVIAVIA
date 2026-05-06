@@ -16,7 +16,7 @@
            prefHeight="750.0"
            stylesheets="@flight_scene.css"
            xmlns="http://javafx.com/javafx/17"
-           xmlns:fx="http://javafx.com/fxml/1">
+           xmlns:fx="http://fxml.com/fxml/1">
 
     <children>
         <BorderPane styleClass="app-root">
@@ -113,12 +113,6 @@
         <StackPane fx:id="bookingDetailsDialogWrapper" visible="false" managed="false">
             <children>
                 <fx:include fx:id="bookingDetailsDialog" source="booking_details_dialog.fxml"/>
-            </children>
-        </StackPane>
-
-        <StackPane fx:id="addBookingDialogWrapper" visible="false" managed="false">
-            <children>
-                <fx:include fx:id="addBookingDialog" source="add_booking_dialog.fxml"/>
             </children>
         </StackPane>
     </children>

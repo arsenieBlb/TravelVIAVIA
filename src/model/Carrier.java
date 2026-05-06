@@ -98,4 +98,9 @@ public class Carrier
   {
     return name;
   }
+
+    public String getCarrierName()
+    {
+        return name;
+    }
 }

@@ -1,6 +1,7 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -19,9 +20,9 @@ public class Flight
   private Plane plane;
   private City departureCity;
   private City arrivalCity;
-  private final List<Booking> bookings;
-  private final List<SeatAssignment> seatAssignments;
-  private final Set<Seat> occupiedSeats;
+  private List<Booking> bookings;
+  private List<SeatAssignment> seatAssignments;
+  private Set<Seat> occupiedSeats;
 
   public Flight(int flightId, String flightNumber, LocalDateTime departureTime,
       LocalDateTime arrivalTime, double basePrice, Carrier carrier, Plane plane,
@@ -157,6 +158,12 @@ public class Flight
         long hours = duration.toHours();
         int minutes = duration.toMinutesPart();
         return String.format("%dh %02dm", hours, minutes);
+    }
+
+    public long getDurationInSeconds() {
+        long start = departureTime.toEpochSecond(ZoneOffset.UTC);
+        long end = arrivalTime.toEpochSecond(ZoneOffset.UTC);
+        return end - start;
     }
 
   void validateSeatBelongsToPlane(Seat seat)
@@ -350,4 +357,20 @@ public class Flight
   {
     return flightNumber + " " + departureCity + " -> " + arrivalCity;
   }
+
+    public boolean matchesCriteria(SearchCriteria criteria)
+    {
+        boolean originMatch = (criteria.getDepartureCity() == null) ||
+                this.getDepartureCity().equals(criteria.getDepartureCity());
+
+        boolean destMatch = (criteria.getArrivalCity() == null) ||
+                this.getArrivalCity().equals(criteria.getArrivalCity());
+
+        boolean dateMatch = (criteria.getDepartureDate() == null) ||
+                this.getDepartureTime().toLocalDate().equals(criteria.getDepartureDate());
+
+        boolean seatsMatch = true;
+
+        return originMatch && destMatch && dateMatch && seatsMatch;
+    }
 }
