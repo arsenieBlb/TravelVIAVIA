@@ -159,6 +159,8 @@ public class ModelManager implements Model
             }
         }
 
+        booking.recalculateTotalPrice();
+
         // saves the booking to the database
         try {
             bookingDAO.saveBooking(booking);

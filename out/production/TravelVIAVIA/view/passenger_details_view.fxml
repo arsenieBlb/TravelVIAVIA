@@ -39,7 +39,7 @@
                         <ScrollPane fitToHeight="false" fitToWidth="false" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" styleClass="timeline-scroll">
                             <content>
                                 <!-- TEAM TODO: generate timeline segments from selected itinerary -->
-                                <HBox fx:id="timelineContainer" spacing="10.0" styleClass="timeline-row">
+                                <HBox fx:id="timelineContainer" spacing="0.0" styleClass="timeline-row">
                                     <children>
                                         <Label text="Berlin (TXL)" styleClass="timeline-chip"/>
                                         <Label text="Paris (CDG)" styleClass="timeline-chip"/>
@@ -73,8 +73,8 @@
                                 <Label fx:id="fareBaseTextLabel" text="Base Fare (2 passengers)" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                                 <Label fx:id="fareBaseLabel" text="EUR 1440" styleClass="fare-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-                                <Label text="Carry-on (included)" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                                <Label text="EUR 0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                <Label fx:id="fareCarryOnTextLabel" text="Carry-on x2 @ EUR 15" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                <Label fx:id="fareCarryOnLabel" text="EUR 30" styleClass="fare-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
                                 <Label fx:id="fareBaggageTextLabel" text="Baggage x2 @ EUR 65" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
                                 <Label fx:id="fareBaggageLabel" text="EUR 130" styleClass="fare-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>

@@ -29,6 +29,9 @@ public class PassengerDetailsViewModel
 {
   private static int nextDraftPassengerId = 1000;
   private static int nextDraftLuggageId = 1000;
+  public static final double CARRY_ON_UNIT_PRICE = 15;
+  public static final int MAX_CARRY_ON_BAGS = 2;
+  public static final double BUSINESS_CLASS_MULTIPLIER = 1.5;
 
   private final Model model;
   private final BookFlightViewModel bookFlightViewModel;
@@ -37,6 +40,7 @@ public class PassengerDetailsViewModel
   private final ObjectProperty<Flight> selectedFlight =
       new SimpleObjectProperty<>();
   private final DoubleProperty baseFare = new SimpleDoubleProperty(0);
+  private final DoubleProperty carryOnFare = new SimpleDoubleProperty(0);
   private final DoubleProperty baggageFare = new SimpleDoubleProperty(0);
   private final DoubleProperty totalFare = new SimpleDoubleProperty(0);
 
@@ -85,6 +89,8 @@ public class PassengerDetailsViewModel
   private PassengerForm createPassengerForm(int passengerNumber)
   {
     PassengerForm form = new PassengerForm(passengerNumber);
+    form.carryOnQuantityProperty().addListener((obs, oldValue, newValue) ->
+        updateFareTotals());
     form.baggageQuantityProperty().addListener((obs, oldValue, newValue) ->
         updateFareTotals());
     form.seatClassProperty().addListener((obs, oldValue, newValue) -> {
@@ -93,6 +99,7 @@ public class PassengerDetailsViewModel
       {
         form.setSelectedSeat(null);
       }
+      updateFareTotals();
     });
     return form;
   }
@@ -131,6 +138,7 @@ public class PassengerDetailsViewModel
 
     List<Passenger> passengers = new ArrayList<>();
     List<Seat> selectedSeats = new ArrayList<>();
+    LuggageType carryOnLuggage = getCarryOnLuggageType();
     LuggageType checkedLuggage = getCheckedLuggageType();
 
     for (PassengerForm form : passengerForms)
@@ -138,6 +146,13 @@ public class PassengerDetailsViewModel
       Passenger passenger = new Passenger(nextDraftPassengerId++,
           requireText(form.getFirstName(), "First name"),
           requireText(form.getLastName(), "Last name"));
+
+      int carryOnQuantity = form.getCarryOnQuantity();
+      if (carryOnQuantity > 0 && carryOnLuggage != null)
+      {
+        passenger.addPassengerLuggage(new PassengerLuggage(
+            nextDraftLuggageId++, carryOnQuantity, carryOnLuggage));
+      }
 
       int baggageQuantity = form.getBaggageQuantity();
       if (baggageQuantity > 0 && checkedLuggage != null)
@@ -162,6 +177,7 @@ public class PassengerDetailsViewModel
     {
       form.setFirstName("");
       form.setLastName("");
+      form.carryOnQuantityProperty().set(1);
       form.baggageQuantityProperty().set(0);
       form.seatClassProperty().set(SeatClass.Economy);
       form.setSelectedSeat(null);
@@ -183,17 +199,34 @@ public class PassengerDetailsViewModel
     if (flight == null)
     {
       baseFare.set(0);
+      carryOnFare.set(0);
       baggageFare.set(0);
       totalFare.set(0);
       return;
     }
 
-    double base = flight.getBasePrice() * passengerForms.size();
+    double base = 0;
+    for (PassengerForm form : passengerForms)
+    {
+      base += calculateBaseFareForPassenger(flight, form);
+    }
+    double carryOn = CARRY_ON_UNIT_PRICE * getTotalCarryOnQuantity();
     double baggage = getBaggageUnitPrice() * getTotalBaggageQuantity();
 
     baseFare.set(base);
+    carryOnFare.set(carryOn);
     baggageFare.set(baggage);
-    totalFare.set(base + baggage);
+    totalFare.set(base + carryOn + baggage);
+  }
+
+  public int getTotalCarryOnQuantity()
+  {
+    int total = 0;
+    for (PassengerForm form : passengerForms)
+    {
+      total += form.getCarryOnQuantity();
+    }
+    return total;
   }
 
   public int getTotalBaggageQuantity()
@@ -210,6 +243,40 @@ public class PassengerDetailsViewModel
   {
     LuggageType checkedLuggage = getCheckedLuggageType();
     return checkedLuggage == null ? 0 : checkedLuggage.getExtraPrice();
+  }
+
+  private double calculateBaseFareForPassenger(Flight flight,
+      PassengerForm form)
+  {
+    double passengerBaseFare = flight.getBasePrice();
+    if (form.getSeatClass() == SeatClass.Business)
+    {
+      passengerBaseFare *= BUSINESS_CLASS_MULTIPLIER;
+    }
+    return passengerBaseFare;
+  }
+
+  public List<Flight> getFlightSegments()
+  {
+    List<Flight> segments = new ArrayList<>();
+    if (selectedFlight.get() != null)
+    {
+      segments.add(selectedFlight.get());
+    }
+    return segments;
+  }
+
+  private LuggageType getCarryOnLuggageType()
+  {
+    for (LuggageType luggageType : model.getLuggageTypes())
+    {
+      if (luggageType.getName().toLowerCase().contains("carry"))
+      {
+        luggageType.setExtraPrice(CARRY_ON_UNIT_PRICE);
+        return luggageType;
+      }
+    }
+    return null;
   }
 
   private LuggageType getCheckedLuggageType()
@@ -350,6 +417,11 @@ public class PassengerDetailsViewModel
     return baggageFare;
   }
 
+  public DoubleProperty carryOnFareProperty()
+  {
+    return carryOnFare;
+  }
+
   public DoubleProperty totalFareProperty()
   {
     return totalFare;
@@ -360,6 +432,8 @@ public class PassengerDetailsViewModel
     private final int passengerNumber;
     private final StringProperty firstName = new SimpleStringProperty("");
     private final StringProperty lastName = new SimpleStringProperty("");
+    private final IntegerProperty carryOnQuantity =
+        new SimpleIntegerProperty(1);
     private final IntegerProperty baggageQuantity =
         new SimpleIntegerProperty(0);
     private final ObjectProperty<SeatClass> seatClass =
@@ -415,6 +489,16 @@ public class PassengerDetailsViewModel
     public int getBaggageQuantity()
     {
       return baggageQuantity.get();
+    }
+
+    public int getCarryOnQuantity()
+    {
+      return carryOnQuantity.get();
+    }
+
+    public IntegerProperty carryOnQuantityProperty()
+    {
+      return carryOnQuantity;
     }
 
     public IntegerProperty baggageQuantityProperty()

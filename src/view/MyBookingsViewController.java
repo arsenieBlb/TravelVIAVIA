@@ -11,12 +11,14 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import model.Booking;
 import model.Flight;
+import model.Passenger;
 import viewmodel.MyBookingsViewModel;
 
 import java.time.format.DateTimeFormatter;
 
 public class MyBookingsViewController
 {
+  @FXML private Button addBookingButton;
   @FXML private FlowPane bookingsListPane;
   @FXML private VBox emptyBookingsPane;
 
@@ -35,14 +37,9 @@ public class MyBookingsViewController
         updateSubtitle());
     viewModel.getBookings().addListener(
         (ListChangeListener<Booking>) change -> renderBookings());
+    addBookingButton.setOnAction(event -> viewHandler.showAddBookingDialog());
     emptyBookingsPane.setOnMouseClicked(event ->
         viewHandler.showAddBookingDialog());
-    bookingsListPane.setOnMouseClicked(event -> {
-      if (event.getClickCount() == 2)
-      {
-        viewHandler.showAddBookingDialog();
-      }
-    });
     refresh();
   }
 
@@ -77,42 +74,57 @@ public class MyBookingsViewController
   {
     Flight flight = booking.getFlight();
     VBox card = new VBox(10);
-    card.getStyleClass().add("card");
+    card.getStyleClass().add("booking-card");
     card.setPrefWidth(360);
+    card.setOnMouseClicked(event -> {
+      viewHandler.showBookingDetails(booking);
+      event.consume();
+    });
 
     HBox header = new HBox(10);
-    Label idLabel = new Label("Booking #" + booking.getBookingId());
-    idLabel.getStyleClass().add("card-title");
-    Label statusLabel = new Label("Current");
-    statusLabel.getStyleClass().add("result-pill-value");
+    VBox codeBox = createBookingCardValue("BOOKING CODE",
+        "#" + booking.getBookingId(), "booking-card-code");
     Region spacer = new Region();
     HBox.setHgrow(spacer, Priority.ALWAYS);
-    header.getChildren().addAll(idLabel, spacer, statusLabel);
+    Label chevron = new Label(">");
+    chevron.getStyleClass().add("booking-card-chevron");
+    header.getChildren().addAll(codeBox, spacer, chevron);
 
-    Label routeLabel = new Label(flight.getDepartureCity().getCityName()
-        + " -> " + flight.getArrivalCity().getCityName());
-    routeLabel.getStyleClass().add("summary-value");
+    VBox passengerBox = createBookingCardValue("PASSENGER",
+        getPassengerDisplayName(booking), "booking-card-value");
+    VBox dateBox = createBookingCardValue("DATE ADDED",
+        booking.getBookingDate().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
+        "booking-card-date");
+    VBox routeBox = createBookingCardValue("ROUTE",
+        flight.getDepartureCity().getCityName() + " -> "
+            + flight.getArrivalCity().getCityName(), "booking-card-value");
 
-    Label dateLabel = new Label(flight.getDepartureTime()
-        .format(DateTimeFormatter.ofPattern("MMM dd, yyyy - HH:mm")));
-    dateLabel.getStyleClass().add("subtle-body");
-
-    Label carrierLabel = new Label(flight.getCarrier().getName() + " | "
-        + flight.getFlightNumber());
-    carrierLabel.getStyleClass().add("subtle-body");
-
-    Label passengerLabel = new Label(booking.getPassengers().size()
-        + (booking.getPassengers().size() == 1 ? " passenger" : " passengers")
-        + " | " + String.format("EUR %.0f", booking.getTotalPrice()));
-    passengerLabel.getStyleClass().add("summary-value");
-
-    Button detailsButton = new Button("View details");
-    detailsButton.getStyleClass().add("btn-outline");
-    detailsButton.setMaxWidth(Double.MAX_VALUE);
-    detailsButton.setOnAction(event -> viewHandler.showBookingDetails(booking));
-
-    card.getChildren().addAll(header, routeLabel, dateLabel, carrierLabel,
-        passengerLabel, detailsButton);
+    card.getChildren().addAll(header, passengerBox, dateBox, routeBox);
     return card;
+  }
+
+  private VBox createBookingCardValue(String labelText, String valueText,
+      String valueStyleClass)
+  {
+    Label label = new Label(labelText);
+    label.getStyleClass().add("booking-card-label");
+    Label value = new Label(valueText);
+    value.getStyleClass().add(valueStyleClass);
+    return new VBox(3, label, value);
+  }
+
+  private String getPassengerDisplayName(Booking booking)
+  {
+    if (booking.getPassengers().isEmpty())
+    {
+      return "Passenger";
+    }
+    Passenger passenger = booking.getPassengers().get(0);
+    if (booking.getPassengers().size() == 1)
+    {
+      return passenger.getFullName();
+    }
+    return passenger.getFullName() + " +"
+        + (booking.getPassengers().size() - 1);
   }
 }
