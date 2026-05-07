@@ -20,10 +20,9 @@ public class LoginDialogController
   private FlightSceneViewController owner;
   private StackPane wrapper;
 
-  public void init(FlightSceneViewController owner, StackPane wrapper)
+  public void init(FlightSceneViewController owner)
   {
     this.owner = owner;
-    this.wrapper = wrapper;
 
     closeLoginButton.setOnAction(event -> hide());
     loginSubmitButton.setOnAction(event -> login());
@@ -36,15 +35,12 @@ public class LoginDialogController
   {
     loginPasswordField.clear();
     hideError();
-    wrapper.setVisible(true);
-    wrapper.setManaged(true);
     loginEmailField.requestFocus();
   }
 
   public void hide()
   {
-    wrapper.setVisible(false);
-    wrapper.setManaged(false);
+      owner.hideAuthDialogs();
   }
 
   private void login()

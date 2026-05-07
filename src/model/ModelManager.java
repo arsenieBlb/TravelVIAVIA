@@ -178,12 +178,14 @@ public class ModelManager implements Model
     }
 
     @Override
-    public void cancelBooking(Booking booking)
-    {
+    public void cancelBooking(Booking booking) {
         if (currentUser instanceof Customer customer) {
-            customer.cancelBooking(booking);
-        } else if (currentUser instanceof Admin admin) {
-            booking.cancel();
+            try {
+                bookingDAO.removeBooking(booking.getBookingId());
+                customer.cancelBooking(booking);
+            } catch (SQLException e) {
+                System.out.println("Failed to remove booking from database: " + e.getMessage());
+            }
         }
     }
 

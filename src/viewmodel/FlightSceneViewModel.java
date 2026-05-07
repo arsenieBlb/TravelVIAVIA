@@ -1,173 +1,254 @@
 package viewmodel;
- 
+
 import javafx.beans.property.*;
-import javafx.util.Duration;
-import model.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.application.Platform;
+import model.*;
+
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
- 
+import java.util.stream.Collectors;
+
 public class FlightSceneViewModel {
     private static int nextDraftPassengerId = 1000;
- 
+
     private Model model;
     private SeatMapViewModel seatMapViewModel;
- 
+    private boolean isUpdating = false;
+
+    private ObjectProperty<City> departureCity = new SimpleObjectProperty<>();
+    private ObjectProperty<City> arrivalCity = new SimpleObjectProperty<>();
+    private ObservableList<City> allCities = FXCollections.observableArrayList();
+    private ObservableList<City> filteredDestinations = FXCollections.observableArrayList();
+    private final IntegerProperty passengerCount = new SimpleIntegerProperty(1);
+    private final ObjectProperty<LocalDate> travelDate = new SimpleObjectProperty<>(LocalDate.now());
+
     private StringProperty flightNumber = new SimpleStringProperty("");
     private StringProperty departureTime = new SimpleStringProperty("");
     private StringProperty arrivalTime = new SimpleStringProperty("");
     private StringProperty routeSummary = new SimpleStringProperty("");
- 
+
     private StringProperty passengerOneFirstName = new SimpleStringProperty("");
     private StringProperty passengerOneLastName = new SimpleStringProperty("");
     private IntegerProperty passengerOneBaggageCount = new SimpleIntegerProperty(0);
- 
+
     private StringProperty passengerTwoFirstName = new SimpleStringProperty("");
     private StringProperty passengerTwoLastName = new SimpleStringProperty("");
     private IntegerProperty passengerTwoBaggageCount = new SimpleIntegerProperty(0);
- 
+
     private DoubleProperty totalPrice = new SimpleDoubleProperty(0);
- 
+
     private ObjectProperty<Flight> selectedFlight = new SimpleObjectProperty<>();
     private ObservableList<Flight> filteredFlights = FXCollections.observableArrayList();
- 
     private List<Flight> allFlights = new ArrayList<>();
- 
+
     private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
- 
+
+    private final BooleanProperty directOnly = new SimpleBooleanProperty(false);
+    private PassengerDetailsViewModel passengerDetailsViewModel;
+
     public FlightSceneViewModel(Model model) {
         this.model = model;
- 
+
+        loadCitiesFromDatabase();
+        departureCity.addListener((obs, oldVal, newVal) -> safeUpdateFilters());
+        arrivalCity.addListener((obs, oldVal, newVal) -> safeUpdateFilters());
+
         passengerOneBaggageCount.addListener((observable, oldValue, newValue) -> updateTotalPrice());
         passengerTwoBaggageCount.addListener((observable, oldValue, newValue) -> updateTotalPrice());
- 
+
         loadFirstFlight();
     }
- 
-    public void setSeatMapViewModel(SeatMapViewModel seatMapViewModel) {
-        this.seatMapViewModel = seatMapViewModel;
-        
-        // Listeners for seat class changes to update price
-        if (seatMapViewModel != null) {
-            seatMapViewModel.passengerOneSeatClassProperty().addListener((obs, old, newVal) -> updateTotalPrice());
-            seatMapViewModel.passengerTwoSeatClassProperty().addListener((obs, old, newVal) -> updateTotalPrice());
+
+    private void safeUpdateFilters() {
+        if (isUpdating) return;
+
+        Platform.runLater(() -> {
+            isUpdating = true;
+            City currentOrigin = departureCity.get();
+            City currentDest = arrivalCity.get();
+
+            List<City> destList = model.getAllCities().stream()
+                    .filter(c -> currentOrigin == null || c.getCityId() != currentOrigin.getCityId())
+                    .sorted(Comparator.comparing(City::getCityName))
+                    .collect(Collectors.toList());
+
+            if (!destList.equals(new ArrayList<>(filteredDestinations))) {
+                filteredDestinations.setAll(destList);
+            }
+
+            List<City> originList = model.getAllCities().stream()
+                    .filter(c -> currentDest == null || c.getCityId() != currentDest.getCityId())
+                    .sorted(Comparator.comparing(City::getCityName))
+                    .collect(Collectors.toList());
+
+            if (!originList.equals(new ArrayList<>(allCities))) {
+                allCities.setAll(originList);
+            }
+
+            departureCity.set(currentOrigin);
+            arrivalCity.set(currentDest);
+            isUpdating = false;
+        });
+    }
+
+    private void loadCitiesFromDatabase() {
+        List<City> cities = model.getAllCities();
+        cities.sort(Comparator.comparing(City::getCityName));
+        allCities.setAll(cities);
+    }
+
+    public void incrementPassengers() {
+        if (passengerCount.get() < 9) {
+            passengerCount.set(passengerCount.get() + 1);
         }
     }
- 
+
+    public void decrementPassengers() {
+        if (passengerCount.get() > 1) {
+            passengerCount.set(passengerCount.get() - 1);
+        }
+    }
+
     public void loadFirstFlight() {
         searchFlights();
         if (!filteredFlights.isEmpty()) {
             setSelectedFlight(filteredFlights.get(0));
         }
     }
- 
+
     public void searchFlights() {
         if (model == null) return;
- 
+
         SearchCriteria criteria = new SearchCriteria();
+        criteria.setDepartureCity(departureCity.get());
+        criteria.setArrivalCity(arrivalCity.get());
+
         List<Flight> flights = model.searchFlights(criteria);
- 
+
         allFlights.clear();
         filteredFlights.clear();
- 
+
         if (flights != null) {
             allFlights.addAll(flights);
-            filteredFlights.addAll(flights);
+
+            if (directOnly.get()) {
+                for (Flight f : flights) {
+                    if (isFlightDirect(f)) {
+                        filteredFlights.add(f);
+                    }
+                }
+            } else {
+                filteredFlights.addAll(flights);
+            }
         }
     }
- 
-    public ObservableList<Flight> getFilteredFlights() {
-        return filteredFlights;
+
+    private boolean isFlightDirect(Flight f) {
+        if (departureCity.get() == null || arrivalCity.get() == null) {
+            return true;
+        }
+
+        return f.getDepartureCity().equals(departureCity.get()) &&
+                f.getArrivalCity().equals(arrivalCity.get());
     }
- 
-    public boolean login(String email, String password) {
-        return model.login(email, password);
-    }
- 
-    public boolean register(String firstName, String lastName, String email, String password) {
-        return model.register(firstName, lastName, email, password);
-    }
- 
-    public void logout() {
-        model.logout();
-    }
- 
-    public User getLoggedInUser() {
-        return model.getLoggedInUser();
-    }
- 
+
     public void confirmBooking() {
         if (selectedFlight.get() == null) {
             throw new IllegalStateException("No flight is selected.");
         }
- 
+
         List<Passenger> passengers = new ArrayList<>();
         List<Seat> selectedSeats = new ArrayList<>();
- 
+
         List<LuggageType> luggageTypes = model.getLuggageTypes();
         LuggageType standardLuggage = (luggageTypes != null && !luggageTypes.isEmpty())
                 ? luggageTypes.get(0) : null;
- 
+
         Passenger p1 = createPassenger(passengerOneFirstName.get(), passengerOneLastName.get(), "Passenger 1");
- 
+
         if (passengerOneBaggageCount.get() > 0 && standardLuggage != null) {
             p1.addPassengerLuggage(new PassengerLuggage(0, passengerOneBaggageCount.get(), standardLuggage));
         }
         passengers.add(p1);
         selectedSeats.add(seatMapViewModel.getSelectedSeatForPassenger(1));
- 
+
         if (hasPassengerTwoDetails()) {
             Passenger p2 = createPassenger(passengerTwoFirstName.get(), passengerTwoLastName.get(), "Passenger 2");
- 
+
             if (passengerTwoBaggageCount.get() > 0 && standardLuggage != null) {
                 p2.addPassengerLuggage(new PassengerLuggage(0, passengerTwoBaggageCount.get(), standardLuggage));
             }
             passengers.add(p2);
             selectedSeats.add(seatMapViewModel.getSelectedSeatForPassenger(2));
         }
- 
+
         model.createBooking(selectedFlight.get(), passengers, selectedSeats);
         System.out.println("Booking successfully saved to Database!");
         clear();
     }
- 
+
+    public void clear() {
+        departureCity.set(null);
+        arrivalCity.set(null);
+        travelDate.set(LocalDate.now());
+
+        passengerOneFirstName.set("");
+        passengerOneLastName.set("");
+        passengerOneBaggageCount.set(0);
+        passengerTwoFirstName.set("");
+        passengerTwoLastName.set("");
+        passengerTwoBaggageCount.set(0);
+
+        directOnly.set(false);
+        searchFlights();
+
+        selectedFlight.set(null);
+        if (seatMapViewModel != null) {
+            seatMapViewModel.clear();
+        }
+
+        updateTotalPrice();
+    }
+
+
+    public void setSeatMapViewModel(SeatMapViewModel seatMapViewModel) {
+        this.seatMapViewModel = seatMapViewModel;
+        if (seatMapViewModel != null) {
+            seatMapViewModel.passengerOneSeatClassProperty().addListener((obs, old, newVal) -> updateTotalPrice());
+            seatMapViewModel.passengerTwoSeatClassProperty().addListener((obs, old, newVal) -> updateTotalPrice());
+        }
+    }
+
+    public BooleanProperty directOnlyProperty() {
+        return directOnly;
+    }
+
+    public boolean login(String email, String password) { return model.login(email, password); }
+    public boolean register(String firstName, String lastName, String email, String password) {
+        return model.register(firstName, lastName, email, password);
+    }
+    public void logout() { model.logout(); }
+    public User getLoggedInUser() { return model.getLoggedInUser(); }
+
     private Passenger createPassenger(String firstName, String lastName, String passengerLabel) {
         if (!hasText(firstName) || !hasText(lastName)) {
             throw new IllegalStateException(passengerLabel + " must have both first name and last name.");
         }
         return new Passenger(nextDraftPassengerId++, firstName.trim(), lastName.trim());
     }
- 
+
     private boolean hasPassengerTwoDetails() {
         return hasText(passengerTwoFirstName.get())
                 || hasText(passengerTwoLastName.get())
                 || passengerTwoBaggageCount.get() > 0
                 || (seatMapViewModel != null && seatMapViewModel.getSelectedSeatForPassenger(2) != null);
     }
- 
-    public Flight getSelectedFlight() {
-        return selectedFlight.get();
-    }
- 
-    public String getSeatPickerSummary(int passengerNumber) {
-        return routeSummary.get() + " | " + (seatMapViewModel != null ? seatMapViewModel.getSeatClassForPassenger(passengerNumber) : "");
-    }
- 
-    public StringProperty passengerOneFirstNameProperty() { return passengerOneFirstName; }
-    public StringProperty passengerOneLastNameProperty() { return passengerOneLastName; }
-    public IntegerProperty passengerOneBaggageCountProperty() { return passengerOneBaggageCount; }
-    public StringProperty PassengerTwoFirstNameProperty() { return passengerTwoFirstName; }
-    public StringProperty PassengerTwoLastNameProperty() { return passengerTwoLastName; }
-    public IntegerProperty PassengerTwoBaggageCountProperty() { return passengerTwoBaggageCount; }
-    public DoubleProperty totalPriceProperty() { return totalPrice; }
-    public StringProperty flightNumberProperty() { return flightNumber; }
-    public StringProperty departureTimeProperty() { return departureTime; }
-    public StringProperty arrivalTimeProperty() { return arrivalTime; }
-    public StringProperty routeSummaryProperty() { return routeSummary; }
- 
+
     public void setSelectedFlight(Flight flight) {
         this.selectedFlight.set(flight);
         if (seatMapViewModel != null) {
@@ -176,50 +257,30 @@ public class FlightSceneViewModel {
         }
         updateTotalPrice();
     }
- 
-    private void updateTotalPrice() {
+
+    public void updateTotalPrice() {
         if (selectedFlight.get() == null) return;
- 
         double base = selectedFlight.get().getBasePrice();
         double currentTotal = 0;
- 
-        currentTotal += calculatePassengerPrice(base, 
+        currentTotal += calculatePassengerPrice(base,
                 seatMapViewModel != null ? seatMapViewModel.getSeatClassForPassenger(1) : SeatClass.Economy,
                 passengerOneBaggageCount.get());
- 
+
         if (hasPassengerTwoDetails()) {
             currentTotal += calculatePassengerPrice(base,
                     seatMapViewModel != null ? seatMapViewModel.getSeatClassForPassenger(2) : SeatClass.Economy,
                     passengerTwoBaggageCount.get());
         }
- 
         totalPrice.set(currentTotal);
     }
- 
+
     private double calculatePassengerPrice(double base, SeatClass seatClass, int baggageQuantity) {
         double price = base;
-        if (seatClass == SeatClass.Business) {
-            price *= 1.5;
-        }
+        if (seatClass == SeatClass.Business) price *= 1.5;
         price += (baggageQuantity * 20.0);
         return price;
     }
- 
-    private boolean hasText(String value) {
-        return value != null && !value.isBlank();
-    }
- 
-    public void clear() {
-        passengerOneFirstName.set("");
-        passengerOneLastName.set("");
-        passengerOneBaggageCount.set(0);
-        passengerTwoFirstName.set("");
-        passengerTwoLastName.set("");
-        passengerTwoBaggageCount.set(0);
-        if (seatMapViewModel != null) seatMapViewModel.clear();
-        updateTotalPrice();
-    }
- 
+
     public void sortFlights(String criteria) {
         if (filteredFlights == null) return;
         switch (criteria) {
@@ -234,25 +295,55 @@ public class FlightSceneViewModel {
                 break;
         }
     }
- 
+
     public ObservableList<String> getUniqueCarriers() {
         return FXCollections.observableArrayList(
-                allFlights.stream()
-                        .map(flight -> flight.getCarrier().getName())
-                        .distinct()
-                        .sorted()
-                        .toList()
+                allFlights.stream().map(f -> f.getCarrier().getName()).distinct().sorted().toList()
         );
     }
- 
+
     public void filterByCarrier(String carrierName) {
         if (carrierName == null || carrierName.equals("All Airlines")) {
             filteredFlights.setAll(allFlights);
         } else {
-            List<Flight> result = allFlights.stream()
-                    .filter(f -> f.getCarrier().getName().equals(carrierName))
-                    .toList();
-            filteredFlights.setAll(result);
+            filteredFlights.setAll(allFlights.stream().filter(f -> f.getCarrier().getName().equals(carrierName)).toList());
         }
+    }
+
+    public ObservableList<Flight> getFilteredFlights() { return filteredFlights; }
+    public ObjectProperty<Flight> selectedFlightProperty() { return selectedFlight; }
+    public Flight getSelectedFlight() { return selectedFlight.get(); }
+    public ObservableList<City> getAllCities() { return allCities; }
+    public ObservableList<City> getFilteredDestinations() { return filteredDestinations; }
+    public ObjectProperty<City> departureCityProperty() { return departureCity; }
+    public ObjectProperty<City> arrivalCityProperty() { return arrivalCity; }
+    public ObjectProperty<LocalDate> travelDateProperty() { return travelDate; }
+    public IntegerProperty passengerCountProperty() { return passengerCount; }
+    public StringProperty passengerOneFirstNameProperty() { return passengerOneFirstName; }
+    public StringProperty passengerOneLastNameProperty() { return passengerOneLastName; }
+    public IntegerProperty passengerOneBaggageCountProperty() { return passengerOneBaggageCount; }
+    public StringProperty PassengerTwoFirstNameProperty() { return passengerTwoFirstName; }
+    public StringProperty PassengerTwoLastNameProperty() { return passengerTwoLastName; }
+    public IntegerProperty PassengerTwoBaggageCountProperty() { return passengerTwoBaggageCount; }
+    public DoubleProperty totalPriceProperty() { return totalPrice; }
+    public StringProperty flightNumberProperty() { return flightNumber; }
+    public StringProperty departureTimeProperty() { return departureTime; }
+    public StringProperty arrivalTimeProperty() { return arrivalTime; }
+    public StringProperty routeSummaryProperty() { return routeSummary; }
+    private boolean hasText(String value) { return value != null && !value.isBlank(); }
+
+    public MyBookingsViewModel getMyBookingsViewModel() {
+        return new MyBookingsViewModel(this.model);
+    }
+
+    public PassengerDetailsViewModel getPassengerDetailsViewModel() {
+        if (this.passengerDetailsViewModel == null) {
+            this.passengerDetailsViewModel = new PassengerDetailsViewModel(this.model, this);
+        }
+        return this.passengerDetailsViewModel;
+    }
+
+    public SeatMapViewModel getSeatMapViewModel() {
+        return new SeatMapViewModel(getPassengerDetailsViewModel());
     }
 }

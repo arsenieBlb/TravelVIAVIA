@@ -315,3 +315,10 @@ INSERT INTO passenger_luggage(passenger_luggage_id, passenger_id, luggage_type_i
 
 INSERT INTO flight_seat(flight_id, seat_id, passenger_id, is_occupied) VALUES
 (104, 1, 2, TRUE);
+
+UPDATE flight SET arrival_time = '2026-07-15 09:55:00' WHERE flight_id = 107;
+UPDATE flight SET arrival_time = '2026-07-20 15:55:00' WHERE flight_id = 118;
+UPDATE flight SET arrival_time = '2026-08-01 09:25:00' WHERE flight_id = 141;
+UPDATE flight SET arrival_time = '2026-08-05 17:00:00' WHERE flight_id = 150;
+UPDATE flight SET arrival_time = '2026-08-06 20:00:00' WHERE flight_id = 152;
+UPDATE flight SET arrival_time = '2026-08-04 09:05:00' WHERE flight_id = 133;

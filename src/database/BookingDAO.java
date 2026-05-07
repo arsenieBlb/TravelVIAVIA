@@ -381,4 +381,43 @@ public class BookingDAO
     }
     return null;
   }
+
+    public void removeBooking(int bookingId) throws SQLException {
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                String deleteSeatsSql = "DELETE FROM flights.flight_seat WHERE passenger_id IN "
+                        + "(SELECT passenger_id FROM flights.passenger WHERE booking_id = ?)";
+                PreparedStatement deleteSeatsStmt = connection.prepareStatement(deleteSeatsSql);
+                deleteSeatsStmt.setInt(1, bookingId);
+                deleteSeatsStmt.executeUpdate();
+
+                String deleteLuggageSql = "DELETE FROM flights.passenger_luggage WHERE passenger_id IN "
+                        + "(SELECT passenger_id FROM flights.passenger WHERE booking_id = ?)";
+                PreparedStatement deleteLuggageStmt = connection.prepareStatement(deleteLuggageSql);
+                deleteLuggageStmt.setInt(1, bookingId);
+                deleteLuggageStmt.executeUpdate();
+
+                String deletePassengersSql = "DELETE FROM flights.passenger WHERE booking_id = ?";
+                PreparedStatement deletePassengersStmt = connection.prepareStatement(deletePassengersSql);
+                deletePassengersStmt.setInt(1, bookingId);
+                deletePassengersStmt.executeUpdate();
+
+                String deleteLinkSql = "DELETE FROM flights.booking_customer WHERE booking_id = ?";
+                PreparedStatement deleteLinkStmt = connection.prepareStatement(deleteLinkSql);
+                deleteLinkStmt.setInt(1, bookingId);
+                deleteLinkStmt.executeUpdate();
+
+                String deleteBookingSql = "DELETE FROM flights.booking WHERE booking_id = ?";
+                PreparedStatement deleteBookingStmt = connection.prepareStatement(deleteBookingSql);
+                deleteBookingStmt.setInt(1, bookingId);
+                deleteBookingStmt.executeUpdate();
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            }
+        }
+    }
 }

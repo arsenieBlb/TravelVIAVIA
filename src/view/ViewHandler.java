@@ -14,6 +14,7 @@ public class ViewHandler {
     private Scene scene;
     private FlightSceneViewController flightSceneViewController;
     private ViewModelFactory viewModelFactory;
+    private MyBookingsViewController bookViewController;
 
     public ViewHandler(ViewModelFactory viewModelFactory)
     {
@@ -55,7 +56,8 @@ public class ViewHandler {
             Region root = loader.load();
             flightSceneViewController = loader.getController();
 
-            flightSceneViewController.init(root, this, viewModelFactory);
+            flightSceneViewController.init(root, this, viewModelFactory.getFlightSceneViewModel());
+            this.bookViewController = flightSceneViewController.getMyBookingsViewController();
         } else {
             flightSceneViewController.reset();
         }
@@ -92,8 +94,20 @@ public class ViewHandler {
         flightSceneViewController.showBookingDetails(booking);
     }
 
-    public void refreshMyBookings()
-    {
-        flightSceneViewController.refreshMyBookings();
+    public void refreshMyBookings() {
+        if (bookViewController != null) {
+            bookViewController.refresh();
+        } else {
+            System.out.println("DEBUG: bookViewController is null. Attempting re-grab...");
+
+            if (flightSceneViewController != null) {
+                this.bookViewController = flightSceneViewController.getMyBookingsViewController();
+                if (this.bookViewController != null) {
+                    this.bookViewController.refresh();
+                } else {
+                    System.out.println("ERROR: MyBookingsViewController still null. Check FXML fx:id!");
+                }
+            }
+        }
     }
 }

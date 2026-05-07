@@ -42,12 +42,11 @@ public class PassengerDetailsViewController
   private ViewHandler viewHandler;
   private PassengerDetailsViewModel viewModel;
 
-  public void init(PassengerDetailsViewModel viewModel, Region root,
-      ViewHandler viewHandler)
+  public void init(ViewHandler viewHandler, PassengerDetailsViewModel viewModel, Region root)
   {
+    this.viewHandler = viewHandler;
     this.viewModel = viewModel;
     this.root = root;
-    this.viewHandler = viewHandler;
 
     cancelPassengerDetailsButton.setOnAction(event ->
         viewHandler.showBookFlight());

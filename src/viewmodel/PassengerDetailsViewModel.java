@@ -34,7 +34,7 @@ public class PassengerDetailsViewModel
   public static final double BUSINESS_CLASS_MULTIPLIER = 1.5;
 
   private final Model model;
-  private final BookFlightViewModel bookFlightViewModel;
+  private final FlightSceneViewModel flightSceneViewModel;
   private final ObservableList<PassengerForm> passengerForms =
       FXCollections.observableArrayList();
   private final ObjectProperty<Flight> selectedFlight =
@@ -45,15 +45,15 @@ public class PassengerDetailsViewModel
   private final DoubleProperty totalFare = new SimpleDoubleProperty(0);
 
   public PassengerDetailsViewModel(Model model,
-      BookFlightViewModel bookFlightViewModel)
+      FlightSceneViewModel bookFlightViewModel)
   {
     this.model = model;
-    this.bookFlightViewModel = bookFlightViewModel;
+    this.flightSceneViewModel = bookFlightViewModel;
   }
 
   public void prepare()
   {
-    Flight flight = bookFlightViewModel.getSelectedFlight();
+    Flight flight = flightSceneViewModel.getSelectedFlight();
     if (flight == null)
     {
       throw new IllegalStateException("Please select a flight first.");
@@ -63,7 +63,7 @@ public class PassengerDetailsViewModel
         || !selectedFlight.get().equals(flight);
     selectedFlight.set(flight);
 
-    int passengerCount = bookFlightViewModel.passengerCountProperty().get();
+    int passengerCount = flightSceneViewModel.passengerCountProperty().get();
     while (passengerForms.size() < passengerCount)
     {
       PassengerForm form = createPassengerForm(passengerForms.size() + 1);
@@ -167,7 +167,7 @@ public class PassengerDetailsViewModel
 
     Booking booking = model.createBooking(flight, passengers, selectedSeats);
     clearPassengerForms();
-    bookFlightViewModel.clear();
+    flightSceneViewModel.clear();
     return booking;
   }
 
