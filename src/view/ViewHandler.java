@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import model.Booking;
+import viewmodel.FlightsTabViewModel;
 import viewmodel.ViewModelFactory;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ public class ViewHandler {
     private FlightSceneViewController flightSceneViewController;
     private ViewModelFactory viewModelFactory;
     private MyBookingsViewController bookViewController;
+    private NavigationAdminViewController navigationAdminViewController;
 
     public ViewHandler(ViewModelFactory viewModelFactory)
     {
@@ -38,6 +40,10 @@ public class ViewHandler {
                 root = loadFlightSceneView("flight_scene.fxml");
             }
 
+            else if ("admin".equals(id)) {
+                root = loadAdminShellView("flights_tab.fxml");
+            }
+
             scene.setRoot(root);
             primaryStage.setScene(scene);
             primaryStage.setTitle(id);
@@ -47,6 +53,20 @@ public class ViewHandler {
         {
             e.printStackTrace();
         }
+    }
+
+    private Region loadAdminShellView(String fxmlFile) throws IOException {
+        if (navigationAdminViewController == null) {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource(fxmlFile));
+            Region root = loader.load();
+            navigationAdminViewController = loader.getController();
+
+            navigationAdminViewController.init(this, root, viewModelFactory.getNavigationAdminViewModel());
+        } else {
+            navigationAdminViewController.clear();
+        }
+        return navigationAdminViewController.getRoot();
     }
 
     public Region loadFlightSceneView(String fxmlFile) throws IOException {
@@ -63,6 +83,7 @@ public class ViewHandler {
         }
         return flightSceneViewController.getRoot();
     }
+
 
     public void showBookFlight()
     {

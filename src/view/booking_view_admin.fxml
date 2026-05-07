@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      spacing="16"
+      stylesheets="@admin_theme.css"
+      styleClass="page-container">
+    <padding>
+        <Insets top="32" right="32" bottom="32" left="32"/>
+    </padding>
+
+    <VBox spacing="2">
+        <Label text="Booking Management" styleClass="section-title"/>
+        <Label text="View bookings" styleClass="section-subtitle"/>
+    </VBox>
+
+    <VBox spacing="12" styleClass="panel-card">
+        <padding>
+            <Insets top="16" right="16" bottom="16" left="16"/>
+        </padding>
+        <FlowPane hgap="8" vgap="8" prefWrapLength="980">
+            <VBox spacing="4">
+                <Label text="Booking ID" styleClass="label-filter"/>
+                <TextField fx:id="bookingIdSearchField"
+                           promptText="Search by ID"
+                           styleClass="text-input"
+                           prefWidth="176"/>
+            </VBox>
+            <VBox spacing="4">
+                <Label text="Email" styleClass="label-filter"/>
+                <TextField fx:id="emailSearchField"
+                           promptText="Search by email"
+                           styleClass="text-input"
+                           prefWidth="208"/>
+            </VBox>
+        </FlowPane>
+    </VBox>
+
+    <StackPane styleClass="table-card" VBox.vgrow="ALWAYS">
+        <TableView fx:id="bookingsTable" styleClass="data-table">
+            <columns>
+                <TableColumn fx:id="bookingIdColumn" text="BOOKING ID" prefWidth="140"/>
+                <TableColumn fx:id="passengersColumn" text="PASSENGERS" prefWidth="120"/>
+                <TableColumn fx:id="routeColumn" text="ROUTE" prefWidth="220"/>
+                <TableColumn fx:id="typeColumn" text="TYPE" prefWidth="130"/>
+                <TableColumn fx:id="emailColumn" text="EMAIL" prefWidth="250"/>
+                <TableColumn fx:id="totalColumn" text="TOTAL" prefWidth="140"/>
+            </columns>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_SUBSEQUENT_COLUMNS"/>
+            </columnResizePolicy>
+        </TableView>
+        <Label fx:id="bookingsEmptyLabel"
+               text="No bookings found."
+               styleClass="empty-text"
+               visible="false"
+               managed="false"/>
+    </StackPane>
+</VBox>

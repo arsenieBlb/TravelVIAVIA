@@ -301,10 +301,16 @@ public class FlightSceneViewController {
 
     private void updateAuthHeader() {
         User user = flightSceneViewModel.getLoggedInUser();
+
         if (user instanceof Customer customer) {
             authStatusLabel.setText("Welcome, " + customer.getFirstName());
             authButton.setText("Logout");
-        } else {
+        }
+        else if (user instanceof Admin admin) {
+            authStatusLabel.setText("Logged in as Admin");
+            authButton.setText("Logout");
+        }
+        else {
             authStatusLabel.setText("Not signed in");
             authButton.setText("Login");
         }
@@ -383,6 +389,8 @@ public class FlightSceneViewController {
         }
 
         updateAuthHeader();
+        viewHandler.openView("admin");
+
         return true;
     }
 

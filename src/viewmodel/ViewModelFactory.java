@@ -1,6 +1,7 @@
 package viewmodel;
 
 import model.Model;
+import view.NavigationAdminViewController;
 
 public class ViewModelFactory
 {
@@ -10,6 +11,8 @@ public class ViewModelFactory
     private SeatMapViewModel seatMapViewModel;
     private PassengerDetailsViewModel passengerDetailsViewModel;
     private MyBookingsViewModel myBookingsViewModel;
+    private NavigationAdminViewModel navigationAdminViewModel;
+    private FlightsTabViewModel flightsTabViewModel;
 
     public ViewModelFactory(Model model)
     {
@@ -56,5 +59,23 @@ public class ViewModelFactory
             myBookingsViewModel = new MyBookingsViewModel(model);
         }
         return myBookingsViewModel;
+    }
+
+    public NavigationAdminViewModel getNavigationAdminViewModel()
+    {
+        if (navigationAdminViewModel == null)
+        {
+            navigationAdminViewModel = new NavigationAdminViewModel(model);
+        }
+        return navigationAdminViewModel;
+    }
+
+    public FlightsTabViewModel getFlightsTabViewModel()
+    {
+        if (flightsTabViewModel == null)
+        {
+            flightsTabViewModel = new FlightsTabViewModel(model);
+        }
+        return flightsTabViewModel;
     }
 }
