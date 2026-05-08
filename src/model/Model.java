@@ -37,4 +37,12 @@ public interface Model
     List<LuggageType> getLuggageTypes();
 
     List<City> getAllCities();
+
+    List<City> getCities();
+
+    List<Plane> getPlanes();
+
+    List<Carrier> getCarriers();
+
+    List<Flight> getAllFlights();
 }

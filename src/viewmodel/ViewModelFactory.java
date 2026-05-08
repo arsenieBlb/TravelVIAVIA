@@ -13,6 +13,7 @@ public class ViewModelFactory
     private MyBookingsViewModel myBookingsViewModel;
     private NavigationAdminViewModel navigationAdminViewModel;
     private FlightsTabViewModel flightsTabViewModel;
+    private AddFlightTabViewModel addFlightTabViewModel;
 
     public ViewModelFactory(Model model)
     {
@@ -77,5 +78,14 @@ public class ViewModelFactory
             flightsTabViewModel = new FlightsTabViewModel(model);
         }
         return flightsTabViewModel;
+    }
+
+    public AddFlightTabViewModel getAddFlightTabViewModel()
+    {
+        if (addFlightTabViewModel == null)
+        {
+            addFlightTabViewModel = new AddFlightTabViewModel(model);
+        }
+        return addFlightTabViewModel;
     }
 }

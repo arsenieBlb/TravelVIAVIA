@@ -160,4 +160,20 @@ public class NavigationAdminViewController {
 
         aircraftFilterCombo.getSelectionModel().select("All");
     }
+
+    @FXML
+    private void onAddFlightClick()
+    {
+        viewHandler.openView("ADD_FLIGHT");
+    }
+
+    public void refreshTable()
+    {
+        System.out.println("[DEBUG] NavigationAdminViewController: Запуск полного обновления...");
+        if (flightsViewModel != null)
+        {
+            flightsViewModel.refreshFromModel();
+        }
+        flightsTable.refresh();
+    }
 }

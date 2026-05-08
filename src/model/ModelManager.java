@@ -2,12 +2,14 @@ package model;
 
 import database.BookingDAO;
 import database.DatabaseLoader;
+import database.FlightDAO;
 import database.UserDAO;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class ModelManager implements Model
 {
@@ -19,23 +21,29 @@ public class ModelManager implements Model
     private BookingDAO bookingDAO;
     private int nextSeatAssignmentId = 1;
     private List<Flight> allFlights;
+    private FlightDAO flightDAO;
 
     public ModelManager()
     {
         this.userDAO = new UserDAO();
         this.bookingDAO = new BookingDAO();
+        this.flightDAO = new FlightDAO();
         this.allFlights = new ArrayList<>();
         this.databaseLoader = new DatabaseLoader();
 
-        try {
+        try
+        {
             this.flightSearchService = databaseLoader.loadAll();
 
-            if (databaseLoader.getFlights() != null) {
+            if (databaseLoader.getFlights() != null)
+            {
+                this.allFlights.clear();
                 this.allFlights.addAll(databaseLoader.getFlights());
             }
-
-        } catch (SQLException e) {
-            System.out.println("Database error loading data");
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Database error loading data: " + e.getMessage());
             this.flightSearchService = new FlightSearchService();
         }
         currentUser = null;
@@ -265,9 +273,26 @@ public class ModelManager implements Model
     @Override
     public void addFlight(Flight flight)
     {
-        if (currentUser instanceof Admin admin) {
-            admin.createFlight(flight);
-        } else {
+        if (currentUser instanceof Admin admin)
+        {
+            try
+            {
+                this.flightDAO.saveFlight(flight);
+
+                admin.createFlight(flight);
+
+                if (!allFlights.contains(flight))
+                {
+                    allFlights.add(flight);
+                }
+            }
+            catch (SQLException e)
+            {
+                throw new RuntimeException("Could not save flight to database", e);
+            }
+        }
+        else
+        {
             throw new SecurityException("Only admins can add flights.");
         }
     }
@@ -297,8 +322,32 @@ public class ModelManager implements Model
     }
 
     @Override
-    public List<City> getAllCities() {
-        List<City> cities = databaseLoader.getCities();
-        return cities == null ? Collections.emptyList() : cities;
+    public List<City> getAllCities()
+    {
+        return Objects.requireNonNullElse(databaseLoader.getCities(), new ArrayList<>());
+    }
+
+    @Override
+    public List<City> getCities()
+    {
+        return Objects.requireNonNullElse(databaseLoader.getCities(), new ArrayList<>());
+    }
+
+    @Override
+    public List<Plane> getPlanes()
+    {
+        return Objects.requireNonNullElse(databaseLoader.getPlanes(), new ArrayList<>());
+    }
+
+    @Override
+    public List<Carrier> getCarriers()
+    {
+        return Objects.requireNonNullElse(databaseLoader.getCarriers(), new ArrayList<>());
+    }
+
+    @Override
+    public List<Flight> getAllFlights()
+    {
+        return Objects.requireNonNullElse(allFlights, new ArrayList<>());
     }
 }

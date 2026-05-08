@@ -64,4 +64,9 @@ public class FlightsTabViewModel {
     public StringProperty carrierFilterProperty() { return carrierFilter; }
     public StringProperty aircraftFilterProperty() { return aircraftFilter; }
     public ObjectProperty<LocalDate> dateFilterProperty() { return dateFilter; }
+
+    public void refreshFromModel()
+    {
+        allFlights.setAll(model.searchFlights(new SearchCriteria()));
+    }
 }

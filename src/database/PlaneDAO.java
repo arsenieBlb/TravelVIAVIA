@@ -19,44 +19,36 @@ import java.util.Map;
 public class PlaneDAO
 {
   // loads all plane types from the database, maps section type to seat counts
-  public List<PlaneType> getAllPlaneTypes() throws SQLException {
-    List<PlaneType> planeTypes = new ArrayList<>();
+  public List<PlaneType> getAllPlaneTypes() throws SQLException
+  {
+      List<PlaneType> planeTypes = new ArrayList<>();
 
-    try (Connection connection = DatabaseConnection.getConnection())
-    {
-      String sql = "SELECT pt.id, pt.name, pt.model, pt.num_of_columns, "
-          + "business.num_of_seats AS business_seats, "
-          + "economy.num_of_seats AS economy_seats "
-          + "FROM flights.plane_type pt "
-          + "LEFT JOIN flights.section business "
-          + "ON pt.business_section = business.id "
-          + "LEFT JOIN flights.section economy "
-          + "ON pt.economy_section = economy.id";
+      try (Connection connection = DatabaseConnection.getConnection())
+      {
+          String sql = "SELECT pt.id, pt.name, pt.model, pt.num_of_columns, "
+                  + "s.num_of_seats, s.type "
+                  + "FROM flights.plane_type pt "
+                  + "LEFT JOIN flights.section s ON pt.plane_section = s.id";
 
-      PreparedStatement statement = connection.prepareStatement(sql);
-      ResultSet resultSet = statement.executeQuery();
+          PreparedStatement statement = connection.prepareStatement(sql);
+          ResultSet resultSet = statement.executeQuery();
 
-      while (resultSet.next()) {
-        int id = resultSet.getInt("id");
-        String name = resultSet.getString("name");
-        String model = resultSet.getString("model");
-        int numberOfColumns = resultSet.getInt("num_of_columns");
-        int businessSeats = resultSet.getInt("business_seats");
-        if (resultSet.wasNull()) {
-          businessSeats = 0;
-        }
-        int economySeats = resultSet.getInt("economy_seats");
-        if (resultSet.wasNull()) {
-          economySeats = 0;
-        }
+          while (resultSet.next())
+          {
+              int id = resultSet.getInt("id");
+              String name = resultSet.getString("name");
+              String model = resultSet.getString("model");
+              int numberOfColumns = resultSet.getInt("num_of_columns");
+              int seatsCount = resultSet.getInt("num_of_seats");
+              String type = resultSet.getString("type");
 
-        planeTypes.add(
-            new PlaneType(id, name, model, numberOfColumns, economySeats,
-                businessSeats));
+              int businessSeats = "Business".equalsIgnoreCase(type) ? seatsCount : 0;
+              int economySeats = "Economy".equalsIgnoreCase(type) ? seatsCount : 0;
+
+              planeTypes.add(new PlaneType(id, name, model, numberOfColumns, economySeats, businessSeats));
+          }
       }
-    }
-
-    return planeTypes;
+      return planeTypes;
   }
 
   // loads all planes with their type and carrier, and attaches the seats

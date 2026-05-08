@@ -5,7 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import model.Booking;
-import viewmodel.FlightsTabViewModel;
+import viewmodel.AddFlightTabViewModel;
 import viewmodel.ViewModelFactory;
 
 import java.io.IOException;
@@ -39,15 +39,21 @@ public class ViewHandler {
             {
                 root = loadFlightSceneView("flight_scene.fxml");
             }
-
             else if ("admin".equals(id)) {
                 root = loadAdminShellView("flights_tab.fxml");
             }
+            else if ("ADD_FLIGHT".equals(id)) {
+                openAddFlightWindow("add_flight_tab.fxml");
+                return;
+            }
 
-            scene.setRoot(root);
-            primaryStage.setScene(scene);
-            primaryStage.setTitle(id);
-            primaryStage.show();
+            if (root != null)
+            {
+                scene.setRoot(root);
+                primaryStage.setScene(scene);
+                primaryStage.setTitle(id);
+                primaryStage.show();
+            }
         }
         catch (IOException e)
         {
@@ -130,5 +136,34 @@ public class ViewHandler {
                 }
             }
         }
+    }
+
+    private void openAddFlightWindow(String fxmlFile) throws IOException
+    {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource(fxmlFile));
+
+        Region root = loader.load();
+
+        AddFlightTabController controller = loader.getController();
+
+        if (controller == null)
+        {
+            throw new IllegalStateException("Controller not found in FXML! Check fx:controller in " + fxmlFile);
+        }
+
+        controller.init(viewModelFactory.getAddFlightTabViewModel());
+
+        Stage stage = new Stage();
+        stage.setTitle("Add New Flight");
+        stage.setScene(new Scene(root));
+        stage.initOwner(primaryStage);
+        stage.show();
+
+        stage.setOnHidden(e -> {
+            if (navigationAdminViewController != null) {
+                navigationAdminViewController.refreshTable();
+            }
+        });
     }
 }
