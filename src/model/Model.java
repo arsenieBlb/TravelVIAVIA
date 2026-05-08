@@ -24,6 +24,8 @@ public interface Model
 
     void cancelBooking(Booking booking);
 
+    List<Booking> getAllBookings();
+
     List<Booking> getUserBookings();
 
     Booking addBookingToCurrentUserById(int bookingId, String passengerLastName);

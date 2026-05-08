@@ -27,7 +27,8 @@ public class BookingDAO
 
     try (Connection connection = DatabaseConnection.getConnection()) {
       String sql = "SELECT booking_id, flight_id, created_by_customer_id, "
-          + "passenger_count, total_price FROM flights.booking";
+          + "passenger_count, total_price FROM flights.booking "
+          + "ORDER BY booking_id";
       PreparedStatement statement = connection.prepareStatement(sql);
       ResultSet resultSet = statement.executeQuery();
 

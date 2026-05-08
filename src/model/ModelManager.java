@@ -190,6 +190,28 @@ public class ModelManager implements Model
     }
 
     @Override
+    public List<Booking> getAllBookings()
+    {
+        if (!(currentUser instanceof Admin))
+        {
+            return Collections.emptyList();
+        }
+
+        try
+        {
+            List<Customer> customers = userDAO.getAllCustomers(
+                flightSearchService);
+            return bookingDAO.getAllBookings(getLoadedFlights(), customers,
+                getLoadedLuggageTypes());
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Failed to load all bookings from database");
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
     public List<Booking> getUserBookings()
     {
         Customer customer = getActiveCustomer();

@@ -1,23 +1,22 @@
 package view;
 
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import model.Flight;
-import viewmodel.NavigationAdminViewModel;
 import viewmodel.FlightsTabViewModel;
+import viewmodel.NavigationAdminViewModel;
+import viewmodel.NavigationAdminViewModel.NavigationTab;
 
 import java.time.format.DateTimeFormatter;
 
 public class NavigationAdminViewController {
     @FXML private Button flightsNavButton, dashboardNavButton, bookingsNavButton;
-    @FXML private VBox flightsView;
+    @FXML private Region flightsView, bookingsView;
+    @FXML private BookingAdminViewController bookingAdminViewController;
     @FXML private DatePicker dateFilterPicker;
 
     @FXML private TableView<Flight> flightsTable;
@@ -39,6 +38,7 @@ public class NavigationAdminViewController {
 
         setupTable();
         setupBindings();
+        setupBookingsView();
         setupNavigation();
 
         ObservableList<String> aircraftModels = FXCollections.observableArrayList();
@@ -93,7 +93,44 @@ public class NavigationAdminViewController {
     }
 
     private void setupNavigation() {
-        flightsNavButton.setOnAction(e -> flightsView.setVisible(true));
+        flightsNavButton.setOnAction(e -> showTab(NavigationTab.FLIGHTS));
+        bookingsNavButton.setOnAction(e -> showTab(NavigationTab.BOOKINGS));
+        showTab(NavigationTab.FLIGHTS);
+    }
+
+    private void setupBookingsView() {
+        if (bookingAdminViewController != null) {
+            bookingAdminViewController.init(
+                    navViewModel.getBookingAdminViewModel());
+        }
+    }
+
+    private void showTab(NavigationTab tab) {
+        navViewModel.navigateTo(tab);
+
+        boolean showingFlights = tab == NavigationTab.FLIGHTS;
+        boolean showingBookings = tab == NavigationTab.BOOKINGS;
+
+        flightsView.setVisible(showingFlights);
+        flightsView.setManaged(showingFlights);
+        bookingsView.setVisible(showingBookings);
+        bookingsView.setManaged(showingBookings);
+
+        setActiveNavButton(flightsNavButton, showingFlights);
+        setActiveNavButton(bookingsNavButton, showingBookings);
+        setActiveNavButton(dashboardNavButton, tab == NavigationTab.DASHBOARD);
+
+        if (showingBookings && bookingAdminViewController != null) {
+            bookingAdminViewController.refresh();
+        }
+    }
+
+    private void setActiveNavButton(Button button, boolean active) {
+        if (active && !button.getStyleClass().contains("sidebar-link-active")) {
+            button.getStyleClass().add("sidebar-link-active");
+        } else if (!active) {
+            button.getStyleClass().remove("sidebar-link-active");
+        }
     }
 
     public Region getRoot() {
@@ -105,6 +142,9 @@ public class NavigationAdminViewController {
         flightsViewModel.destinationFilterProperty().set("");
         flightsViewModel.carrierFilterProperty().set("");
         flightsViewModel.aircraftFilterProperty().set("All");
+        if (bookingAdminViewController != null) {
+            bookingAdminViewController.clearFilters();
+        }
     }
 
     @FXML

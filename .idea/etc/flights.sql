@@ -138,6 +138,8 @@ INSERT INTO users (user_id, email, password_hash, user_type) VALUES
 (3, 'alice.smith@outlook.com', '1234c', 'Customer'),
 (4, 'support_team@carrier.com', '1234d', 'Admin'),
 (5, 'bob.builder@yahoo.com', '1234e', 'Customer');
+(5, 'artem', 'artem', 'Customer');
+(6, 'boss', 'boss', 'Admin'),
 
 INSERT INTO admin (admin_id) VALUES
 (1),
