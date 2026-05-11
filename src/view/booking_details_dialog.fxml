@@ -9,6 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <StackPane fx:id="bookingDetailsModal"
+           fx:controller="view.BookingDetailsDialogController"
            styleClass="modal-overlay"
            xmlns="http://javafx.com/javafx/17"
            xmlns:fx="http://javafx.com/fxml/1">

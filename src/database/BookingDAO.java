@@ -27,7 +27,8 @@ public class BookingDAO
 
     try (Connection connection = DatabaseConnection.getConnection()) {
       String sql = "SELECT booking_id, flight_id, created_by_customer_id, "
-          + "passenger_count, total_price FROM flights.booking";
+          + "passenger_count, total_price FROM flights.booking "
+          + "ORDER BY booking_id";
       PreparedStatement statement = connection.prepareStatement(sql);
       ResultSet resultSet = statement.executeQuery();
 
@@ -55,6 +56,138 @@ public class BookingDAO
     }
 
     return bookings;
+  }
+
+  public List<Booking> getBookingsForCustomer(Customer customer,
+      List<Flight> flights, List<LuggageType> luggageTypes)
+      throws SQLException
+  {
+    List<Booking> bookings = new ArrayList<>();
+
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "SELECT b.booking_id, b.flight_id, "
+          + "b.created_by_customer_id, b.passenger_count, b.total_price "
+          + "FROM flights.booking b "
+          + "JOIN flights.booking_customer bc "
+          + "ON b.booking_id = bc.booking_id "
+          + "WHERE bc.customer_id = ? "
+          + "ORDER BY b.booking_id DESC";
+
+      PreparedStatement statement = connection.prepareStatement(sql);
+      statement.setInt(1, customer.getUserId());
+      ResultSet resultSet = statement.executeQuery();
+
+      while (resultSet.next())
+      {
+        Booking booking = createBookingFromResultSet(resultSet, customer,
+            flights, luggageTypes, connection);
+        if (booking != null)
+        {
+          bookings.add(booking);
+        }
+      }
+    }
+    return bookings;
+  }
+
+  public Booking getBookingById(int bookingId, Customer customer,
+      List<Flight> flights, List<LuggageType> luggageTypes)
+      throws SQLException
+  {
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "SELECT booking_id, flight_id, created_by_customer_id, "
+          + "passenger_count, total_price "
+          + "FROM flights.booking WHERE booking_id = ?";
+
+      PreparedStatement statement = connection.prepareStatement(sql);
+      statement.setInt(1, bookingId);
+      ResultSet resultSet = statement.executeQuery();
+
+      if (resultSet.next())
+      {
+        return createBookingFromResultSet(resultSet, customer, flights,
+            luggageTypes, connection);
+      }
+    }
+    return null;
+  }
+
+  public boolean bookingExists(int bookingId) throws SQLException
+  {
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "SELECT 1 FROM flights.booking WHERE booking_id = ?";
+      PreparedStatement statement = connection.prepareStatement(sql);
+      statement.setInt(1, bookingId);
+      ResultSet resultSet = statement.executeQuery();
+      return resultSet.next();
+    }
+  }
+
+  public boolean bookingHasPassengerLastName(int bookingId, String lastName)
+      throws SQLException
+  {
+    if (lastName == null || lastName.isBlank())
+    {
+      return true;
+    }
+
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "SELECT 1 FROM flights.passenger "
+          + "WHERE booking_id = ? AND LOWER(last_name) = LOWER(?)";
+      PreparedStatement statement = connection.prepareStatement(sql);
+      statement.setInt(1, bookingId);
+      statement.setString(2, lastName.trim());
+      ResultSet resultSet = statement.executeQuery();
+      return resultSet.next();
+    }
+  }
+
+  public void linkBookingToCustomer(int bookingId, int customerId)
+      throws SQLException
+  {
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "INSERT INTO flights.booking_customer "
+          + "(booking_id, customer_id) "
+          + "SELECT ?, ? WHERE NOT EXISTS ("
+          + "SELECT 1 FROM flights.booking_customer "
+          + "WHERE booking_id = ? AND customer_id = ?)";
+      PreparedStatement statement = connection.prepareStatement(sql);
+      statement.setInt(1, bookingId);
+      statement.setInt(2, customerId);
+      statement.setInt(3, bookingId);
+      statement.setInt(4, customerId);
+      statement.executeUpdate();
+    }
+  }
+
+  private Booking createBookingFromResultSet(ResultSet resultSet,
+      Customer customer, List<Flight> flights,
+      List<LuggageType> luggageTypes, Connection connection)
+      throws SQLException
+  {
+    int bookingId = resultSet.getInt("booking_id");
+    int flightId = resultSet.getInt("flight_id");
+    Flight flight = findFlightById(flights, flightId);
+
+    if (flight == null)
+    {
+      return null;
+    }
+
+    List<Passenger> passengers = loadPassengers(bookingId, luggageTypes,
+        connection);
+    if (passengers.isEmpty())
+    {
+      return null;
+    }
+
+    return new Booking(bookingId, LocalDateTime.now(), customer, flight,
+        passengers);
   }
 
   // loads all passengers for a specific booking and attaches their luggage
@@ -249,4 +382,43 @@ public class BookingDAO
     }
     return null;
   }
+
+    public void removeBooking(int bookingId) throws SQLException {
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                String deleteSeatsSql = "DELETE FROM flights.flight_seat WHERE passenger_id IN "
+                        + "(SELECT passenger_id FROM flights.passenger WHERE booking_id = ?)";
+                PreparedStatement deleteSeatsStmt = connection.prepareStatement(deleteSeatsSql);
+                deleteSeatsStmt.setInt(1, bookingId);
+                deleteSeatsStmt.executeUpdate();
+
+                String deleteLuggageSql = "DELETE FROM flights.passenger_luggage WHERE passenger_id IN "
+                        + "(SELECT passenger_id FROM flights.passenger WHERE booking_id = ?)";
+                PreparedStatement deleteLuggageStmt = connection.prepareStatement(deleteLuggageSql);
+                deleteLuggageStmt.setInt(1, bookingId);
+                deleteLuggageStmt.executeUpdate();
+
+                String deletePassengersSql = "DELETE FROM flights.passenger WHERE booking_id = ?";
+                PreparedStatement deletePassengersStmt = connection.prepareStatement(deletePassengersSql);
+                deletePassengersStmt.setInt(1, bookingId);
+                deletePassengersStmt.executeUpdate();
+
+                String deleteLinkSql = "DELETE FROM flights.booking_customer WHERE booking_id = ?";
+                PreparedStatement deleteLinkStmt = connection.prepareStatement(deleteLinkSql);
+                deleteLinkStmt.setInt(1, bookingId);
+                deleteLinkStmt.executeUpdate();
+
+                String deleteBookingSql = "DELETE FROM flights.booking WHERE booking_id = ?";
+                PreparedStatement deleteBookingStmt = connection.prepareStatement(deleteBookingSql);
+                deleteBookingStmt.setInt(1, bookingId);
+                deleteBookingStmt.executeUpdate();
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            }
+        }
+    }
 }

@@ -4,6 +4,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
+import model.Booking;
+import viewmodel.AddFlightTabViewModel;
 import viewmodel.ViewModelFactory;
 
 import java.io.IOException;
@@ -13,8 +15,8 @@ public class ViewHandler {
     private Scene scene;
     private FlightSceneViewController flightSceneViewController;
     private ViewModelFactory viewModelFactory;
-    private BookFlightViewController bookFlightViewController;
-    private SeatMapViewController seatMapViewController;
+    private MyBookingsViewController bookViewController;
+    private NavigationAdminViewController navigationAdminViewController;
 
     public ViewHandler(ViewModelFactory viewModelFactory)
     {
@@ -37,16 +39,40 @@ public class ViewHandler {
             {
                 root = loadFlightSceneView("flight_scene.fxml");
             }
+            else if ("admin".equals(id)) {
+                root = loadAdminShellView("flights_tab.fxml");
+            }
+            else if ("ADD_FLIGHT".equals(id)) {
+                openAddFlightWindow("add_flight_tab.fxml");
+                return;
+            }
 
-            scene.setRoot(root);
-            primaryStage.setScene(scene);
-            primaryStage.setTitle(id);
-            primaryStage.show();
+            if (root != null)
+            {
+                scene.setRoot(root);
+                primaryStage.setScene(scene);
+                primaryStage.setTitle(id);
+                primaryStage.show();
+            }
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
+    }
+
+    private Region loadAdminShellView(String fxmlFile) throws IOException {
+        if (navigationAdminViewController == null) {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource(fxmlFile));
+            Region root = loader.load();
+            navigationAdminViewController = loader.getController();
+
+            navigationAdminViewController.init(this, root, viewModelFactory.getNavigationAdminViewModel());
+        } else {
+            navigationAdminViewController.clear();
+        }
+        return navigationAdminViewController.getRoot();
     }
 
     public Region loadFlightSceneView(String fxmlFile) throws IOException {
@@ -56,51 +82,88 @@ public class ViewHandler {
             Region root = loader.load();
             flightSceneViewController = loader.getController();
 
-            BookFlightViewController bookCtrl = (BookFlightViewController) loader.getNamespace().get("bookViewControllerController");
-
-            if (bookCtrl != null) {
-                bookCtrl.init(viewModelFactory.getBookFlightViewModel(), root, this);
-            }
-
-            flightSceneViewController.init(root, this,
-                    viewModelFactory.getFlightSceneViewModel());
+            flightSceneViewController.init(root, this, viewModelFactory.getFlightSceneViewModel());
+            this.bookViewController = flightSceneViewController.getMyBookingsViewController();
         } else {
             flightSceneViewController.reset();
         }
         return flightSceneViewController.getRoot();
     }
 
-    public Region loadBookFlightView(String fxmlFile) throws IOException
+
+    public void showBookFlight()
     {
-        if (bookFlightViewController == null)
-        {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource(fxmlFile));
-            Region root = loader.load();
-            bookFlightViewController = loader.getController();
-            bookFlightViewController.init(viewModelFactory.getBookFlightViewModel(), root, this);
-        }
-        else
-        {
-            bookFlightViewController.reset();
-        }
-        return bookFlightViewController.getRoot();
+        flightSceneViewController.showBookFlight();
     }
 
-    public Region loadSeatMapView(String fxmlFile) throws IOException
+    public void showPassengerDetails()
     {
-        if (seatMapViewController == null)
-        {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource(fxmlFile));
-            Region root = loader.load();
-            seatMapViewController = loader.getController();
-            seatMapViewController.init(root, this, viewModelFactory.getSeatMapViewModel());
+        flightSceneViewController.showPassengerDetails();
+    }
+
+    public void showMyBookings()
+    {
+        flightSceneViewController.showMyBookings();
+    }
+
+    public void showSeatPicker(int passengerNumber)
+    {
+        flightSceneViewController.showSeatPicker(passengerNumber);
+    }
+
+    public void showAddBookingDialog()
+    {
+        flightSceneViewController.showAddBookingDialog();
+    }
+
+    public void showBookingDetails(Booking booking)
+    {
+        flightSceneViewController.showBookingDetails(booking);
+    }
+
+    public void refreshMyBookings() {
+        if (bookViewController != null) {
+            bookViewController.refresh();
+        } else {
+            System.out.println("DEBUG: bookViewController is null. Attempting re-grab...");
+
+            if (flightSceneViewController != null) {
+                this.bookViewController = flightSceneViewController.getMyBookingsViewController();
+                if (this.bookViewController != null) {
+                    this.bookViewController.refresh();
+                } else {
+                    System.out.println("ERROR: MyBookingsViewController still null. Check FXML fx:id!");
+                }
+            }
         }
-        else
+    }
+
+    private void openAddFlightWindow(String fxmlFile) throws IOException
+    {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource(fxmlFile));
+
+        Region root = loader.load();
+
+        AddFlightTabController controller = loader.getController();
+
+        if (controller == null)
         {
-            seatMapViewController.reset();
+            throw new IllegalStateException("Controller not found in FXML! Check fx:controller in " + fxmlFile);
         }
-        return seatMapViewController.getRoot();
+
+        controller.init(viewModelFactory.getAddFlightTabViewModel());
+
+        Stage stage = new Stage();
+        stage.setTitle("Add New Flight");
+        stage.setScene(new Scene(root));
+        stage.initOwner(primaryStage);
+        stage.show();
+
+        stage.setOnHidden(e -> {
+            if (navigationAdminViewController != null) {
+                navigationAdminViewController.refreshTable();
+            }
+        });
     }
 }

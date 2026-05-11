@@ -9,9 +9,85 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDAO
 {
+  public Customer getCustomerById(int userId,
+      FlightSearchService flightSearchService) throws SQLException
+  {
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "SELECT u.user_id, u.email, u.password_hash "
+          + "FROM flights.users u "
+          + "JOIN flights.customer c ON u.user_id = c.customer_id "
+          + "WHERE u.user_id = ?";
+
+      PreparedStatement statement = connection.prepareStatement(sql);
+      statement.setInt(1, userId);
+      ResultSet resultSet = statement.executeQuery();
+
+      if (resultSet.next())
+      {
+        return loadCustomer(resultSet.getInt("user_id"),
+            resultSet.getString("email"), resultSet.getString("password_hash"),
+            flightSearchService, connection);
+      }
+    }
+    return null;
+  }
+
+  public Customer getFirstCustomer(FlightSearchService flightSearchService)
+      throws SQLException
+  {
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "SELECT u.user_id, u.email, u.password_hash "
+          + "FROM flights.users u "
+          + "JOIN flights.customer c ON u.user_id = c.customer_id "
+          + "ORDER BY u.user_id LIMIT 1";
+
+      PreparedStatement statement = connection.prepareStatement(sql);
+      ResultSet resultSet = statement.executeQuery();
+
+      if (resultSet.next())
+      {
+        return loadCustomer(resultSet.getInt("user_id"),
+            resultSet.getString("email"), resultSet.getString("password_hash"),
+            flightSearchService, connection);
+      }
+    }
+    return null;
+  }
+
+  public List<Customer> getAllCustomers(FlightSearchService flightSearchService)
+      throws SQLException
+  {
+    List<Customer> customers = new ArrayList<>();
+
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      String sql = "SELECT u.user_id, u.email, u.password_hash, "
+          + "c.first_name, c.last_name "
+          + "FROM flights.users u "
+          + "JOIN flights.customer c ON u.user_id = c.customer_id "
+          + "ORDER BY u.user_id";
+
+      PreparedStatement statement = connection.prepareStatement(sql);
+      ResultSet resultSet = statement.executeQuery();
+
+      while (resultSet.next())
+      {
+        customers.add(new Customer(resultSet.getInt("user_id"),
+            resultSet.getString("email"), resultSet.getString("password_hash"),
+            resultSet.getString("first_name"), resultSet.getString("last_name"),
+            flightSearchService));
+      }
+    }
+    return customers;
+  }
+
   // checks the users table for matching email and password, then loads the right user type
   public User login(String email, String password,
       FlightSearchService flightSearchService) throws SQLException {

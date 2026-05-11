@@ -1,6 +1,7 @@
 package viewmodel;
 
 import model.Model;
+import view.NavigationAdminViewController;
 
 public class ViewModelFactory
 {
@@ -8,11 +9,20 @@ public class ViewModelFactory
     private Model model;
     private FlightSceneViewModel flightSceneViewModel;
     private SeatMapViewModel seatMapViewModel;
-    private BookFlightViewModel bookFlightViewModel;
+    private PassengerDetailsViewModel passengerDetailsViewModel;
+    private MyBookingsViewModel myBookingsViewModel;
+    private NavigationAdminViewModel navigationAdminViewModel;
+    private FlightsTabViewModel flightsTabViewModel;
+    private AddFlightTabViewModel addFlightTabViewModel;
 
     public ViewModelFactory(Model model)
     {
         this.model = model;
+    }
+
+    public Model getModel()
+    {
+        return model;
     }
 
     public FlightSceneViewModel getFlightSceneViewModel()
@@ -28,19 +38,54 @@ public class ViewModelFactory
     {
         if (seatMapViewModel == null)
         {
-            FlightSceneViewModel fvm = getFlightSceneViewModel();
-            seatMapViewModel = new SeatMapViewModel(fvm);
-            fvm.setSeatMapViewModel(seatMapViewModel);
+            seatMapViewModel = new SeatMapViewModel(getPassengerDetailsViewModel());
         }
         return seatMapViewModel;
     }
 
-    public BookFlightViewModel getBookFlightViewModel()
+    public PassengerDetailsViewModel getPassengerDetailsViewModel()
     {
-        if (bookFlightViewModel == null)
+        if (passengerDetailsViewModel == null)
         {
-            bookFlightViewModel = new BookFlightViewModel(model);
+            passengerDetailsViewModel = new PassengerDetailsViewModel(model,
+                    getFlightSceneViewModel());
         }
-        return bookFlightViewModel;
+        return passengerDetailsViewModel;
+    }
+
+    public MyBookingsViewModel getMyBookingsViewModel()
+    {
+        if (myBookingsViewModel == null)
+        {
+            myBookingsViewModel = new MyBookingsViewModel(model);
+        }
+        return myBookingsViewModel;
+    }
+
+    public NavigationAdminViewModel getNavigationAdminViewModel()
+    {
+        if (navigationAdminViewModel == null)
+        {
+            navigationAdminViewModel = new NavigationAdminViewModel(model);
+        }
+        return navigationAdminViewModel;
+    }
+
+    public FlightsTabViewModel getFlightsTabViewModel()
+    {
+        if (flightsTabViewModel == null)
+        {
+            flightsTabViewModel = new FlightsTabViewModel(model);
+        }
+        return flightsTabViewModel;
+    }
+
+    public AddFlightTabViewModel getAddFlightTabViewModel()
+    {
+        if (addFlightTabViewModel == null)
+        {
+            addFlightTabViewModel = new AddFlightTabViewModel(model);
+        }
+        return addFlightTabViewModel;
     }
 }

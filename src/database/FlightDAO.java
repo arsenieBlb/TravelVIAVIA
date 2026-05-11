@@ -153,4 +153,26 @@ public class FlightDAO
     }
     return null;
   }
+
+    public void saveFlight(Flight flight) throws SQLException {
+        String sql = "INSERT INTO flights.flight (flight_id, carrier_id, plane_id, " +
+                "departure_city_id, arrival_city_id, departure_time, arrival_time, " +
+                "base_price, flight_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            stmt.setInt(1, flight.getFlightId());
+            stmt.setInt(2, flight.getCarrier().getCarrierId());
+            stmt.setInt(3, flight.getPlane().getPlaneId());
+            stmt.setInt(4, flight.getDepartureCity().getCityId());
+            stmt.setInt(5, flight.getArrivalCity().getCityId());
+            stmt.setTimestamp(6, Timestamp.valueOf(flight.getDepartureTime()));
+            stmt.setTimestamp(7, Timestamp.valueOf(flight.getArrivalTime()));
+            stmt.setDouble(8, flight.getBasePrice());
+            stmt.setString(9, "Available");
+
+            stmt.executeUpdate();
+        }
+    }
 }

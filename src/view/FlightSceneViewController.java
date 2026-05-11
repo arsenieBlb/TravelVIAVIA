@@ -1,225 +1,432 @@
 package view;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import model.Flight;
+import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
+import model.*;
 import viewmodel.FlightSceneViewModel;
+import viewmodel.MyBookingsViewModel;
+import viewmodel.PassengerDetailsViewModel;
+import viewmodel.SeatMapViewModel;
 
 import java.time.format.DateTimeFormatter;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.binding.Bindings;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.Label;
-import javafx.application.Platform;
 
 public class FlightSceneViewController {
 
+    @FXML private StackPane bookViewWrapper;
+    @FXML private StackPane bookingsViewWrapper;
+    @FXML private StackPane passengerViewWrapper;
     @FXML private StackPane seatMapDialogWrapper;
-    @FXML private StackPane seatMapDialog;
-    @FXML Button bookTabButton;
+    @FXML private StackPane loginDialogWrapper;
+    @FXML private StackPane adminLoginDialogWrapper;
+    @FXML private StackPane registerDialogWrapper;
+    @FXML private StackPane addBookingDialogWrapper;
+    @FXML private Button bookTabButton;
+    @FXML private Button bookingsTabButton;
+    @FXML private Button authButton;
+    @FXML private Label authStatusLabel;
+    @FXML private ComboBox<String> sortByCombo;
+    @FXML private ComboBox<String> airlineCombo;
 
-    @FXML private Region root;
+    @FXML private ComboBox<City> originCombo;
+    @FXML private ComboBox<City> destinationCombo;
+    @FXML private TableView<Flight> flightsTable;
+    @FXML private TableColumn<Flight, String> routeColumn;
+    @FXML private TableColumn<Flight, String> departureColumn;
+    @FXML private TableColumn<Flight, String> durationColumn;
+    @FXML private TableColumn<Flight, String> carrierColumn;
+    @FXML private TableColumn<Flight, String> typeColumn;
+    @FXML private TableColumn<Flight, String> priceColumn;
+    @FXML private Label resultCountLabel;
+    @FXML private VBox flightSummaryCard;
+    @FXML private Label detailRouteLabel;
+    @FXML private Label detailDateLabel;
+    @FXML private Label detailInfoLabel;
+    @FXML private Label detailPriceLabel;
+    @FXML private Label detailAircraftLabel;
+    @FXML private Button searchFlightsButton;
+    @FXML private Button continueButton;
+    @FXML private Label passengerLabel;
+    @FXML private Button decreasePassengersButton;
+    @FXML private DatePicker travelDatePicker;
+    @FXML private CheckBox directOnlyCheck;
 
+    @FXML private MyBookingsViewController bookingsViewController;
+    @FXML private PassengerDetailsViewController passengerViewController;
+    @FXML private SeatMapViewController seatMapDialogController;
+    @FXML private LoginDialogController loginDialogController;
+    @FXML private AdminLoginDialogController adminLoginDialogController;
+    @FXML private RegisterDialogController registerDialogController;
+    @FXML private AddBookingDialogController addBookingDialogController;
+    @FXML private BookingDetailsDialogController bookingDetailsDialogController;
+    @FXML private PassengerDetailsViewModel passengerDetailsViewModel;
+    @FXML private MyBookingsViewModel myBookingsViewModel;
+    @FXML private SeatMapViewController seatMapViewController;
+
+    @FXML
+    private Region root;
     private ViewHandler viewHandler;
     private FlightSceneViewModel flightSceneViewModel;
+    private String pendingCustomerAction;
+    @FXML private StackPane bookingDetailsDialogWrapper;
 
     public void init(Region root, ViewHandler viewHandler, FlightSceneViewModel flightSceneViewModel) {
         this.root = root;
         this.viewHandler = viewHandler;
         this.flightSceneViewModel = flightSceneViewModel;
 
-        Platform.runLater(() -> {
-            TableView<Flight> flightsTable = (TableView<Flight>) root.lookup("#flightsTable");
+        this.myBookingsViewModel = flightSceneViewModel.getMyBookingsViewModel();
+        this.passengerDetailsViewModel = flightSceneViewModel.getPassengerDetailsViewModel();
+        SeatMapViewModel smVM = flightSceneViewModel.getSeatMapViewModel();
+        flightSceneViewModel.setSeatMapViewModel(smVM);
 
-            if (flightsTable != null) {
-                flightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
-                if (flightsTable.getColumns().size() >= 6) {
-                    TableColumn<Flight, String> routeCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(0);
-                    TableColumn<Flight, String> depCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(1);
-                    TableColumn<Flight, String> durCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(2);
-                    TableColumn<Flight, String> carCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(3);
-                    TableColumn<Flight, String> typeCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(4);
-                    TableColumn<Flight, String> priceCol = (TableColumn<Flight, String>) flightsTable.getColumns().get(5);
-
-                    routeCol.setCellValueFactory(cellData -> new SimpleStringProperty(
-                            cellData.getValue().getDepartureCity().getCityName() + " → " +
-                                    cellData.getValue().getArrivalCity().getCityName()));
-
-                    depCol.setCellValueFactory(cellData -> new SimpleStringProperty(
-                            cellData.getValue().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm"))));
-
-                    depCol.setSortable(false);
-                    durCol.setCellValueFactory(cellData ->
-                            new SimpleStringProperty(cellData.getValue().getDurationString())
-                    );
-
-                    carCol.setCellValueFactory(cellData -> new SimpleStringProperty(
-                            cellData.getValue().getPlane().getCarrier().getName() + "\n" +
-                                    cellData.getValue().getFlightNumber()));
-
-                    typeCol.setCellValueFactory(cellData -> new SimpleStringProperty("Direct"));
-                    priceCol.setCellValueFactory(cellData -> new SimpleStringProperty(
-                            String.format("€%.0f", cellData.getValue().getBasePrice())));
-
-                    flightsTable.setItems(flightSceneViewModel.getFilteredFlights());
-
-                    flightsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
-                        if (newSel != null) {
-                            flightSceneViewModel.setSelectedFlight(newSel);
-
-                            javafx.scene.Node summaryCard = root.lookup("#flightSummaryCard");
-                            if (summaryCard != null) {
-                                summaryCard.setVisible(true);
-                                summaryCard.setManaged(true);
-
-                                Label routeLabel = (Label) root.lookup("#detailRouteLabel");
-                                Label dateLabel = (Label) root.lookup("#detailDateLabel");
-                                Label detailsLabel = (Label) root.lookup("#detailInfoLabel");
-                                Label priceLabel = (Label) root.lookup("#detailPriceLabel");
-                                Label aircraftLabel = (Label) root.lookup("#detailAircraftLabel");
-
-                                if (routeLabel != null) routeLabel.setText(newSel.getDepartureCity().getCityName() + " → " + newSel.getArrivalCity().getCityName());
-                                if (dateLabel != null) dateLabel.setText(newSel.getDepartureTime().format(DateTimeFormatter.ofPattern("MMM dd, yyyy - HH:mm")));
-                                if (detailsLabel != null) detailsLabel.setText(newSel.getDurationString() + " - Direct");
-                                if (priceLabel != null) priceLabel.setText(String.format("EUR %.0f", newSel.getBasePrice()));
-                                if (aircraftLabel != null) aircraftLabel.setText(newSel.getPlane().getPlaneType().getModel());
-                            }
-                        }
-                    });
-
-                    ComboBox<String> sortCombo = (ComboBox<String>) root.lookup("#sortByCombo");
-
-                    if (sortCombo != null) {
-                        sortCombo.getItems().setAll(
-                                "Price (Low to High)",
-                                "Duration (Shortest First)",
-                                "Departure (Early First)"
-                        );
-                        sortCombo.getSelectionModel().selectFirst();
-
-                        sortCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-                            if (newVal != null) {
-                                flightSceneViewModel.sortFlights(newVal);
-                            }
-                        });
-                    }
-
-                    ComboBox<String> airlineCombo = (ComboBox<String>) root.lookup("#airlineCombo");
-
-                    if (airlineCombo != null) {
-                        airlineCombo.getItems().setAll(flightSceneViewModel.getUniqueCarriers());
-
-                        airlineCombo.getItems().add(0, "All Airlines");
-                        airlineCombo.getSelectionModel().selectFirst();
-
-                        airlineCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-                            flightSceneViewModel.filterByCarrier(newVal);
-                        });
-                    }
-
-                    Label resultCountLabel = (Label) root.lookup("#resultCountLabel");
-                    if (resultCountLabel != null) {
-                        resultCountLabel.textProperty().bind(Bindings.size(flightSceneViewModel.getFilteredFlights()).asString());
-                    }
-                    
-                    setupLoginModals();
-                }
-            }
+        smVM.temporarySelectionProperty().addListener((obs, oldSeat, newSeat) -> {
+            flightSceneViewModel.updateTotalPrice();
         });
+
+        setupCityConverter();
+        setupFlightTable();
+
+        originCombo.setItems(flightSceneViewModel.getAllCities());
+        destinationCombo.setItems(flightSceneViewModel.getFilteredDestinations());
+
+        originCombo.valueProperty().bindBidirectional(flightSceneViewModel.departureCityProperty());
+        destinationCombo.valueProperty().bindBidirectional(flightSceneViewModel.arrivalCityProperty());
+
+        flightsTable.setItems(flightSceneViewModel.getFilteredFlights());
+        flightsTable.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldFlight, newFlight) -> {
+                    flightSceneViewModel.setSelectedFlight(newFlight);
+                    updateFlightSummary(newFlight);
+                });
+
+        passengerLabel.textProperty().bind(flightSceneViewModel.passengerCountProperty().asString());
+        decreasePassengersButton.disableProperty().bind(
+                flightSceneViewModel.passengerCountProperty().lessThanOrEqualTo(1)
+        );
+
+        travelDatePicker.valueProperty().bindBidirectional(flightSceneViewModel.travelDateProperty());
+        resultCountLabel.textProperty().bind(Bindings.size(flightSceneViewModel.getFilteredFlights()).asString());
+
+        setupFilters();
+        updateAuthHeader();
+
+        bookTabButton.setOnAction(event -> showBookFlight());
+        bookingsTabButton.setOnAction(event -> showMyBookings());
+        authButton.setOnAction(event -> handleAuthButton());
+        searchFlightsButton.setOnAction(event -> flightSceneViewModel.searchFlights());
+        continueButton.setOnAction(event -> showPassengerDetails());
+
+        loginDialogController.init(this);
+        adminLoginDialogController.init(this, adminLoginDialogWrapper);
+        registerDialogController.init(this, registerDialogWrapper);
+        passengerViewController.init(viewHandler, passengerDetailsViewModel, passengerViewWrapper);
+
+        if (bookingsViewController != null) {
+            bookingsViewController.init(myBookingsViewModel, bookingsViewWrapper, viewHandler);
+        }
+
+        if (bookingDetailsDialogController != null) {
+            bookingDetailsDialogController.init(
+                    myBookingsViewModel,
+                    viewHandler,
+                    bookingDetailsDialogWrapper
+            );
+        }
+
+        directOnlyCheck.selectedProperty().bindBidirectional(flightSceneViewModel.directOnlyProperty());
+        directOnlyCheck.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
+            flightSceneViewModel.searchFlights();
+        });
+
+        if (seatMapDialogController != null) {
+            seatMapDialogController.init(root, viewHandler, smVM, seatMapDialogWrapper);
+        }
+
+        if (addBookingDialogController != null) {
+            this.myBookingsViewModel = flightSceneViewModel.getMyBookingsViewModel();
+
+            addBookingDialogController.init(
+                    myBookingsViewModel,
+                    viewHandler,
+                    addBookingDialogWrapper
+            );
+        }
     }
 
-    public Region getRoot() { return root; }
-    public void reset() { flightSceneViewModel.clear(); }
+    private void setupFlightTable() {
+        flightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        routeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getDepartureCity().getCityName() + " → "
+                        + cellData.getValue().getArrivalCity().getCityName()));
+        departureColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm"))));
+        durationColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getDurationString()));
+        carrierColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getCarrier().getName() + "\n"
+                        + cellData.getValue().getFlightNumber()));
+        typeColumn.setCellValueFactory(cellData -> new SimpleStringProperty("Direct"));
+        priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                String.format("EUR %.0f", cellData.getValue().getBasePrice())));
+    }
 
-    @FXML public void loginButton() {
-        if (flightSceneViewModel.getLoggedInUser() == null) {
-            StackPane loginDialog = (StackPane) root.lookup("#loginDialogWrapper");
-            if (loginDialog != null) {
-                loginDialog.setVisible(true);
-                loginDialog.setManaged(true);
+    private void updateFlightSummary(Flight flight) {
+        boolean hasFlight = flight != null;
+        flightSummaryCard.setVisible(hasFlight);
+        flightSummaryCard.setManaged(hasFlight);
+        if (hasFlight) {
+            detailRouteLabel.setText(flight.getDepartureCity().getCityName() + " → "
+                    + flight.getArrivalCity().getCityName());
+            detailDateLabel.setText(flight.getDepartureTime()
+                    .format(DateTimeFormatter.ofPattern("MMM dd, yyyy - HH:mm")));
+            detailInfoLabel.setText(flight.getDurationString() + " - Direct");
+            detailPriceLabel.textProperty().bind(
+                    flightSceneViewModel.totalPriceProperty().asString("EUR %.2f")
+            );
+            detailAircraftLabel.setText(flight.getPlane().getPlaneType().getModel());
+        }
+    }
+
+    private void setupFilters() {
+        if (sortByCombo != null) {
+            sortByCombo.getItems().setAll("Price (Low to High)", "Duration (Shortest First)", "Departure (Early First)");
+            sortByCombo.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
+                if (newVal != null) {
+                    flightSceneViewModel.sortFlights(newVal);
+                }
+            });
+        }
+
+        if (airlineCombo != null) {
+            airlineCombo.setItems(flightSceneViewModel.getUniqueCarriers());
+            if (!airlineCombo.getItems().contains("All Airlines")) {
+                airlineCombo.getItems().add(0, "All Airlines");
             }
+            airlineCombo.getSelectionModel().selectFirst();
+            airlineCombo.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
+                if (newVal != null) {
+                    flightSceneViewModel.filterByCarrier(newVal);
+                }
+            });
+        }
+    }
+
+    @FXML
+    private void onResetClick() {
+        flightSceneViewModel.clear();
+        if (sortByCombo != null) {
+            sortByCombo.getSelectionModel().clearSelection();
+        }
+        if (airlineCombo != null) {
+            airlineCombo.getSelectionModel().selectFirst();
+        }
+        updateFlightSummary(null);
+        updateAuthHeader();
+    }
+
+    private void setupCityConverter() {
+        StringConverter<City> cityConverter = new StringConverter<>() {
+            @Override
+            public String toString(City city) { return (city == null) ? "" : city.getCityName(); }
+            @Override
+            public City fromString(String string) { return null; }
+        };
+        originCombo.setConverter(cityConverter);
+        destinationCombo.setConverter(cityConverter);
+    }
+
+    public void showBookFlight() { showContent(bookViewWrapper); }
+
+    public void showPassengerDetails() {
+        if (flightSceneViewModel.getSelectedFlight() == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Please select a flight first.");
+            alert.showAndWait();
+            return;
+        }
+        if (!isCustomerLoggedIn()) {
+            pendingCustomerAction = "passengerDetails";
+            showLoginDialog();
+            return;
+        }
+        showContent(passengerViewWrapper);
+        passengerViewController.refresh();
+    }
+
+    public void showMyBookings() {
+        if (!isCustomerLoggedIn()) {
+            pendingCustomerAction = "myBookings";
+            showLoginDialog();
+            return;
+        }
+        showContent(bookingsViewWrapper);
+        bookingsViewController.refresh();
+    }
+
+    private void handleAuthButton() {
+        if (flightSceneViewModel.getLoggedInUser() == null) {
+            showLoginDialog();
         } else {
             flightSceneViewModel.logout();
-            updateAuthUI();
+            pendingCustomerAction = null;
+            updateAuthHeader();
+            showBookFlight();
         }
+    }
+
+    public boolean loginCustomer(String email, String password) {
+        boolean success = flightSceneViewModel.login(email, password);
+        if (success && flightSceneViewModel.getLoggedInUser() instanceof Customer) {
+            updateAuthHeader();
+            runPendingCustomerAction();
+            return true;
+        }
+        flightSceneViewModel.logout();
+        updateAuthHeader();
+        return false;
+    }
+
+    private void runPendingCustomerAction() {
+        String action = pendingCustomerAction;
+        pendingCustomerAction = null;
+        if ("passengerDetails".equals(action)) showPassengerDetails();
+        else if ("myBookings".equals(action)) showMyBookings();
+    }
+
+    private void updateAuthHeader() {
+        User user = flightSceneViewModel.getLoggedInUser();
+
+        if (user instanceof Customer customer) {
+            authStatusLabel.setText("Welcome, " + customer.getFirstName());
+            authButton.setText("Logout");
+        }
+        else if (user instanceof Admin admin) {
+            authStatusLabel.setText("Logged in as Admin");
+            authButton.setText("Logout");
+        }
+        else {
+            authStatusLabel.setText("Not signed in");
+            authButton.setText("Login");
+        }
+    }
+
+    private void showContent(StackPane visibleWrapper) {
+        setVisible(bookViewWrapper, visibleWrapper == bookViewWrapper);
+        setVisible(bookingsViewWrapper, visibleWrapper == bookingsViewWrapper);
+        setVisible(passengerViewWrapper, visibleWrapper == passengerViewWrapper);
+
+        bookTabButton.getStyleClass().remove("tab-btn-active");
+        bookingsTabButton.getStyleClass().remove("tab-btn-active");
+        if (visibleWrapper == bookingsViewWrapper) bookingsTabButton.getStyleClass().add("tab-btn-active");
+        else bookTabButton.getStyleClass().add("tab-btn-active");
+    }
+
+    private void setVisible(StackPane wrapper, boolean visible) {
+        wrapper.setVisible(visible);
+        wrapper.setManaged(visible);
+    }
+
+    public void showAddBookingDialog()
+    {
+        if (!isCustomerLoggedIn())
+
+        {
+            pendingCustomerAction = "myBookings";
+            showLoginDialog();
+            return;
+        }
+        addBookingDialogController.show();
+    }
+
+    public void showSeatPicker(int passengerNumber) {
+        seatMapDialogController.showForPassenger(passengerNumber);
+    }
+
+    public void showBookingDetails(Booking booking)
+    {
+        bookingDetailsDialogController.show(booking);
+    }
+
+    public void showAdminLoginDialog()
+    {
+        hideAuthDialogs();
+        adminLoginDialogController.show();
     }
     
-    private void updateAuthUI() {
-        Label authStatusLabel = (Label) root.lookup("#authStatusLabel");
-        Button authButton = (Button) root.lookup("#authButton");
-        model.User user = flightSceneViewModel.getLoggedInUser();
-        if (authStatusLabel != null && authButton != null) {
-            if (user == null) {
-                authStatusLabel.setText("Not signed in");
-                authButton.setText("Login");
-            } else {
-                authStatusLabel.setText("Signed in as " + user.getEmail());
-                authButton.setText("Logout");
-            }
-        }
+    public void showRegisterDialog()
+    {
+        hideAuthDialogs();
+        registerDialogController.show();
     }
 
-    private void setupLoginModals() {
-        StackPane loginWrapper = (StackPane) root.lookup("#loginDialogWrapper");
-        StackPane registerWrapper = (StackPane) root.lookup("#registerDialogWrapper");
+    public void hideAuthDialogs()
+    {
+        loginDialogWrapper.setVisible(false);
+        loginDialogWrapper.setManaged(false);
 
-        Button closeLogin = (Button) root.lookup("#closeLoginButton");
-        Button submitLogin = (Button) root.lookup("#loginSubmitButton");
-        TextField loginEmail = (TextField) root.lookup("#loginEmailField");
-        PasswordField loginPass = (PasswordField) root.lookup("#loginPasswordField");
-        Button switchRegister = (Button) root.lookup("#switchToRegisterButton");
+        registerDialogWrapper.setVisible(false);
+        registerDialogWrapper.setManaged(false);
 
-        if (closeLogin != null) closeLogin.setOnAction(e -> { loginWrapper.setVisible(false); loginWrapper.setManaged(false); });
-        
-        if (submitLogin != null) submitLogin.setOnAction(e -> {
-            boolean success = flightSceneViewModel.login(loginEmail.getText(), loginPass.getText());
-            if (success) {
-                loginWrapper.setVisible(false); loginWrapper.setManaged(false);
-                loginEmail.clear(); loginPass.clear();
-                updateAuthUI();
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid email or password");
-                alert.show();
-            }
-        });
+        adminLoginDialogWrapper.setVisible(false);
+        adminLoginDialogWrapper.setManaged(false);
+    }
 
-        if (switchRegister != null) switchRegister.setOnAction(e -> {
-            loginWrapper.setVisible(false); loginWrapper.setManaged(false);
-            if (registerWrapper != null) { registerWrapper.setVisible(true); registerWrapper.setManaged(true); }
-        });
+    public boolean loginAdmin(String email, String password) {
+        if (email == null || password == null) return false;
 
-        Button closeRegister = (Button) root.lookup("#closeRegisterButton");
-        Button submitRegister = (Button) root.lookup("#registerSubmitButton");
-        TextField regName = (TextField) root.lookup("#registerNameField");
-        TextField regLast = (TextField) root.lookup("#registerLastNameField");
-        TextField regEmail = (TextField) root.lookup("#registerEmailField");
-        PasswordField regPass = (PasswordField) root.lookup("#registerPasswordField");
-        Button backToLogin = (Button) root.lookup("#backToLoginFromRegisterButton");
+        if (!flightSceneViewModel.login(email.trim(), password.trim())
+                || !(flightSceneViewModel.getLoggedInUser() instanceof Admin)) {
 
-        if (closeRegister != null) closeRegister.setOnAction(e -> { registerWrapper.setVisible(false); registerWrapper.setManaged(false); });
+            flightSceneViewModel.logout();
+            updateAuthHeader();
+            return false;
+        }
 
-        if (submitRegister != null) submitRegister.setOnAction(e -> {
-            boolean success = flightSceneViewModel.register(regName.getText(), regLast.getText(), regEmail.getText(), regPass.getText());
-            if (success) {
-                flightSceneViewModel.login(regEmail.getText(), regPass.getText());
-                registerWrapper.setVisible(false); registerWrapper.setManaged(false);
-                regName.clear(); regLast.clear(); regEmail.clear(); regPass.clear();
-                updateAuthUI();
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Registration failed or email already exists.");
-                alert.show();
-            }
-        });
+        updateAuthHeader();
+        viewHandler.openView("admin");
 
-        if (backToLogin != null) backToLogin.setOnAction(e -> {
-            registerWrapper.setVisible(false); registerWrapper.setManaged(false);
-            if (loginWrapper != null) { loginWrapper.setVisible(true); loginWrapper.setManaged(true); }
-        });
-        
-        updateAuthUI();
+        return true;
+    }
+
+    public boolean registerCustomer(String firstName, String lastName, String email, String password) {
+        return flightSceneViewModel.register(firstName.trim(), lastName.trim(), email.trim(), password.trim());
+    }
+
+    private boolean isCustomerLoggedIn() { return flightSceneViewModel.getLoggedInUser() instanceof Customer; }
+    public void showLoginDialog() {
+        hideAuthDialogs();
+        loginDialogWrapper.setVisible(true);
+        loginDialogWrapper.setManaged(true);
+        loginDialogController.show();
+    }
+    public void reset() { flightSceneViewModel.clear(); }
+    public Region getRoot() { return root; }
+
+    @FXML private void onIncrementClick() { flightSceneViewModel.incrementPassengers(); }
+    @FXML private void onDecrementClick() { flightSceneViewModel.decrementPassengers(); }
+    @FXML public void loginButton() { handleAuthButton(); }
+
+    public void refresh() {
+
+    }
+
+    @FXML
+    private void onSearchClick() {
+        flightSceneViewModel.searchFlights();
+    }
+
+    @FXML
+    private void onContinueClick() {
+        showPassengerDetails();
+    }
+
+    public MyBookingsViewController getMyBookingsViewController() {
+        return bookingsViewController;
     }
 }

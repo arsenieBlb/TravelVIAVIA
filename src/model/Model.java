@@ -24,7 +24,11 @@ public interface Model
 
     void cancelBooking(Booking booking);
 
+    List<Booking> getAllBookings();
+
     List<Booking> getUserBookings();
+
+    Booking addBookingToCurrentUserById(int bookingId, String passengerLastName);
 
     void addFlight(Flight flight);
 
@@ -33,4 +37,12 @@ public interface Model
     List<LuggageType> getLuggageTypes();
 
     List<City> getAllCities();
+
+    List<City> getCities();
+
+    List<Plane> getPlanes();
+
+    List<Carrier> getCarriers();
+
+    List<Flight> getAllFlights();
 }

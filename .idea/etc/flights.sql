@@ -138,6 +138,8 @@ INSERT INTO users (user_id, email, password_hash, user_type) VALUES
 (3, 'alice.smith@outlook.com', '1234c', 'Customer'),
 (4, 'support_team@carrier.com', '1234d', 'Admin'),
 (5, 'bob.builder@yahoo.com', '1234e', 'Customer');
+(5, 'artem', 'artem', 'Customer');
+(6, 'boss', 'boss', 'Admin'),
 
 INSERT INTO admin (admin_id) VALUES
 (1),
@@ -315,3 +317,10 @@ INSERT INTO passenger_luggage(passenger_luggage_id, passenger_id, luggage_type_i
 
 INSERT INTO flight_seat(flight_id, seat_id, passenger_id, is_occupied) VALUES
 (104, 1, 2, TRUE);
+
+UPDATE flight SET arrival_time = '2026-07-15 09:55:00' WHERE flight_id = 107;
+UPDATE flight SET arrival_time = '2026-07-20 15:55:00' WHERE flight_id = 118;
+UPDATE flight SET arrival_time = '2026-08-01 09:25:00' WHERE flight_id = 141;
+UPDATE flight SET arrival_time = '2026-08-05 17:00:00' WHERE flight_id = 150;
+UPDATE flight SET arrival_time = '2026-08-06 20:00:00' WHERE flight_id = 152;
+UPDATE flight SET arrival_time = '2026-08-04 09:05:00' WHERE flight_id = 133;

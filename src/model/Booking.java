@@ -116,15 +116,25 @@ public class Booking
 
   public void recalculateTotalPrice()
   {
+    double basePrice = 0;
     double luggagePrice = 0;
     for (Passenger passenger : passengers)
     {
+      double passengerBasePrice = flight.getBasePrice();
+      SeatAssignment seatAssignment = passenger.getSeatAssignment();
+      if (seatAssignment != null && seatAssignment.getFlight().equals(flight)
+          && seatAssignment.getSeat().getSeatClass() == SeatClass.Business)
+      {
+        passengerBasePrice *= 1.5;
+      }
+      basePrice += passengerBasePrice;
+
       for (PassengerLuggage luggage : passenger.getPassengerLuggage())
       {
         luggagePrice += luggage.getTotalExtraPrice();
       }
     }
-    totalPrice = (flight.getBasePrice() * passengers.size()) + luggagePrice;
+    totalPrice = basePrice + luggagePrice;
   }
 
   private void setPassengers(List<Passenger> passengers)
@@ -230,5 +240,23 @@ public class Booking
   @Override public String toString()
   {
     return "Booking #" + bookingId + " for " + flight.getFlightNumber();
+  }
+
+  @Override public boolean equals(Object object)
+  {
+    if (this == object)
+    {
+      return true;
+    }
+    if (!(object instanceof Booking booking))
+    {
+      return false;
+    }
+    return bookingId == booking.bookingId;
+  }
+
+  @Override public int hashCode()
+  {
+    return Objects.hash(bookingId);
   }
 }

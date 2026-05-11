@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <StackPane fx:id="registerModal"
+           fx:controller="view.RegisterDialogController"
            styleClass="modal-overlay"
            xmlns="http://javafx.com/javafx/17"
            xmlns:fx="http://javafx.com/fxml/1">
@@ -56,6 +57,7 @@
 
                 <!-- TEAM TODO: register new account -->
                 <Button fx:id="registerSubmitButton" text="Create account" styleClass="btn-primary"/>
+                <Label fx:id="registerErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
 
                 <Separator/>
 
