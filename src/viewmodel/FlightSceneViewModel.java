@@ -49,6 +49,10 @@ public class FlightSceneViewModel {
     private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
     private final BooleanProperty directOnly = new SimpleBooleanProperty(false);
+    private final BooleanProperty roundTrip = new SimpleBooleanProperty(false);
+    private final ObjectProperty<LocalDate> returnDate = new SimpleObjectProperty<>();
+    private final ObservableList<Flight> returnFlights = FXCollections.observableArrayList();
+    private final ObjectProperty<Flight> selectedReturnFlight = new SimpleObjectProperty<>();
     private PassengerDetailsViewModel passengerDetailsViewModel;
 
     public FlightSceneViewModel(Model model) {
@@ -127,6 +131,8 @@ public class FlightSceneViewModel {
         SearchCriteria criteria = new SearchCriteria();
         criteria.setDepartureCity(departureCity.get());
         criteria.setArrivalCity(arrivalCity.get());
+        // set the travel date so we only search for flights on this day
+        criteria.setDepartureDate(travelDate.get());
 
         List<Flight> flights = model.searchFlights(criteria);
 
@@ -138,12 +144,35 @@ public class FlightSceneViewModel {
 
             if (directOnly.get()) {
                 for (Flight f : flights) {
-                    if (isFlightDirect(f)) {
+                    // if it is not a connecting flight, it means it is direct
+                    if (!(f instanceof ConnectingFlight)) {
                         filteredFlights.add(f);
                     }
                 }
             } else {
                 filteredFlights.addAll(flights);
+            }
+        }
+
+        // search return flights if roundtrip is selected
+        returnFlights.clear();
+        if (roundTrip.get() && departureCity.get() != null && arrivalCity.get() != null && returnDate.get() != null) {
+            SearchCriteria returnCriteria = new SearchCriteria();
+            returnCriteria.setDepartureCity(arrivalCity.get());
+            returnCriteria.setArrivalCity(departureCity.get());
+            returnCriteria.setDepartureDate(returnDate.get());
+
+            List<Flight> returnResults = model.searchFlights(returnCriteria);
+            if (returnResults != null) {
+                if (directOnly.get()) {
+                    for (Flight f : returnResults) {
+                        if (!(f instanceof ConnectingFlight)) {
+                            returnFlights.add(f);
+                        }
+                    }
+                } else {
+                    returnFlights.addAll(returnResults);
+                }
             }
         }
     }
@@ -205,9 +234,13 @@ public class FlightSceneViewModel {
         passengerTwoBaggageCount.set(0);
 
         directOnly.set(false);
+        roundTrip.set(false);
         searchFlights();
 
         selectedFlight.set(null);
+        selectedReturnFlight.set(null);
+        returnDate.set(null);
+        returnFlights.clear();
         if (seatMapViewModel != null) {
             seatMapViewModel.clear();
         }
@@ -261,6 +294,9 @@ public class FlightSceneViewModel {
     public void updateTotalPrice() {
         if (selectedFlight.get() == null) return;
         double base = selectedFlight.get().getBasePrice();
+        if (selectedReturnFlight.get() != null) {
+            base += selectedReturnFlight.get().getBasePrice();
+        }
         double currentTotal = 0;
         currentTotal += calculatePassengerPrice(base,
                 seatMapViewModel != null ? seatMapViewModel.getSeatClassForPassenger(1) : SeatClass.Economy,
@@ -331,6 +367,16 @@ public class FlightSceneViewModel {
     public StringProperty arrivalTimeProperty() { return arrivalTime; }
     public StringProperty routeSummaryProperty() { return routeSummary; }
     private boolean hasText(String value) { return value != null && !value.isBlank(); }
+
+    public BooleanProperty roundTripProperty() { return roundTrip; }
+    public ObjectProperty<LocalDate> returnDateProperty() { return returnDate; }
+    public ObservableList<Flight> getReturnFlights() { return returnFlights; }
+    public ObjectProperty<Flight> selectedReturnFlightProperty() { return selectedReturnFlight; }
+    public Flight getSelectedReturnFlight() { return selectedReturnFlight.get(); }
+    public void setSelectedReturnFlight(Flight flight) {
+        this.selectedReturnFlight.set(flight);
+        updateTotalPrice();
+    }
 
     public MyBookingsViewModel getMyBookingsViewModel() {
         return new MyBookingsViewModel(this.model);

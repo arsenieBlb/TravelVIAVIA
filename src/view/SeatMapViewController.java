@@ -47,8 +47,8 @@ public class SeatMapViewController {
         });
     }
 
-    public void showForPassenger(int passengerNumber) {
-        seatMapViewModel.startSelection(passengerNumber);
+    public void showForPassenger(int passengerNumber, int segmentIndex) {
+        seatMapViewModel.startSelection(passengerNumber, segmentIndex);
         seatModalTitleLabel.setText("Select a seat ("
                 + seatMapViewModel.getSelectedClass() + ")");
 

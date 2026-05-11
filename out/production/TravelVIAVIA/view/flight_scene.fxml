@@ -126,6 +126,12 @@
                                                                         <DatePicker fx:id="travelDatePicker" styleClass="field-input"/>
                                                                     </children>
                                                                 </VBox>
+                                                                <VBox fx:id="returnDateBox" spacing="6.0" GridPane.columnIndex="2" GridPane.rowIndex="1" visible="false" managed="false">
+                                                                    <children>
+                                                                        <Label text="RETURN DATE" styleClass="field-label"/>
+                                                                        <DatePicker fx:id="returnDatePicker" styleClass="field-input"/>
+                                                                    </children>
+                                                                </VBox>
                                                                 <VBox spacing="6.0" GridPane.columnIndex="3">
                                                                     <children>
                                                                         <Label text="TRIP TYPE" styleClass="field-label"/>
@@ -194,6 +200,26 @@
                                                                         <TableColumn fx:id="carrierColumn" text="Carrier" prefWidth="180.0"/>
                                                                         <TableColumn fx:id="typeColumn" text="Type" prefWidth="130.0"/>
                                                                         <TableColumn fx:id="priceColumn" text="Base Price (EUR)" prefWidth="180.0"/>
+                                                                    </columns>
+                                                                </TableView>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </VBox>
+
+                                                <VBox fx:id="returnTableSection" spacing="8.0" visible="false" managed="false">
+                                                    <children>
+                                                        <Label text="Return Flights" styleClass="section-title"/>
+                                                        <VBox styleClass="card-table">
+                                                            <children>
+                                                                <TableView fx:id="returnFlightsTable" styleClass="flight-table" VBox.vgrow="ALWAYS">
+                                                                    <columns>
+                                                                        <TableColumn fx:id="returnRouteColumn" text="From / To" prefWidth="260.0"/>
+                                                                        <TableColumn fx:id="returnDepartureColumn" text="Departure" prefWidth="120.0"/>
+                                                                        <TableColumn fx:id="returnDurationColumn" text="Duration" prefWidth="130.0"/>
+                                                                        <TableColumn fx:id="returnCarrierColumn" text="Carrier" prefWidth="180.0"/>
+                                                                        <TableColumn fx:id="returnTypeColumn" text="Type" prefWidth="130.0"/>
+                                                                        <TableColumn fx:id="returnPriceColumn" text="Base Price (EUR)" prefWidth="180.0"/>
                                                                     </columns>
                                                                 </TableView>
                                                             </children>

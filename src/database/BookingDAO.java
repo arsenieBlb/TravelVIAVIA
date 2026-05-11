@@ -26,7 +26,7 @@ public class BookingDAO
     List<Booking> bookings = new ArrayList<>();
 
     try (Connection connection = DatabaseConnection.getConnection()) {
-      String sql = "SELECT booking_id, flight_id, created_by_customer_id, "
+      String sql = "SELECT booking_id, flight_id, second_flight_id, created_by_customer_id, "
           + "passenger_count, total_price FROM flights.booking "
           + "ORDER BY booking_id";
       PreparedStatement statement = connection.prepareStatement(sql);
@@ -39,16 +39,28 @@ public class BookingDAO
         int customerId = resultSet.getInt("created_by_customer_id");
 
         Flight flight = findFlightById(flights, flightId);
+
+        int secondFlightId = resultSet.getInt("second_flight_id");
+        if (!resultSet.wasNull()) {
+            Flight secondFlight = findFlightById(flights, secondFlightId);
+            if (secondFlight != null) {
+                flight = new model.ConnectingFlight(flight, secondFlight);
+            }
+        }
+
         Customer customer = findCustomerById(customers, customerId);
 
         if (flight != null && customer != null) {
           // loads passengers that belong to this booking
-          List<Passenger> passengers = loadPassengers(bookingId, luggageTypes,
+          List<Passenger> passengers = loadPassengers(bookingId, flight, luggageTypes,
               connection);
           
           if (!passengers.isEmpty()) {
             Booking booking = new Booking(bookingId, LocalDateTime.now(),
                 customer, flight, passengers);
+            for (Passenger passenger : passengers) {
+                loadSeatAssignments(passenger, flight, connection);
+            }
             bookings.add(booking);
           }
         }
@@ -66,7 +78,7 @@ public class BookingDAO
 
     try (Connection connection = DatabaseConnection.getConnection())
     {
-      String sql = "SELECT b.booking_id, b.flight_id, "
+      String sql = "SELECT b.booking_id, b.flight_id, b.second_flight_id, "
           + "b.created_by_customer_id, b.passenger_count, b.total_price "
           + "FROM flights.booking b "
           + "JOIN flights.booking_customer bc "
@@ -97,7 +109,7 @@ public class BookingDAO
   {
     try (Connection connection = DatabaseConnection.getConnection())
     {
-      String sql = "SELECT booking_id, flight_id, created_by_customer_id, "
+      String sql = "SELECT booking_id, flight_id, second_flight_id, created_by_customer_id, "
           + "passenger_count, total_price "
           + "FROM flights.booking WHERE booking_id = ?";
 
@@ -174,24 +186,36 @@ public class BookingDAO
     int flightId = resultSet.getInt("flight_id");
     Flight flight = findFlightById(flights, flightId);
 
+    int secondFlightId = resultSet.getInt("second_flight_id");
+    if (!resultSet.wasNull()) {
+        Flight secondFlight = findFlightById(flights, secondFlightId);
+        if (secondFlight != null) {
+            flight = new model.ConnectingFlight(flight, secondFlight);
+        }
+    }
+
     if (flight == null)
     {
       return null;
     }
 
-    List<Passenger> passengers = loadPassengers(bookingId, luggageTypes,
+    List<Passenger> passengers = loadPassengers(bookingId, flight, luggageTypes,
         connection);
     if (passengers.isEmpty())
     {
       return null;
     }
 
-    return new Booking(bookingId, LocalDateTime.now(), customer, flight,
+    Booking booking = new Booking(bookingId, LocalDateTime.now(), customer, flight,
         passengers);
+    for (Passenger passenger : passengers) {
+        loadSeatAssignments(passenger, flight, connection);
+    }
+    return booking;
   }
 
   // loads all passengers for a specific booking and attaches their luggage
-  private List<Passenger> loadPassengers(int bookingId,
+  private List<Passenger> loadPassengers(int bookingId, Flight flight,
       List<LuggageType> luggageTypes, Connection connection) throws SQLException
   {
     List<Passenger> passengers = new ArrayList<>();
@@ -254,14 +278,22 @@ public class BookingDAO
 
         // inserts the booking record
         String bookingSql = "INSERT INTO flights.booking "
-            + "(booking_id, flight_id, created_by_customer_id, "
-            + "passenger_count, total_price) VALUES (?, ?, ?, ?, ?)";
+            + "(booking_id, flight_id, second_flight_id, created_by_customer_id, "
+            + "passenger_count, total_price) VALUES (?, ?, ?, ?, ?, ?)";
         PreparedStatement bookingStatement = connection.prepareStatement(bookingSql);
         bookingStatement.setInt(1, booking.getBookingId());
-        bookingStatement.setInt(2, booking.getFlight().getFlightId());
-        bookingStatement.setInt(3, booking.getCustomer().getUserId());
-        bookingStatement.setInt(4, booking.getPassengers().size());
-        bookingStatement.setDouble(5, booking.getTotalPrice());
+        
+        if (booking.getFlight() instanceof model.ConnectingFlight connectingFlight) {
+            bookingStatement.setInt(2, connectingFlight.getFirstSegment().getFlightId());
+            bookingStatement.setInt(3, connectingFlight.getSecondSegment().getFlightId());
+        } else {
+            bookingStatement.setInt(2, booking.getFlight().getFlightId());
+            bookingStatement.setNull(3, java.sql.Types.INTEGER);
+        }
+        
+        bookingStatement.setInt(4, booking.getCustomer().getUserId());
+        bookingStatement.setInt(5, booking.getPassengers().size());
+        bookingStatement.setDouble(6, booking.getTotalPrice());
         bookingStatement.executeUpdate();
         
         // inserts the booking-customer link
@@ -319,8 +351,7 @@ public class BookingDAO
       luggageStatement.executeUpdate();
     }
 
-    SeatAssignment seatAssignment = passenger.getSeatAssignment();
-    if (seatAssignment != null)
+    for (SeatAssignment seatAssignment : passenger.getSeatAssignments())
     {
       saveSeatAssignment(seatAssignment, connection);
     }
@@ -337,6 +368,40 @@ public class BookingDAO
     statement.setInt(2, seatAssignment.getSeat().getSeatId());
     statement.setInt(3, seatAssignment.getPassenger().getPassengerId());
     statement.executeUpdate();
+  }
+
+  private void loadSeatAssignments(Passenger passenger, Flight flight, Connection connection) throws SQLException {
+    String sql = "SELECT flight_id, seat_id FROM flights.flight_seat WHERE passenger_id = ?";
+    PreparedStatement statement = connection.prepareStatement(sql);
+    statement.setInt(1, passenger.getPassengerId());
+    ResultSet resultSet = statement.executeQuery();
+
+    while (resultSet.next()) {
+        int flightId = resultSet.getInt("flight_id");
+        int seatId = resultSet.getInt("seat_id");
+
+        Flight specificFlight = null;
+        if (flight instanceof model.ConnectingFlight connectingFlight) {
+            if (connectingFlight.getFirstSegment().getFlightId() == flightId) {
+                specificFlight = connectingFlight.getFirstSegment();
+            } else if (connectingFlight.getSecondSegment().getFlightId() == flightId) {
+                specificFlight = connectingFlight.getSecondSegment();
+            }
+        } else if (flight.getFlightId() == flightId) {
+            specificFlight = flight;
+        }
+
+        if (specificFlight != null) {
+            for (model.Seat seat : specificFlight.getPlane().getSeats()) {
+                if (seat.getSeatId() == seatId) {
+                    SeatAssignment sa = new SeatAssignment(specificFlight, seat, passenger);
+                    passenger.addSeatAssignment(sa);
+                    specificFlight.markSeatOccupied(seat);
+                    break;
+                }
+            }
+        }
+    }
   }
 
   private int getNextId(Connection connection, String tableName,

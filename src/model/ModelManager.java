@@ -161,15 +161,30 @@ public class ModelManager implements Model
 
         if (selectedSeats != null)
         {
-            for (int i = 0; i < passengers.size()
-                && i < selectedSeats.size(); i++)
-            {
-                Seat seat = selectedSeats.get(i);
-                if (seat != null)
-                {
-                    new SeatAssignment(nextSeatAssignmentId++,
-                        passengers.get(i), seat, flight);
+            List<Flight> segments = new ArrayList<>();
+            if (flight instanceof ConnectingFlight connectingFlight) {
+                segments.add(connectingFlight.getFirstSegment());
+                segments.add(connectingFlight.getSecondSegment());
+            } else {
+                segments.add(flight);
+            }
+
+            int seatIndex = 0;
+            try {
+                for (int p = 0; p < passengers.size(); p++) {
+                    for (int s = 0; s < segments.size(); s++) {
+                        if (seatIndex < selectedSeats.size()) {
+                            Seat seat = selectedSeats.get(seatIndex++);
+                            if (seat != null) {
+                                new SeatAssignment(nextSeatAssignmentId++, passengers.get(p), seat, segments.get(s));
+                            }
+                        }
+                    }
                 }
+            } catch (IllegalArgumentException e) {
+                booking.cancel();
+                customer.removeBooking(booking);
+                throw e;
             }
         }
 
@@ -179,6 +194,8 @@ public class ModelManager implements Model
         try {
             bookingDAO.saveBooking(booking);
         } catch (SQLException e) {
+            booking.cancel();
+            customer.removeBooking(booking);
             System.out.println("Failed to save booking");
             throw new IllegalStateException("Failed to save booking.", e);
         }

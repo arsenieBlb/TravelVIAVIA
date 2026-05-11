@@ -11,7 +11,7 @@ public class Passenger
   private String firstName;
   private String lastName;
   private Booking booking;
-  private SeatAssignment seatAssignment;
+  private final List<SeatAssignment> seatAssignments = new ArrayList<>();
   private final List<PassengerLuggage> passengerLuggage;
 
   public Passenger(int passengerId, String firstName, String lastName)
@@ -42,24 +42,26 @@ public class Passenger
     this.booking = Objects.requireNonNull(booking, "Booking is required.");
   }
 
-  void setSeatAssignment(SeatAssignment seatAssignment)
+  public void addSeatAssignment(SeatAssignment seatAssignment)
   {
-    if (this.seatAssignment != null && this.seatAssignment != seatAssignment)
+    Objects.requireNonNull(seatAssignment, "Seat assignment is required.");
+    if (seatAssignment.getPassenger() != null && seatAssignment.getPassenger() != this)
     {
       throw new IllegalArgumentException(
-          "Passenger already has a seat assignment.");
+          "Seat assignment belongs to another passenger.");
     }
-    this.seatAssignment = Objects.requireNonNull(seatAssignment,
-        "Seat assignment is required.");
+    if (!seatAssignments.contains(seatAssignment))
+    {
+      seatAssignments.add(seatAssignment);
+    }
   }
 
-  void clearSeatAssignment(SeatAssignment seatAssignment)
+  void removeSeatAssignment(SeatAssignment seatAssignment)
   {
-    if (this.seatAssignment == seatAssignment)
-    {
-      this.seatAssignment = null;
-    }
+    seatAssignments.remove(seatAssignment);
   }
+
+
 
   public int getPassengerId()
   {
@@ -108,9 +110,9 @@ public class Passenger
     return booking;
   }
 
-  public SeatAssignment getSeatAssignment()
+  public List<SeatAssignment> getSeatAssignments()
   {
-    return seatAssignment;
+    return Collections.unmodifiableList(seatAssignments);
   }
 
   public List<PassengerLuggage> getPassengerLuggage()

@@ -89,11 +89,13 @@ CREATE TABLE flight(
 CREATE TABLE booking(
     booking_id INTEGER PRIMARY KEY,
     flight_id INTEGER,
+    second_flight_id INTEGER,
     created_by_customer_id INTEGER,
     passenger_count INTEGER,
     total_price DECIMAL(10, 3),
     FOREIGN KEY (created_by_customer_id) REFERENCES customer(customer_id),
-    FOREIGN KEY (flight_id) REFERENCES flight(flight_id)
+    FOREIGN KEY (flight_id) REFERENCES flight(flight_id),
+    FOREIGN KEY (second_flight_id) REFERENCES flight(flight_id)
 );
 
 CREATE TABLE booking_customer(
@@ -137,18 +139,20 @@ INSERT INTO users (user_id, email, password_hash, user_type) VALUES
 (2, 'j.doe@gmail.com', '1234b', 'Customer'),
 (3, 'alice.smith@outlook.com', '1234c', 'Customer'),
 (4, 'support_team@carrier.com', '1234d', 'Admin'),
-(5, 'bob.builder@yahoo.com', '1234e', 'Customer');
-(5, 'artem', 'artem', 'Customer');
-(6, 'boss', 'boss', 'Admin'),
+(5, 'bob.builder@yahoo.com', '1234e', 'Customer'),
+(6, 'artem', 'artem', 'Customer'),
+(7, 'boss', 'boss', 'Admin');
 
 INSERT INTO admin (admin_id) VALUES
 (1),
-(4);
+(4),
+(7);
 
 INSERT INTO customer(customer_id, first_name, last_name) VALUES
 (2, 'John', 'Doe'),
 (3, 'Alice', 'Smith'),
-(5, 'Bob', 'Builder');
+(5, 'Bob', 'Builder'),
+(6, 'Artem', 'Customer');
 
 INSERT INTO carrier(carrier_id, carrier_name) VALUES
 (1, 'Global Sky Airways'),
@@ -298,7 +302,8 @@ INSERT INTO flight(flight_id, carrier_id, plane_id, departure_city_id,
 (153, 4, 1004, 4, 17, '2026-08-07 08:25:00', '2026-08-07 10:25:00', 58.50, 'Available'),
 (154, 6, 1008, 5, 29, '2026-08-07 20:10:00', '2026-08-08 01:25:00', 89.00, 'Available'),
 (155, 5, 1006, 1, 3, '2026-08-08 07:15:00', '2026-08-08 09:35:00', 135.00, 'Available'),
-(156, 7, 1010, 4, 7, '2026-08-08 13:40:00', '2026-08-08 16:00:00', 160.50, 'Available');
+(156, 7, 1010, 4, 7, '2026-08-08 13:40:00', '2026-08-08 16:00:00', 160.50, 'Available'),
+(157, 1, 501, 1, 3, '2026-07-20 09:00:00', '2026-07-20 10:30:00', 45.00, 'Available');
 
 
 

@@ -68,6 +68,11 @@ public class Customer extends User
     }
   }
 
+  public void removeBooking(Booking booking)
+  {
+      bookings.remove(booking);
+  }
+
   public String getFirstName()
   {
     return firstName;

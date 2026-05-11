@@ -52,10 +52,14 @@ public class Booking
 
     for (Passenger passenger : passengers)
     {
-      SeatAssignment seatAssignment = passenger.getSeatAssignment();
-      if (seatAssignment != null && seatAssignment.getFlight().equals(flight))
-      {
-        seatAssignment.release();
+      for (SeatAssignment seatAssignment : new java.util.ArrayList<>(passenger.getSeatAssignments())) {
+        boolean isMatch = seatAssignment.getFlight().equals(flight);
+        if (flight instanceof ConnectingFlight cf) {
+            isMatch = isMatch || seatAssignment.getFlight().equals(cf.getFirstSegment()) || seatAssignment.getFlight().equals(cf.getSecondSegment());
+        }
+        if (isMatch) {
+          seatAssignment.release();
+        }
       }
     }
     cancelled = true;
@@ -85,11 +89,10 @@ public class Booking
     for (Passenger passenger : passengers)
     {
       summary.append("- ").append(passenger.getFullName());
-      SeatAssignment seatAssignment = passenger.getSeatAssignment();
-      if (seatAssignment != null && seatAssignment.getFlight().equals(flight))
-      {
-        summary.append(", seat ")
-            .append(seatAssignment.getSeat().getSeatNumber());
+      for (SeatAssignment seatAssignment : passenger.getSeatAssignments()) {
+          summary.append(", seat ")
+              .append(seatAssignment.getSeat().getSeatNumber())
+              .append(" (").append(seatAssignment.getFlight().getDepartureCity().getCityName()).append(")");
       }
 
       if (!passenger.getPassengerLuggage().isEmpty())
@@ -121,11 +124,14 @@ public class Booking
     for (Passenger passenger : passengers)
     {
       double passengerBasePrice = flight.getBasePrice();
-      SeatAssignment seatAssignment = passenger.getSeatAssignment();
-      if (seatAssignment != null && seatAssignment.getFlight().equals(flight)
-          && seatAssignment.getSeat().getSeatClass() == SeatClass.Business)
-      {
-        passengerBasePrice *= 1.5;
+      boolean hasBusinessClass = false;
+      for (SeatAssignment seatAssignment : passenger.getSeatAssignments()) {
+          if (seatAssignment.getSeat().getSeatClass() == SeatClass.Business) {
+              hasBusinessClass = true;
+          }
+      }
+      if (hasBusinessClass) {
+          passengerBasePrice *= 1.5;
       }
       basePrice += passengerBasePrice;
 

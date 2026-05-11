@@ -39,6 +39,8 @@ public class PassengerDetailsViewModel
       FXCollections.observableArrayList();
   private final ObjectProperty<Flight> selectedFlight =
       new SimpleObjectProperty<>();
+  private final ObjectProperty<Flight> selectedReturnFlight =
+      new SimpleObjectProperty<>();
   private final DoubleProperty baseFare = new SimpleDoubleProperty(0);
   private final DoubleProperty carryOnFare = new SimpleDoubleProperty(0);
   private final DoubleProperty baggageFare = new SimpleDoubleProperty(0);
@@ -62,6 +64,7 @@ public class PassengerDetailsViewModel
     boolean changedFlight = selectedFlight.get() == null
         || !selectedFlight.get().equals(flight);
     selectedFlight.set(flight);
+    selectedReturnFlight.set(flightSceneViewModel.getSelectedReturnFlight());
 
     int passengerCount = flightSceneViewModel.passengerCountProperty().get();
     while (passengerForms.size() < passengerCount)
@@ -78,7 +81,9 @@ public class PassengerDetailsViewModel
     {
       for (PassengerForm form : passengerForms)
       {
-        form.setSelectedSeat(null);
+        for (int i = 0; i < getMaxSegmentCount(); i++) {
+            form.setSelectedSeat(i, null);
+        }
       }
     }
 
@@ -93,14 +98,18 @@ public class PassengerDetailsViewModel
         updateFareTotals());
     form.baggageQuantityProperty().addListener((obs, oldValue, newValue) ->
         updateFareTotals());
-    form.seatClassProperty().addListener((obs, oldValue, newValue) -> {
-      Seat selectedSeat = form.getSelectedSeat();
-      if (selectedSeat != null && selectedSeat.getSeatClass() != newValue)
-      {
-        form.setSelectedSeat(null);
-      }
-      updateFareTotals();
-    });
+        
+    for (int i = 0; i < 4; i++) {
+        final int index = i;
+        form.seatClassProperty(index).addListener((obs, oldValue, newValue) -> {
+          Seat selectedSeat = form.getSelectedSeat(index);
+          if (selectedSeat != null && selectedSeat.getSeatClass() != newValue)
+          {
+            form.setSelectedSeat(index, null);
+          }
+          updateFareTotals();
+        });
+    }
     return form;
   }
 
@@ -136,6 +145,7 @@ public class PassengerDetailsViewModel
       throw new IllegalStateException("Please select a flight first.");
     }
 
+    List<Flight> segments = getFlightSegments();
     List<Passenger> passengers = new ArrayList<>();
     List<Seat> selectedSeats = new ArrayList<>();
     LuggageType carryOnLuggage = getCarryOnLuggageType();
@@ -161,14 +171,38 @@ public class PassengerDetailsViewModel
             nextDraftLuggageId++, baggageQuantity, checkedLuggage));
       }
 
+      for (int segmentIndex = 0; segmentIndex < segments.size(); segmentIndex++) {
+          selectedSeats.add(form.getSelectedSeat(segmentIndex));
+      }
       passengers.add(passenger);
-      selectedSeats.add(form.getSelectedSeat());
     }
 
-    Booking booking = model.createBooking(flight, passengers, selectedSeats);
+    // create outbound booking
+    Booking outboundBooking = model.createBooking(flight, passengers, selectedSeats);
+
+    // create return booking if roundtrip
+    if (selectedReturnFlight.get() != null) {
+        Flight returnFlight = selectedReturnFlight.get();
+        List<Passenger> returnPassengers = new ArrayList<>();
+        List<Seat> returnSeats = new ArrayList<>();
+        List<Flight> returnSegments = getReturnFlightSegments();
+        int outboundSegmentCount = getFlightSegments().size();
+
+        for (PassengerForm form : passengerForms) {
+            Passenger returnPassenger = new Passenger(nextDraftPassengerId++,
+                requireText(form.getFirstName(), "First name"),
+                requireText(form.getLastName(), "Last name"));
+            for (int segmentIndex = 0; segmentIndex < returnSegments.size(); segmentIndex++) {
+                returnSeats.add(form.getSelectedSeat(outboundSegmentCount + segmentIndex));
+            }
+            returnPassengers.add(returnPassenger);
+        }
+        model.createBooking(returnFlight, returnPassengers, returnSeats);
+    }
+
     clearPassengerForms();
     flightSceneViewModel.clear();
-    return booking;
+    return outboundBooking;
   }
 
   private void clearPassengerForms()
@@ -179,8 +213,10 @@ public class PassengerDetailsViewModel
       form.setLastName("");
       form.carryOnQuantityProperty().set(1);
       form.baggageQuantityProperty().set(0);
-      form.seatClassProperty().set(SeatClass.Economy);
-      form.setSelectedSeat(null);
+      for (int i = 0; i < getMaxSegmentCount(); i++) {
+        form.seatClassProperty(i).set(SeatClass.Economy);
+        form.setSelectedSeat(i, null);
+      }
     }
   }
 
@@ -248,10 +284,16 @@ public class PassengerDetailsViewModel
   private double calculateBaseFareForPassenger(Flight flight,
       PassengerForm form)
   {
-    double passengerBaseFare = flight.getBasePrice();
-    if (form.getSeatClass() == SeatClass.Business)
-    {
-      passengerBaseFare *= BUSINESS_CLASS_MULTIPLIER;
+    double passengerBaseFare = 0;
+    List<Flight> segments = getAllSegments();
+    
+    for (int i = 0; i < segments.size(); i++) {
+        double segmentBaseFare = segments.get(i).getBasePrice();
+        if (form.getSeatClass(i) == SeatClass.Business)
+        {
+          segmentBaseFare *= BUSINESS_CLASS_MULTIPLIER;
+        }
+        passengerBaseFare += segmentBaseFare;
     }
     return passengerBaseFare;
   }
@@ -261,9 +303,47 @@ public class PassengerDetailsViewModel
     List<Flight> segments = new ArrayList<>();
     if (selectedFlight.get() != null)
     {
-      segments.add(selectedFlight.get());
+      // if it is a connecting flight we need to add both segments
+      if (selectedFlight.get() instanceof model.ConnectingFlight connectingFlight) {
+        segments.add(connectingFlight.getFirstSegment());
+        segments.add(connectingFlight.getSecondSegment());
+      } else {
+        segments.add(selectedFlight.get());
+      }
     }
     return segments;
+  }
+
+  public List<Flight> getReturnFlightSegments()
+  {
+    List<Flight> segments = new ArrayList<>();
+    if (selectedReturnFlight.get() != null)
+    {
+      if (selectedReturnFlight.get() instanceof model.ConnectingFlight connectingFlight) {
+        segments.add(connectingFlight.getFirstSegment());
+        segments.add(connectingFlight.getSecondSegment());
+      } else {
+        segments.add(selectedReturnFlight.get());
+      }
+    }
+    return segments;
+  }
+
+  public List<Flight> getAllSegments()
+  {
+    List<Flight> all = new ArrayList<>(getFlightSegments());
+    all.addAll(getReturnFlightSegments());
+    return all;
+  }
+
+  public int getMaxSegmentCount()
+  {
+    return getAllSegments().size();
+  }
+
+  public Flight getSelectedReturnFlight()
+  {
+    return selectedReturnFlight.get();
   }
 
   private LuggageType getCarryOnLuggageType()
@@ -304,29 +384,31 @@ public class PassengerDetailsViewModel
     return luggageTypes.get(0);
   }
 
-  public List<Seat> getSeatMapSeats()
+  public List<Seat> getSeatMapSeats(int segmentIndex)
   {
     List<Seat> seats = new ArrayList<>();
-    if (selectedFlight.get() != null)
+    List<Flight> segments = getAllSegments();
+    if (segmentIndex < segments.size())
     {
-      seats.addAll(selectedFlight.get().getPlane().getSeats());
+      seats.addAll(segments.get(segmentIndex).getPlane().getSeats());
     }
     seats.sort(Comparator.comparingInt(Seat::getRowNumber)
         .thenComparing(Seat::getSeatNumber));
     return seats;
   }
 
-  public boolean isSeatTaken(Seat seat)
+  public boolean isSeatTaken(Seat seat, int segmentIndex)
   {
-    if (selectedFlight.get() == null || seat == null)
+    List<Flight> segments = getAllSegments();
+    if (seat == null || segmentIndex >= segments.size())
     {
       return true;
     }
-    return !selectedFlight.get().getAvailableSeats().contains(seat);
+    return !segments.get(segmentIndex).getAvailableSeats().contains(seat);
   }
 
   public boolean isSeatAlreadySelectedByOtherPassenger(Seat seat,
-      int passengerNumber)
+      int passengerNumber, int segmentIndex)
   {
     if (seat == null)
     {
@@ -336,7 +418,7 @@ public class PassengerDetailsViewModel
     for (PassengerForm form : passengerForms)
     {
       if (form.getPassengerNumber() != passengerNumber
-          && seat.equals(form.getSelectedSeat()))
+          && seat.equals(form.getSelectedSeat(segmentIndex)))
       {
         return true;
       }
@@ -344,25 +426,25 @@ public class PassengerDetailsViewModel
     return false;
   }
 
-  public SeatClass getSeatClassForPassenger(int passengerNumber)
+  public SeatClass getSeatClassForPassenger(int passengerNumber, int segmentIndex)
   {
     PassengerForm form = getPassengerForm(passengerNumber);
-    return form == null ? SeatClass.Economy : form.getSeatClass();
+    return form == null ? SeatClass.Economy : form.getSeatClass(segmentIndex);
   }
 
   public ObjectProperty<SeatClass> seatClassPropertyForPassenger(
-      int passengerNumber)
+      int passengerNumber, int segmentIndex)
   {
-    return ensurePassengerForm(passengerNumber).seatClassProperty();
+    return ensurePassengerForm(passengerNumber).seatClassProperty(segmentIndex);
   }
 
-  public Seat getSelectedSeatForPassenger(int passengerNumber)
+  public Seat getSelectedSeatForPassenger(int passengerNumber, int segmentIndex)
   {
     PassengerForm form = getPassengerForm(passengerNumber);
-    return form == null ? null : form.getSelectedSeat();
+    return form == null ? null : form.getSelectedSeat(segmentIndex);
   }
 
-  public void selectSeatForPassenger(int passengerNumber, Seat seat)
+  public void selectSeatForPassenger(int passengerNumber, int segmentIndex, Seat seat)
   {
     PassengerForm form = getPassengerForm(passengerNumber);
     if (form == null)
@@ -371,32 +453,32 @@ public class PassengerDetailsViewModel
     }
     if (seat == null)
     {
-      form.setSelectedSeat(null);
+      form.setSelectedSeat(segmentIndex, null);
       return;
     }
-    if (seat.getSeatClass() != form.getSeatClass())
+    if (seat.getSeatClass() != form.getSeatClass(segmentIndex))
     {
       throw new IllegalArgumentException(
           "Seat does not match the selected class.");
     }
-    if (isSeatTaken(seat))
+    if (isSeatTaken(seat, segmentIndex))
     {
       throw new IllegalArgumentException("Seat is already taken.");
     }
-    if (isSeatAlreadySelectedByOtherPassenger(seat, passengerNumber))
+    if (isSeatAlreadySelectedByOtherPassenger(seat, passengerNumber, segmentIndex))
     {
       throw new IllegalArgumentException(
           "Another passenger already selected this seat.");
     }
-    form.setSelectedSeat(seat);
+    form.setSelectedSeat(segmentIndex, seat);
   }
 
-  public void clearSeatForPassenger(int passengerNumber)
+  public void clearSeatForPassenger(int passengerNumber, int segmentIndex)
   {
     PassengerForm form = getPassengerForm(passengerNumber);
     if (form != null)
     {
-      form.setSelectedSeat(null);
+      form.setSelectedSeat(segmentIndex, null);
     }
   }
 
@@ -460,19 +542,25 @@ public class PassengerDetailsViewModel
         new SimpleIntegerProperty(1);
     private final IntegerProperty baggageQuantity =
         new SimpleIntegerProperty(0);
-    private final ObjectProperty<SeatClass> seatClass =
-        new SimpleObjectProperty<>(SeatClass.Economy);
-    private final ObjectProperty<Seat> selectedSeat =
-        new SimpleObjectProperty<>();
-    private final StringProperty selectedSeatText =
-        new SimpleStringProperty("Not selected");
+    private final List<ObjectProperty<SeatClass>> seatClasses = new ArrayList<>();
+    private final List<ObjectProperty<Seat>> selectedSeats = new ArrayList<>();
+    private final List<StringProperty> selectedSeatTexts = new ArrayList<>();
 
     PassengerForm(int passengerNumber)
     {
       this.passengerNumber = passengerNumber;
-      selectedSeat.addListener((obs, oldSeat, newSeat) ->
-          selectedSeatText.set(newSeat == null ? "Not selected"
-              : newSeat.getSeatNumber()));
+      
+      // initialize properties for up to 4 possible segments (outbound 2 + return 2)
+      for (int i = 0; i < 4; i++) {
+          seatClasses.add(new SimpleObjectProperty<>(SeatClass.Economy));
+          ObjectProperty<Seat> seatProp = new SimpleObjectProperty<>();
+          selectedSeats.add(seatProp);
+          StringProperty textProp = new SimpleStringProperty("Not selected");
+          selectedSeatTexts.add(textProp);
+
+          seatProp.addListener((obs, oldSeat, newSeat) ->
+              textProp.set(newSeat == null ? "Not selected" : newSeat.getSeatNumber()));
+      }
     }
 
     public int getPassengerNumber()
@@ -530,35 +618,35 @@ public class PassengerDetailsViewModel
       return baggageQuantity;
     }
 
-    public SeatClass getSeatClass()
+    public SeatClass getSeatClass(int segmentIndex)
     {
-      SeatClass value = seatClass.get();
+      SeatClass value = seatClasses.get(segmentIndex).get();
       return value == null ? SeatClass.Economy : value;
     }
 
-    public ObjectProperty<SeatClass> seatClassProperty()
+    public ObjectProperty<SeatClass> seatClassProperty(int segmentIndex)
     {
-      return seatClass;
+      return seatClasses.get(segmentIndex);
     }
 
-    public Seat getSelectedSeat()
+    public Seat getSelectedSeat(int segmentIndex)
     {
-      return selectedSeat.get();
+      return selectedSeats.get(segmentIndex).get();
     }
 
-    public void setSelectedSeat(Seat seat)
+    public void setSelectedSeat(int segmentIndex, Seat seat)
     {
-      selectedSeat.set(seat);
+      selectedSeats.get(segmentIndex).set(seat);
     }
 
-    public ObjectProperty<Seat> selectedSeatProperty()
+    public ObjectProperty<Seat> selectedSeatProperty(int segmentIndex)
     {
-      return selectedSeat;
+      return selectedSeats.get(segmentIndex);
     }
 
-    public StringProperty selectedSeatTextProperty()
+    public StringProperty selectedSeatTextProperty(int segmentIndex)
     {
-      return selectedSeatText;
+      return selectedSeatTexts.get(segmentIndex);
     }
   }
 }

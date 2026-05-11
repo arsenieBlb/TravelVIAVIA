@@ -9,20 +9,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LuggageTypeDAO
-{
+public class LuggageTypeDAO {
   // loads all luggage types from the luggage_type table
-  public List<LuggageType> getAllLuggageTypes() throws SQLException
-  {
+  public List<LuggageType> getAllLuggageTypes() throws SQLException {
     List<LuggageType> luggageTypes = new ArrayList<>();
-    
+
     try (Connection connection = DatabaseConnection.getConnection()) {
       String sql = "SELECT luggage_type_id, name, description, extra_price "
           + "FROM flights.luggage_type";
       PreparedStatement statement = connection.prepareStatement(sql);
       ResultSet resultSet = statement.executeQuery();
-      while (resultSet.next())
-      {
+      while (resultSet.next()) {
         int id = resultSet.getInt("luggage_type_id");
         String name = resultSet.getString("name");
         String description = resultSet.getString("description");
@@ -34,14 +31,13 @@ public class LuggageTypeDAO
 
     return luggageTypes;
   }
+
   // finds one luggage type by its ID
-  public LuggageType getLuggageTypeById(int luggageTypeId) throws SQLException
-  {
-    try (Connection connection = DatabaseConnection.getConnection())
-    {
+  public LuggageType getLuggageTypeById(int luggageTypeId) throws SQLException {
+    try (Connection connection = DatabaseConnection.getConnection()) {
       String sql = "SELECT luggage_type_id, name, description, extra_price "
           + "FROM flights.luggage_type WHERE luggage_type_id = ?";
-          
+
       PreparedStatement statement = connection.prepareStatement(sql);
       statement.setInt(1, luggageTypeId);
       ResultSet resultSet = statement.executeQuery();

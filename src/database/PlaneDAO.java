@@ -16,45 +16,40 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PlaneDAO
-{
+public class PlaneDAO {
   // loads all plane types from the database, maps section type to seat counts
-  public List<PlaneType> getAllPlaneTypes() throws SQLException
-  {
-      List<PlaneType> planeTypes = new ArrayList<>();
+  public List<PlaneType> getAllPlaneTypes() throws SQLException {
+    List<PlaneType> planeTypes = new ArrayList<>();
 
-      try (Connection connection = DatabaseConnection.getConnection())
-      {
-          String sql = "SELECT pt.id, pt.name, pt.model, pt.num_of_columns, "
-                  + "s.num_of_seats, s.type "
-                  + "FROM flights.plane_type pt "
-                  + "LEFT JOIN flights.section s ON pt.plane_section = s.id";
+    try (Connection connection = DatabaseConnection.getConnection()) {
+      String sql = "SELECT pt.id, pt.name, pt.model, pt.num_of_columns, "
+          + "s.num_of_seats, s.type "
+          + "FROM flights.plane_type pt "
+          + "LEFT JOIN flights.section s ON pt.plane_section = s.id";
 
-          PreparedStatement statement = connection.prepareStatement(sql);
-          ResultSet resultSet = statement.executeQuery();
+      PreparedStatement statement = connection.prepareStatement(sql);
+      ResultSet resultSet = statement.executeQuery();
 
-          while (resultSet.next())
-          {
-              int id = resultSet.getInt("id");
-              String name = resultSet.getString("name");
-              String model = resultSet.getString("model");
-              int numberOfColumns = resultSet.getInt("num_of_columns");
-              int seatsCount = resultSet.getInt("num_of_seats");
-              String type = resultSet.getString("type");
+      while (resultSet.next()) {
+        int id = resultSet.getInt("id");
+        String name = resultSet.getString("name");
+        String model = resultSet.getString("model");
+        int numberOfColumns = resultSet.getInt("num_of_columns");
+        int seatsCount = resultSet.getInt("num_of_seats");
+        String type = resultSet.getString("type");
 
-              int businessSeats = "Business".equalsIgnoreCase(type) ? seatsCount : 0;
-              int economySeats = "Economy".equalsIgnoreCase(type) ? seatsCount : 0;
+        int businessSeats = "Business".equalsIgnoreCase(type) ? seatsCount : 0;
+        int economySeats = "Economy".equalsIgnoreCase(type) ? seatsCount : 0;
 
-              planeTypes.add(new PlaneType(id, name, model, numberOfColumns, economySeats, businessSeats));
-          }
+        planeTypes.add(new PlaneType(id, name, model, numberOfColumns, economySeats, businessSeats));
       }
-      return planeTypes;
+    }
+    return planeTypes;
   }
 
   // loads all planes with their type and carrier, and attaches the seats
   public List<Plane> getAllPlanes(List<PlaneType> planeTypes,
-      List<Carrier> carriers) throws SQLException
-  {
+      List<Carrier> carriers) throws SQLException {
     List<Plane> planes = new ArrayList<>();
 
     try (Connection connection = DatabaseConnection.getConnection()) {
@@ -62,8 +57,7 @@ public class PlaneDAO
       PreparedStatement statement = connection.prepareStatement(sql);
       ResultSet resultSet = statement.executeQuery();
 
-      while (resultSet.next())
-      {
+      while (resultSet.next()) {
         int planeId = resultSet.getInt("id");
         int planeTypeId = resultSet.getInt("plane_type");
         int carrierId = resultSet.getInt("carrier_id");
@@ -77,7 +71,7 @@ public class PlaneDAO
 
           // loads the seats that belong to this plane's section
           loadSeatsForPlane(plane, connection);
-          
+
           planes.add(plane);
         }
       }
@@ -85,10 +79,10 @@ public class PlaneDAO
 
     return planes;
   }
+
   // loads all seats from the seat table and adds them to the plane
   private void loadSeatsForPlane(Plane plane, Connection connection)
-      throws SQLException
-  {
+      throws SQLException {
     String sql = "SELECT s.id, s.seat_label, sec.type "
         + "FROM flights.seat s "
         + "JOIN flights.section sec ON s.section_id = sec.id";
@@ -102,7 +96,8 @@ public class PlaneDAO
       String sectionType = resultSet.getString("type");
 
       SeatClass seatClass = "Business".equalsIgnoreCase(sectionType)
-          ? SeatClass.Business : SeatClass.Economy;
+          ? SeatClass.Business
+          : SeatClass.Economy;
 
       int rowNumber = extractRowNumber(seatLabel);
 
@@ -116,8 +111,7 @@ public class PlaneDAO
   }
 
   // pulls out the row number from a seat label like "10A" -> 10
-  private int extractRowNumber(String seatLabel)
-  {
+  private int extractRowNumber(String seatLabel) {
     StringBuilder digits = new StringBuilder();
     for (char c : seatLabel.toCharArray()) {
       if (Character.isDigit(c)) {
@@ -128,9 +122,9 @@ public class PlaneDAO
     }
     return digits.length() > 0 ? Integer.parseInt(digits.toString()) : 1;
   }
+
   // finds a plane type by ID in the provided list
-  private PlaneType findPlaneTypeById(List<PlaneType> planeTypes, int id)
-  {
+  private PlaneType findPlaneTypeById(List<PlaneType> planeTypes, int id) {
     for (PlaneType pt : planeTypes) {
       if (pt.getPlaneTypeId() == id) {
         return pt;

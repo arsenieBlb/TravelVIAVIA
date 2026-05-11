@@ -55,6 +55,18 @@ public class FlightSceneViewController {
     @FXML private Button decreasePassengersButton;
     @FXML private DatePicker travelDatePicker;
     @FXML private CheckBox directOnlyCheck;
+    @FXML private RadioButton oneWayRadio;
+    @FXML private RadioButton roundTripRadio;
+    @FXML private VBox returnDateBox;
+    @FXML private DatePicker returnDatePicker;
+    @FXML private VBox returnTableSection;
+    @FXML private TableView<Flight> returnFlightsTable;
+    @FXML private TableColumn<Flight, String> returnRouteColumn;
+    @FXML private TableColumn<Flight, String> returnDepartureColumn;
+    @FXML private TableColumn<Flight, String> returnDurationColumn;
+    @FXML private TableColumn<Flight, String> returnCarrierColumn;
+    @FXML private TableColumn<Flight, String> returnTypeColumn;
+    @FXML private TableColumn<Flight, String> returnPriceColumn;
 
     @FXML private MyBookingsViewController bookingsViewController;
     @FXML private PassengerDetailsViewController passengerViewController;
@@ -144,6 +156,35 @@ public class FlightSceneViewController {
             flightSceneViewModel.searchFlights();
         });
 
+        // roundtrip toggle
+        if (roundTripRadio != null) {
+            roundTripRadio.selectedProperty().bindBidirectional(flightSceneViewModel.roundTripProperty());
+            roundTripRadio.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
+                returnDateBox.setVisible(isSelected);
+                returnDateBox.setManaged(isSelected);
+                returnTableSection.setVisible(isSelected);
+                returnTableSection.setManaged(isSelected);
+                if (!isSelected) {
+                    flightSceneViewModel.setSelectedReturnFlight(null);
+                }
+            });
+        }
+        if (returnDatePicker != null) {
+            returnDatePicker.valueProperty().bindBidirectional(flightSceneViewModel.returnDateProperty());
+        }
+
+        // setup the return flights table
+        if (returnFlightsTable != null) {
+            returnFlightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+            setupReturnTableColumns();
+            returnFlightsTable.setItems(flightSceneViewModel.getReturnFlights());
+            returnFlightsTable.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldFlight, newFlight) -> {
+                    flightSceneViewModel.setSelectedReturnFlight(newFlight);
+                    updateFlightSummary(flightSceneViewModel.getSelectedFlight());
+                });
+        }
+
         if (seatMapDialogController != null) {
             seatMapDialogController.init(root, viewHandler, smVM, seatMapDialogWrapper);
         }
@@ -171,7 +212,14 @@ public class FlightSceneViewController {
         carrierColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
                 cellData.getValue().getCarrier().getName() + "\n"
                         + cellData.getValue().getFlightNumber()));
-        typeColumn.setCellValueFactory(cellData -> new SimpleStringProperty("Direct"));
+        typeColumn.setCellValueFactory(cellData -> {
+            // checks if we should say direct or 1 stop
+            if (cellData.getValue() instanceof ConnectingFlight connectingFlight) {
+                return new SimpleStringProperty("1 Stop in " + connectingFlight.getFirstSegment().getArrivalCity().getCityName());
+            } else {
+                return new SimpleStringProperty("Direct");
+            }
+        });
         priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
                 String.format("EUR %.0f", cellData.getValue().getBasePrice())));
     }
@@ -181,16 +229,58 @@ public class FlightSceneViewController {
         flightSummaryCard.setVisible(hasFlight);
         flightSummaryCard.setManaged(hasFlight);
         if (hasFlight) {
-            detailRouteLabel.setText(flight.getDepartureCity().getCityName() + " → "
-                    + flight.getArrivalCity().getCityName());
             detailDateLabel.setText(flight.getDepartureTime()
                     .format(DateTimeFormatter.ofPattern("MMM dd, yyyy - HH:mm")));
-            detailInfoLabel.setText(flight.getDurationString() + " - Direct");
             detailPriceLabel.textProperty().bind(
                     flightSceneViewModel.totalPriceProperty().asString("EUR %.2f")
             );
-            detailAircraftLabel.setText(flight.getPlane().getPlaneType().getModel());
+
+            // update the label to show if it has a stop
+            if (flight instanceof ConnectingFlight connectingFlight) {
+                detailRouteLabel.setText(connectingFlight.getFirstSegment().getDepartureCity().getCityName() + " → "
+                        + connectingFlight.getFirstSegment().getArrivalCity().getCityName() + " → "
+                        + connectingFlight.getSecondSegment().getArrivalCity().getCityName());
+                detailInfoLabel.setText(flight.getDurationString() + " - 1 Stop");
+                detailAircraftLabel.setText(connectingFlight.getFirstSegment().getPlane().getPlaneType().getModel() + " & "
+                        + connectingFlight.getSecondSegment().getPlane().getPlaneType().getModel());
+            } else {
+                detailRouteLabel.setText(flight.getDepartureCity().getCityName() + " → "
+                        + flight.getArrivalCity().getCityName());
+                detailInfoLabel.setText(flight.getDurationString() + " - Direct");
+                detailAircraftLabel.setText(flight.getPlane().getPlaneType().getModel());
+            }
+
+            // append return flight info if roundtrip
+            Flight returnFlight = flightSceneViewModel.getSelectedReturnFlight();
+            if (returnFlight != null) {
+                String returnRoute = returnFlight.getDepartureCity().getCityName() + " → "
+                        + returnFlight.getArrivalCity().getCityName();
+                detailRouteLabel.setText(detailRouteLabel.getText() + "\n↩ " + returnRoute);
+                detailInfoLabel.setText(detailInfoLabel.getText() + "\n↩ " + returnFlight.getDurationString());
+            }
         }
+    }
+
+    private void setupReturnTableColumns() {
+        returnRouteColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getDepartureCity().getCityName() + " \u2192 "
+                        + cellData.getValue().getArrivalCity().getCityName()));
+        returnDepartureColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm"))));
+        returnDurationColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getDurationString()));
+        returnCarrierColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getCarrier().getName() + "\n"
+                        + cellData.getValue().getFlightNumber()));
+        returnTypeColumn.setCellValueFactory(cellData -> {
+            if (cellData.getValue() instanceof ConnectingFlight connectingFlight) {
+                return new SimpleStringProperty("1 Stop in " + connectingFlight.getFirstSegment().getArrivalCity().getCityName());
+            } else {
+                return new SimpleStringProperty("Direct");
+            }
+        });
+        returnPriceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                String.format("EUR %.0f", cellData.getValue().getBasePrice())));
     }
 
     private void setupFilters() {
@@ -226,6 +316,13 @@ public class FlightSceneViewController {
         if (airlineCombo != null) {
             airlineCombo.getSelectionModel().selectFirst();
         }
+        if (oneWayRadio != null) {
+            oneWayRadio.setSelected(true);
+        }
+        returnDateBox.setVisible(false);
+        returnDateBox.setManaged(false);
+        returnTableSection.setVisible(false);
+        returnTableSection.setManaged(false);
         updateFlightSummary(null);
         updateAuthHeader();
     }
@@ -247,6 +344,12 @@ public class FlightSceneViewController {
         if (flightSceneViewModel.getSelectedFlight() == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Please select a flight first.");
+            alert.showAndWait();
+            return;
+        }
+        if (flightSceneViewModel.roundTripProperty().get() && flightSceneViewModel.getSelectedReturnFlight() == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Please select a return flight.");
             alert.showAndWait();
             return;
         }
@@ -344,8 +447,8 @@ public class FlightSceneViewController {
         addBookingDialogController.show();
     }
 
-    public void showSeatPicker(int passengerNumber) {
-        seatMapDialogController.showForPassenger(passengerNumber);
+    public void showSeatPicker(int passengerNumber, int segmentIndex) {
+        seatMapDialogController.showForPassenger(passengerNumber, segmentIndex);
     }
 
     public void showBookingDetails(Booking booking)

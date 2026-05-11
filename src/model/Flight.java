@@ -90,6 +90,11 @@ public class Flight
     }
   }
 
+  void removeBooking(Booking booking)
+  {
+      bookings.remove(booking);
+  }
+
   void addSeatAssignment(SeatAssignment seatAssignment)
   {
     Objects.requireNonNull(seatAssignment, "Seat assignment is required.");

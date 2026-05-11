@@ -106,9 +106,9 @@ public class ViewHandler {
         flightSceneViewController.showMyBookings();
     }
 
-    public void showSeatPicker(int passengerNumber)
+    public void showSeatPicker(int passengerNumber, int segmentIndex)
     {
-        flightSceneViewController.showSeatPicker(passengerNumber);
+        flightSceneViewController.showSeatPicker(passengerNumber, segmentIndex);
     }
 
     public void showAddBookingDialog()

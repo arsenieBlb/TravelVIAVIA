@@ -66,9 +66,43 @@ public class FlightSearchService
     public List<Flight> searchFlights(List<Flight> allFlights, SearchCriteria criteria) {
         if (allFlights == null) return new ArrayList<>();
 
-        return allFlights.stream()
-                .filter(flight -> flight.matchesCriteria(criteria))
-                .collect(Collectors.toList());
+        List<Flight> results = new ArrayList<>();
+
+        // first find all direct flights that match
+        for (Flight flight : allFlights) {
+            if (flight.matchesCriteria(criteria)) {
+                results.add(flight);
+            }
+        }
+
+        // then look for 1-stop connecting flights
+        for (Flight first : allFlights) {
+            boolean originMatch = (criteria.getDepartureCity() == null) || 
+                                  first.getDepartureCity().equals(criteria.getDepartureCity());
+            boolean dateMatch = (criteria.getDepartureDate() == null) || 
+                                first.getDepartureTime().toLocalDate().equals(criteria.getDepartureDate());
+
+            if (originMatch && dateMatch) {
+                for (Flight second : allFlights) {
+                    boolean destMatch = (criteria.getArrivalCity() == null) || 
+                                        second.getArrivalCity().equals(criteria.getArrivalCity());
+                    
+                    // checking if the cities connect
+                    boolean connects = first.getArrivalCity().equals(second.getDepartureCity());
+                    
+                    if (destMatch && connects) {
+                        // checking the layover time, it should be between 1 and 12 hours
+                        long layoverHours = java.time.Duration.between(first.getArrivalTime(), second.getDepartureTime()).toHours();
+                        if (layoverHours >= 1 && layoverHours <= 12) {
+                            ConnectingFlight connection = new ConnectingFlight(first, second);
+                            results.add(connection);
+                        }
+                    }
+                }
+            }
+        }
+
+        return results;
     }
 
   public Flight viewFlightDetails(Flight flight)

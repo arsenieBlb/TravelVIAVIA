@@ -23,25 +23,33 @@ public class SeatAssignment
       throw new IllegalArgumentException(
           "Passenger must belong to a booking before seat assignment.");
     }
-    if (passenger.getBooking().getFlight() != flight)
-    {
-      throw new IllegalArgumentException(
-          "Passenger booking must be for the same flight.");
+    boolean isValidFlight = passenger.getBooking().getFlight() == flight;
+    if (passenger.getBooking().getFlight() instanceof ConnectingFlight cf) {
+        isValidFlight = cf.getFirstSegment() == flight || cf.getSecondSegment() == flight;
     }
-    if (passenger.getSeatAssignment() != null)
+    if (!isValidFlight)
     {
       throw new IllegalArgumentException(
-          "Passenger already has a seat assignment.");
+          "Passenger booking must be for the same flight or a segment.");
     }
     flight.validateSeatBelongsToPlane(seat);
     flight.addSeatAssignment(this);
-    passenger.setSeatAssignment(this);
+    passenger.addSeatAssignment(this);
+  }
+
+  // used when loading from the database, skips duplicate checks
+  public SeatAssignment(Flight flight, Seat seat, Passenger passenger)
+  {
+    this.seatAssignmentId = 0;
+    this.flight = flight;
+    this.seat = seat;
+    this.passenger = passenger;
   }
 
   public void release()
   {
     flight.removeSeatAssignment(this);
-    passenger.clearSeatAssignment(this);
+    passenger.removeSeatAssignment(this);
   }
 
   public int getSeatAssignmentId()

@@ -67,8 +67,16 @@ public class BookingDetailsDialogController
 
     bookingDetailsContent.getChildren().add(createBookingCodePanel());
     bookingDetailsContent.getChildren().add(createPassengerDateGrid());
+    List<Flight> segments = new java.util.ArrayList<>();
+    if (flight instanceof model.ConnectingFlight connectingFlight) {
+        segments.add(connectingFlight.getFirstSegment());
+        segments.add(connectingFlight.getSecondSegment());
+    } else {
+        segments.add(flight);
+    }
+
     bookingDetailsContent.getChildren().add(createFlightInformationPanel(
-        Collections.singletonList(flight)));
+        segments));
     bookingDetailsContent.getChildren().add(createFareSummaryPanel());
   }
 
@@ -169,7 +177,7 @@ public class BookingDetailsDialogController
         0, 0);
     details.add(createSmallDetail("Duration", flight.getDurationString()), 0,
         1);
-    details.add(createSmallDetail("Class", getSeatClassText()), 1, 0);
+    details.add(createSmallDetail("Class", getSeatClassText(flight)), 1, 0);
     details.add(createSmallDetail("Seat", getSeatText(flight)), 1, 1);
 
     block.getChildren().addAll(header, details);
@@ -296,14 +304,14 @@ public class BookingDetailsDialogController
         duration.toMinutesPart());
   }
 
-  private String getSeatClassText()
+  private String getSeatClassText(Flight flight)
   {
     for (Passenger passenger : currentBooking.getPassengers())
     {
-      SeatAssignment seatAssignment = passenger.getSeatAssignment();
-      if (seatAssignment != null)
-      {
-        return seatAssignment.getSeat().getSeatClass().toString();
+      for (SeatAssignment seatAssignment : passenger.getSeatAssignments()) {
+        if (seatAssignment.getFlight().getFlightId() == flight.getFlightId()) {
+          return seatAssignment.getSeat().getSeatClass().toString();
+        }
       }
     }
     return "Economy";
@@ -313,10 +321,10 @@ public class BookingDetailsDialogController
   {
     for (Passenger passenger : currentBooking.getPassengers())
     {
-      SeatAssignment seatAssignment = passenger.getSeatAssignment();
-      if (seatAssignment != null && seatAssignment.getFlight().equals(flight))
-      {
-        return seatAssignment.getSeat().getSeatNumber();
+      for (SeatAssignment seatAssignment : passenger.getSeatAssignments()) {
+        if (seatAssignment.getFlight().getFlightId() == flight.getFlightId()) {
+          return seatAssignment.getSeat().getSeatNumber();
+        }
       }
     }
     return "Not selected";

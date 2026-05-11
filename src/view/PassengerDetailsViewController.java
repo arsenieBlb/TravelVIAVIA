@@ -79,6 +79,33 @@ public class PassengerDetailsViewController
       return;
     }
 
+    // render outbound timeline
+    renderTimelineSegments(segments);
+
+    // render return timeline if roundtrip
+    List<Flight> returnSegments = viewModel.getReturnFlightSegments();
+    if (!returnSegments.isEmpty())
+    {
+      Label returnArrow = new Label("  ↩  ");
+      returnArrow.getStyleClass().add("timeline-segment-route");
+      timelineContainer.getChildren().add(returnArrow);
+      renderTimelineSegments(returnSegments);
+    }
+
+    Flight firstFlight = segments.get(0);
+    Flight lastOutbound = segments.get(segments.size() - 1);
+    Duration totalDuration = Duration.between(firstFlight.getDepartureTime(),
+        lastOutbound.getArrivalTime());
+    if (!returnSegments.isEmpty()) {
+        Flight lastReturn = returnSegments.get(returnSegments.size() - 1);
+        totalDuration = totalDuration.plus(
+            Duration.between(returnSegments.get(0).getDepartureTime(), lastReturn.getArrivalTime()));
+    }
+    timelineTotalTimeLabel.setText(formatDuration(totalDuration));
+  }
+
+  private void renderTimelineSegments(List<Flight> segments)
+  {
     Flight firstFlight = segments.get(0);
     timelineContainer.getChildren().add(createTerminalStop(
         firstFlight.getDepartureCity().getCityName(),
@@ -106,11 +133,6 @@ public class PassengerDetailsViewController
             segment.getArrivalTime().format(DateTimeFormatter.ofPattern("HH:mm"))));
       }
     }
-
-    Flight lastFlight = segments.get(segments.size() - 1);
-    Duration totalDuration = Duration.between(firstFlight.getDepartureTime(),
-        lastFlight.getArrivalTime());
-    timelineTotalTimeLabel.setText(formatDuration(totalDuration));
   }
 
   private VBox createTerminalStop(String cityName, String time)
@@ -224,33 +246,57 @@ public class PassengerDetailsViewController
         createCounter(form.getBaggageQuantity(),
             () -> updateCheckedBaggage(form, -1),
             () -> updateCheckedBaggage(form, 1)));
-    VBox seatSection = createSeatSection(form);
 
     card.getChildren().addAll(title, divider, grid, carryOnRow,
-        checkedBaggageRow, seatSection);
+        checkedBaggageRow);
+
+    // outbound flight seat sections
+    List<Flight> outboundSegments = viewModel.getFlightSegments();
+    if (!outboundSegments.isEmpty()) {
+        Label outboundLabel = new Label("OUTBOUND FLIGHT");
+        outboundLabel.getStyleClass().add("passenger-form-title");
+        card.getChildren().add(outboundLabel);
+        for (int i = 0; i < outboundSegments.size(); i++) {
+            VBox seatSection = createSeatSection(form, outboundSegments.get(i), i);
+            card.getChildren().add(seatSection);
+        }
+    }
+
+    // return flight seat sections
+    List<Flight> returnSegments = viewModel.getReturnFlightSegments();
+    if (!returnSegments.isEmpty()) {
+        Label returnLabel = new Label("RETURN FLIGHT");
+        returnLabel.getStyleClass().add("passenger-form-title");
+        card.getChildren().add(returnLabel);
+        int offset = outboundSegments.size();
+        for (int i = 0; i < returnSegments.size(); i++) {
+            VBox seatSection = createSeatSection(form, returnSegments.get(i), offset + i);
+            card.getChildren().add(seatSection);
+        }
+    }
+
     return card;
   }
 
-  private VBox createSeatSection(PassengerDetailsViewModel.PassengerForm form)
+  private VBox createSeatSection(PassengerDetailsViewModel.PassengerForm form, Flight flight, int segmentIndex)
   {
-    Flight flight = viewModel.getSelectedFlight();
     String route = flight == null ? "Selected flight"
         : flight.getDepartureCity().getCityName() + " \u2192 "
             + flight.getArrivalCity().getCityName();
 
-    Label title = new Label("SEGMENT 1: " + route);
+    Label title = new Label("SEGMENT " + (segmentIndex + 1) + ": " + route);
     title.getStyleClass().add("passenger-segment-title");
 
     ComboBox<SeatClass> seatClassCombo = new ComboBox<>();
     seatClassCombo.getItems().setAll(SeatClass.values());
-    seatClassCombo.valueProperty().bindBidirectional(form.seatClassProperty());
+    seatClassCombo.valueProperty().bindBidirectional(form.seatClassProperty(segmentIndex));
     seatClassCombo.setOnAction(event ->
         javafx.application.Platform.runLater(this::refreshFareLabels));
     seatClassCombo.getStyleClass().add("passenger-seat-control");
     seatClassCombo.setMaxWidth(Double.MAX_VALUE);
 
     TextField selectedSeatField = new TextField();
-    selectedSeatField.textProperty().bind(form.selectedSeatTextProperty());
+    selectedSeatField.textProperty().bind(form.selectedSeatTextProperty(segmentIndex));
     selectedSeatField.setEditable(false);
     selectedSeatField.getStyleClass().add("passenger-seat-control");
     selectedSeatField.setMaxWidth(Double.MAX_VALUE);
@@ -259,7 +305,7 @@ public class PassengerDetailsViewController
     chooseSeatButton.getStyleClass().add("passenger-seat-button");
     chooseSeatButton.setMaxWidth(Double.MAX_VALUE);
     chooseSeatButton.setOnAction(event ->
-        viewHandler.showSeatPicker(form.getPassengerNumber()));
+        viewHandler.showSeatPicker(form.getPassengerNumber(), segmentIndex));
 
     GridPane seatGrid = new GridPane();
     seatGrid.setHgap(16);
@@ -393,6 +439,7 @@ public class PassengerDetailsViewController
     catch (RuntimeException e)
     {
       showError(e.getMessage());
+      viewModel.prepare();
     }
   }
 

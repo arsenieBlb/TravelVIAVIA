@@ -12,13 +12,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserDAO
-{
+public class UserDAO {
   public Customer getCustomerById(int userId,
-      FlightSearchService flightSearchService) throws SQLException
-  {
-    try (Connection connection = DatabaseConnection.getConnection())
-    {
+      FlightSearchService flightSearchService) throws SQLException {
+    try (Connection connection = DatabaseConnection.getConnection()) {
       String sql = "SELECT u.user_id, u.email, u.password_hash "
           + "FROM flights.users u "
           + "JOIN flights.customer c ON u.user_id = c.customer_id "
@@ -28,8 +25,7 @@ public class UserDAO
       statement.setInt(1, userId);
       ResultSet resultSet = statement.executeQuery();
 
-      if (resultSet.next())
-      {
+      if (resultSet.next()) {
         return loadCustomer(resultSet.getInt("user_id"),
             resultSet.getString("email"), resultSet.getString("password_hash"),
             flightSearchService, connection);
@@ -39,10 +35,8 @@ public class UserDAO
   }
 
   public Customer getFirstCustomer(FlightSearchService flightSearchService)
-      throws SQLException
-  {
-    try (Connection connection = DatabaseConnection.getConnection())
-    {
+      throws SQLException {
+    try (Connection connection = DatabaseConnection.getConnection()) {
       String sql = "SELECT u.user_id, u.email, u.password_hash "
           + "FROM flights.users u "
           + "JOIN flights.customer c ON u.user_id = c.customer_id "
@@ -51,8 +45,7 @@ public class UserDAO
       PreparedStatement statement = connection.prepareStatement(sql);
       ResultSet resultSet = statement.executeQuery();
 
-      if (resultSet.next())
-      {
+      if (resultSet.next()) {
         return loadCustomer(resultSet.getInt("user_id"),
             resultSet.getString("email"), resultSet.getString("password_hash"),
             flightSearchService, connection);
@@ -62,12 +55,10 @@ public class UserDAO
   }
 
   public List<Customer> getAllCustomers(FlightSearchService flightSearchService)
-      throws SQLException
-  {
+      throws SQLException {
     List<Customer> customers = new ArrayList<>();
 
-    try (Connection connection = DatabaseConnection.getConnection())
-    {
+    try (Connection connection = DatabaseConnection.getConnection()) {
       String sql = "SELECT u.user_id, u.email, u.password_hash, "
           + "c.first_name, c.last_name "
           + "FROM flights.users u "
@@ -77,8 +68,7 @@ public class UserDAO
       PreparedStatement statement = connection.prepareStatement(sql);
       ResultSet resultSet = statement.executeQuery();
 
-      while (resultSet.next())
-      {
+      while (resultSet.next()) {
         customers.add(new Customer(resultSet.getInt("user_id"),
             resultSet.getString("email"), resultSet.getString("password_hash"),
             resultSet.getString("first_name"), resultSet.getString("last_name"),
@@ -88,11 +78,11 @@ public class UserDAO
     return customers;
   }
 
-  // checks the users table for matching email and password, then loads the right user type
+  // checks the users table for matching email and password, then loads the right
+  // user type
   public User login(String email, String password,
       FlightSearchService flightSearchService) throws SQLException {
-    try (Connection connection = DatabaseConnection.getConnection())
-    {
+    try (Connection connection = DatabaseConnection.getConnection()) {
       String sql = "SELECT u.user_id, u.email, u.password_hash, u.user_type "
           + "FROM flights.users u "
           + "WHERE u.email = ? AND u.password_hash = ?";
@@ -102,12 +92,11 @@ public class UserDAO
       statement.setString(2, password);
       ResultSet resultSet = statement.executeQuery();
 
-      if (resultSet.next())
-      {
+      if (resultSet.next()) {
         int userId = resultSet.getInt("user_id");
         String userEmail = resultSet.getString("email");
         String passwordHash = resultSet.getString("password_hash");
-        
+
         String userType = resultSet.getString("user_type");
 
         // loads an Admin or Customer depending on the user_type column
@@ -126,8 +115,7 @@ public class UserDAO
   // loads the customer first_name and last_name from the customer table
   private Customer loadCustomer(int userId, String email, String password,
       FlightSearchService flightSearchService, Connection connection)
-      throws SQLException
-  {
+      throws SQLException {
     String sql = "SELECT first_name, last_name FROM flights.customer "
         + "WHERE customer_id = ?";
 
@@ -146,7 +134,8 @@ public class UserDAO
         flightSearchService);
   }
 
-  public boolean registerCustomer(String firstName, String lastName, String email, String password) throws SQLException {
+  public boolean registerCustomer(String firstName, String lastName, String email, String password)
+      throws SQLException {
     try (Connection connection = DatabaseConnection.getConnection()) {
       connection.setAutoCommit(false);
       try {
@@ -155,7 +144,7 @@ public class UserDAO
         ResultSet rs = maxIdStmt.executeQuery();
         int newUserId = 1;
         if (rs.next()) {
-           newUserId = rs.getInt(1) + 1;
+          newUserId = rs.getInt(1) + 1;
         }
 
         String insertUserSql = "INSERT INTO flights.users (user_id, email, password_hash, user_type) VALUES (?, ?, ?, 'Customer')";

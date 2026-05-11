@@ -60,7 +60,10 @@
             </VBox>
 
             <HBox alignment="CENTER_RIGHT">
-                <Button fx:id="addFlightButton" text="+ Add Flight" styleClass="primary-button"/>
+                <Button fx:id="addFlightButton"
+                        text="+ Add Flight"
+                        onAction="#onAddFlightClick"
+                        styleClass="primary-button"/>
             </HBox>
 
             <VBox spacing="12" styleClass="panel-card">
