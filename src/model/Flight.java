@@ -290,21 +290,23 @@ public class Flight
     return plane;
   }
 
-  public void setPlane(Plane plane)
-  {
-    Objects.requireNonNull(plane, "Plane is required.");
-    if (plane.getStatus() != PlaneStatus.Active)
+    public void setPlane(Plane plane)
     {
-      throw new IllegalArgumentException(
-          "A flight must use a plane with Active status.");
+        Objects.requireNonNull(plane, "Plane is required.");
+
+        if (!"Active".equalsIgnoreCase(plane.getStatusName()))
+        {
+            throw new IllegalArgumentException(
+                    "A flight must use a plane with Active status.");
+        }
+
+        if (!seatAssignments.isEmpty())
+        {
+            throw new IllegalArgumentException(
+                    "Cannot change plane after seats have been assigned.");
+        }
+        this.plane = plane;
     }
-    if (!seatAssignments.isEmpty())
-    {
-      throw new IllegalArgumentException(
-          "Cannot change plane after seats have been assigned.");
-    }
-    this.plane = plane;
-  }
 
   public City getDepartureCity()
   {

@@ -17,7 +17,7 @@ public class MainPageViewModel {
     private ObjectProperty<City> arrivalCity = new SimpleObjectProperty<>();
     private ObjectProperty<java.time.LocalDate> departureDate = new SimpleObjectProperty<>(java.time.LocalDate.now());
     private IntegerProperty passengerCount = new SimpleIntegerProperty(1);
-    private ObjectProperty<SeatClass> seatClass = new SimpleObjectProperty<>(SeatClass.Economy);
+    private ObjectProperty<SeatClass> seatClass = new SimpleObjectProperty<>(new EconomyClass());
     private ObservableList<Flight> foundFlights = FXCollections.observableArrayList();
     private ObservableList<Booking> userBookings = FXCollections.observableArrayList();
     private StringProperty pageTitle = new SimpleStringProperty("Travel via VIA");

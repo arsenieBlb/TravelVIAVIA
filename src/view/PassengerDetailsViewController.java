@@ -278,54 +278,60 @@ public class PassengerDetailsViewController
     return card;
   }
 
-  private VBox createSeatSection(PassengerDetailsViewModel.PassengerForm form, Flight flight, int segmentIndex)
-  {
-    String route = flight == null ? "Selected flight"
-        : flight.getDepartureCity().getCityName() + " \u2192 "
-            + flight.getArrivalCity().getCityName();
+    private VBox createSeatSection(PassengerDetailsViewModel.PassengerForm form, Flight flight, int segmentIndex)
+    {
+        String route = flight == null ? "Selected flight"
+                : flight.getDepartureCity().getCityName() + " \u2192 "
+                + flight.getArrivalCity().getCityName();
 
-    Label title = new Label("SEGMENT " + (segmentIndex + 1) + ": " + route);
-    title.getStyleClass().add("passenger-segment-title");
+        Label title = new Label("SEGMENT " + (segmentIndex + 1) + ": " + route);
+        title.getStyleClass().add("passenger-segment-title");
 
-    ComboBox<SeatClass> seatClassCombo = new ComboBox<>();
-    seatClassCombo.getItems().setAll(SeatClass.values());
-    seatClassCombo.valueProperty().bindBidirectional(form.seatClassProperty(segmentIndex));
-    seatClassCombo.setOnAction(event ->
-        javafx.application.Platform.runLater(this::refreshFareLabels));
-    seatClassCombo.getStyleClass().add("passenger-seat-control");
-    seatClassCombo.setMaxWidth(Double.MAX_VALUE);
+        ComboBox<SeatClass> seatClassCombo = new ComboBox<>();
 
-    TextField selectedSeatField = new TextField();
-    selectedSeatField.textProperty().bind(form.selectedSeatTextProperty(segmentIndex));
-    selectedSeatField.setEditable(false);
-    selectedSeatField.getStyleClass().add("passenger-seat-control");
-    selectedSeatField.setMaxWidth(Double.MAX_VALUE);
+        seatClassCombo.getItems().setAll(new model.EconomyClass(), new model.BusinessClass());
 
-    Button chooseSeatButton = new Button("Choose seat");
-    chooseSeatButton.getStyleClass().add("passenger-seat-button");
-    chooseSeatButton.setMaxWidth(Double.MAX_VALUE);
-    chooseSeatButton.setOnAction(event ->
-        viewHandler.showSeatPicker(form.getPassengerNumber(), segmentIndex));
+        seatClassCombo.valueProperty().bindBidirectional(form.seatClassProperty(segmentIndex));
 
-    GridPane seatGrid = new GridPane();
-    seatGrid.setHgap(16);
-    seatGrid.setVgap(8);
-    ColumnConstraints classColumn = new ColumnConstraints();
-    classColumn.setHgrow(Priority.ALWAYS);
-    ColumnConstraints seatColumn = new ColumnConstraints();
-    seatColumn.setHgrow(Priority.ALWAYS);
-    ColumnConstraints buttonColumn = new ColumnConstraints();
-    buttonColumn.setHgrow(Priority.ALWAYS);
-    seatGrid.getColumnConstraints().addAll(classColumn, seatColumn,
-        buttonColumn);
-    seatGrid.add(createField("Class", seatClassCombo), 0, 0);
-    seatGrid.add(createField("Seat", selectedSeatField), 1, 0);
-    seatGrid.add(chooseSeatButton, 2, 0);
+        seatClassCombo.setOnAction(event ->
+                javafx.application.Platform.runLater(this::refreshFareLabels));
 
-    VBox section = new VBox(12, title, seatGrid);
-    section.getStyleClass().add("passenger-segment-card");
-    return section;
-  }
+        seatClassCombo.getStyleClass().add("passenger-seat-control");
+        seatClassCombo.setMaxWidth(Double.MAX_VALUE);
+
+        TextField selectedSeatField = new TextField();
+        selectedSeatField.textProperty().bind(form.selectedSeatTextProperty(segmentIndex));
+        selectedSeatField.setEditable(false);
+        selectedSeatField.getStyleClass().add("passenger-seat-control");
+        selectedSeatField.setMaxWidth(Double.MAX_VALUE);
+
+        Button chooseSeatButton = new Button("Choose seat");
+        chooseSeatButton.getStyleClass().add("passenger-seat-button");
+        chooseSeatButton.setMaxWidth(Double.MAX_VALUE);
+        chooseSeatButton.setOnAction(event ->
+                viewHandler.showSeatPicker(form.getPassengerNumber(), segmentIndex));
+
+        GridPane seatGrid = new GridPane();
+        seatGrid.setHgap(16);
+        seatGrid.setVgap(8);
+
+        ColumnConstraints classColumn = new ColumnConstraints();
+        classColumn.setHgrow(Priority.ALWAYS);
+        ColumnConstraints seatColumn = new ColumnConstraints();
+        seatColumn.setHgrow(Priority.ALWAYS);
+        ColumnConstraints buttonColumn = new ColumnConstraints();
+        buttonColumn.setHgrow(Priority.ALWAYS);
+
+        seatGrid.getColumnConstraints().addAll(classColumn, seatColumn, buttonColumn);
+
+        seatGrid.add(createField("Class", seatClassCombo), 0, 0);
+        seatGrid.add(createField("Seat", selectedSeatField), 1, 0);
+        seatGrid.add(chooseSeatButton, 2, 0);
+
+        VBox section = new VBox(12, title, seatGrid);
+        section.getStyleClass().add("passenger-segment-card");
+        return section;
+    }
 
   private TextField createTextField(String promptText)
   {

@@ -8,6 +8,7 @@ public class Seat
   private String seatNumber;
   private int rowNumber;
   private SeatClass seatClass;
+  private String seatStatus;
 
   public Seat(int seatId, String seatNumber, int rowNumber, SeatClass seatClass)
   {
@@ -66,8 +67,12 @@ public class Seat
 
   public void setSeatClass(SeatClass seatClass)
   {
-    this.seatClass = Objects.requireNonNull(seatClass,
-        "Seat class is required.");
+      this.seatClass = Objects.requireNonNull(seatClass, "Seat class is required.");
+  }
+
+  public double getPrice(double basePrice)
+  {
+      return basePrice * seatClass.getPriceMultiplier();
   }
 
   @Override public boolean equals(Object object)
@@ -88,8 +93,8 @@ public class Seat
     return Objects.hash(seatId);
   }
 
-  @Override public String toString()
-  {
-    return seatNumber + " (" + seatClass + ")";
-  }
+    @Override
+    public String toString() {
+        return String.format("%s (%s)", seatNumber, seatClass.getClassName());
+    }
 }

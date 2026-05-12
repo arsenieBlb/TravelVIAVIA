@@ -1,7 +1,10 @@
 package model;
 
-public enum SeatClass
+public interface SeatClass
 {
-  Economy,
-  Business
+    String getClassName();
+
+    double getPriceMultiplier();
+
+    String toString();
 }

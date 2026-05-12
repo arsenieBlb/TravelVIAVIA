@@ -1,20 +1,13 @@
 package database;
 
-import model.Carrier;
-import model.Plane;
-import model.PlaneStatus;
-import model.PlaneType;
-import model.Seat;
-import model.SeatClass;
+import model.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PlaneDAO {
   // loads all plane types from the database, maps section type to seat counts
@@ -49,35 +42,39 @@ public class PlaneDAO {
 
   // loads all planes with their type and carrier, and attaches the seats
   public List<Plane> getAllPlanes(List<PlaneType> planeTypes,
-      List<Carrier> carriers) throws SQLException {
-    List<Plane> planes = new ArrayList<>();
+                                  List<Carrier> carriers) throws SQLException {
+      List<Plane> planes = new ArrayList<>();
 
-    try (Connection connection = DatabaseConnection.getConnection()) {
-      String sql = "SELECT id, plane_type, carrier_id FROM flights.plane";
-      PreparedStatement statement = connection.prepareStatement(sql);
-      ResultSet resultSet = statement.executeQuery();
+      try (Connection connection = DatabaseConnection.getConnection()) {
+          String sql = "SELECT id, plane_type, carrier_id FROM flights.plane";
+          PreparedStatement statement = connection.prepareStatement(sql);
+          ResultSet resultSet = statement.executeQuery();
 
-      while (resultSet.next()) {
-        int planeId = resultSet.getInt("id");
-        int planeTypeId = resultSet.getInt("plane_type");
-        int carrierId = resultSet.getInt("carrier_id");
+          while (resultSet.next()) {
+              int planeId = resultSet.getInt("id");
+              int planeTypeId = resultSet.getInt("plane_type");
+              int carrierId = resultSet.getInt("carrier_id");
 
-        PlaneType planeType = findPlaneTypeById(planeTypes, planeTypeId);
-        Carrier carrier = findCarrierById(carriers, carrierId);
+              PlaneType planeType = findPlaneTypeById(planeTypes, planeTypeId);
+              Carrier carrier = findCarrierById(carriers, carrierId);
 
-        if (planeType != null && carrier != null) {
-          Plane plane = new Plane(planeId, "REG-" + planeId,
-              PlaneStatus.Active, planeType, carrier);
+              if (planeType != null && carrier != null)
+              {
+                  String regNumber = "REG-" + planeId;
 
-          // loads the seats that belong to this plane's section
-          loadSeatsForPlane(plane, connection);
+                  PlaneState initialState = new model.ActiveState();
 
-          planes.add(plane);
-        }
+                  Plane plane = new Plane(planeId, regNumber,
+                          initialState, planeType, carrier);
+
+                  loadSeatsForPlane(plane, connection);
+
+                  planes.add(plane);
+              }
+          }
       }
-    }
 
-    return planes;
+      return planes;
   }
 
   // loads all seats from the seat table and adds them to the plane
@@ -96,8 +93,8 @@ public class PlaneDAO {
       String sectionType = resultSet.getString("type");
 
       SeatClass seatClass = "Business".equalsIgnoreCase(sectionType)
-          ? SeatClass.Business
-          : SeatClass.Economy;
+              ? new BusinessClass()
+              : new EconomyClass();
 
       int rowNumber = extractRowNumber(seatLabel);
 

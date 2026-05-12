@@ -14,7 +14,7 @@ public class SearchCriteria
   public SearchCriteria()
   {
     passengerCount = 1;
-    seatClass = SeatClass.Economy;
+    this.seatClass = new EconomyClass();
   }
 
   public SearchCriteria(City departureCity, City arrivalCity,

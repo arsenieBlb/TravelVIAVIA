@@ -10,6 +10,8 @@ import javafx.stage.Window;
 import model.Seat;
 import model.SeatClass;
 import viewmodel.SeatMapViewModel;
+import model.BusinessClass;
+import model.EconomyClass;
 
 import java.util.*;
 
@@ -162,13 +164,13 @@ public class SeatMapViewController {
         {
             return seatsInRow;
         }
-        int plannedLeftSide = rowClass == SeatClass.Business ? 2 : 3;
+        int plannedLeftSide = (rowClass instanceof BusinessClass) ? 2 : 3;
         return Math.min(plannedLeftSide, seatsInRow - 1);
     }
 
     private void configureSeatButtonSize(Button seatButton, SeatClass rowClass)
     {
-        if (rowClass == SeatClass.Business)
+        if (rowClass instanceof BusinessClass)
         {
             seatButton.setMinSize(76, 44);
             seatButton.setPrefSize(76, 44);

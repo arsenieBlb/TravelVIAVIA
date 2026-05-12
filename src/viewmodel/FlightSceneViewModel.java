@@ -5,6 +5,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.application.Platform;
 import model.*;
+import model.EconomyClass;
+import model.BusinessClass;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -291,28 +293,40 @@ public class FlightSceneViewModel {
         updateTotalPrice();
     }
 
-    public void updateTotalPrice() {
+    public void updateTotalPrice()
+    {
         if (selectedFlight.get() == null) return;
+
         double base = selectedFlight.get().getBasePrice();
-        if (selectedReturnFlight.get() != null) {
+        if (selectedReturnFlight.get() != null)
+        {
             base += selectedReturnFlight.get().getBasePrice();
         }
-        double currentTotal = 0;
-        currentTotal += calculatePassengerPrice(base,
-                seatMapViewModel != null ? seatMapViewModel.getSeatClassForPassenger(1) : SeatClass.Economy,
-                passengerOneBaggageCount.get());
 
-        if (hasPassengerTwoDetails()) {
-            currentTotal += calculatePassengerPrice(base,
-                    seatMapViewModel != null ? seatMapViewModel.getSeatClassForPassenger(2) : SeatClass.Economy,
-                    passengerTwoBaggageCount.get());
+        double currentTotal = 0;
+
+        SeatClass p1Class = (seatMapViewModel != null)
+                ? seatMapViewModel.getSeatClassForPassenger(1)
+                : new EconomyClass();
+
+        currentTotal += calculatePassengerPrice(base, p1Class, passengerOneBaggageCount.get());
+
+        if (hasPassengerTwoDetails())
+        {
+            SeatClass p2Class = (seatMapViewModel != null)
+                    ? seatMapViewModel.getSeatClassForPassenger(2)
+                    : new EconomyClass();
+
+            currentTotal += calculatePassengerPrice(base, p2Class, passengerTwoBaggageCount.get());
         }
+
         totalPrice.set(currentTotal);
     }
 
-    private double calculatePassengerPrice(double base, SeatClass seatClass, int baggageQuantity) {
-        double price = base;
-        if (seatClass == SeatClass.Business) price *= 1.5;
+    private double calculatePassengerPrice(double base, SeatClass seatClass, int baggageQuantity)
+    {
+        double price = base * seatClass.getPriceMultiplier();
+
         price += (baggageQuantity * 20.0);
         return price;
     }

@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import model.BusinessClass;
+
 public class Booking
 {
   private static int nextBookingId = 1;
@@ -117,31 +119,39 @@ public class Booking
     return summary.toString();
   }
 
-  public void recalculateTotalPrice()
-  {
-    double basePrice = 0;
-    double luggagePrice = 0;
-    for (Passenger passenger : passengers)
+    public void recalculateTotalPrice()
     {
-      double passengerBasePrice = flight.getBasePrice();
-      boolean hasBusinessClass = false;
-      for (SeatAssignment seatAssignment : passenger.getSeatAssignments()) {
-          if (seatAssignment.getSeat().getSeatClass() == SeatClass.Business) {
-              hasBusinessClass = true;
-          }
-      }
-      if (hasBusinessClass) {
-          passengerBasePrice *= 1.5;
-      }
-      basePrice += passengerBasePrice;
+        double basePrice = 0;
+        double luggagePrice = 0;
 
-      for (PassengerLuggage luggage : passenger.getPassengerLuggage())
-      {
-        luggagePrice += luggage.getTotalExtraPrice();
-      }
+        for (Passenger passenger : passengers)
+        {
+            double passengerBasePrice = flight.getBasePrice();
+            boolean hasBusinessClass = false;
+
+            for (SeatAssignment seatAssignment : passenger.getSeatAssignments())
+            {
+                if (seatAssignment.getSeat().getSeatClass() instanceof BusinessClass)
+                {
+                    hasBusinessClass = true;
+                    break;
+                }
+            }
+
+            if (hasBusinessClass)
+            {
+                passengerBasePrice *= 1.5;
+            }
+
+            basePrice += passengerBasePrice;
+
+            for (PassengerLuggage luggage : passenger.getPassengerLuggage())
+            {
+                luggagePrice += luggage.getTotalExtraPrice();
+            }
+        }
+        totalPrice = basePrice + luggagePrice;
     }
-    totalPrice = basePrice + luggagePrice;
-  }
 
   private void setPassengers(List<Passenger> passengers)
   {

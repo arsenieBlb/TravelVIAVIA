@@ -20,10 +20,13 @@ import model.PassengerLuggage;
 import model.Seat;
 import model.SeatClass;
 import model.User;
+import model.EconomyClass;
+import model.BusinessClass;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public class PassengerDetailsViewModel
 {
@@ -205,20 +208,21 @@ public class PassengerDetailsViewModel
     return outboundBooking;
   }
 
-  private void clearPassengerForms()
-  {
-    for (PassengerForm form : passengerForms)
+    private void clearPassengerForms()
     {
-      form.setFirstName("");
-      form.setLastName("");
-      form.carryOnQuantityProperty().set(1);
-      form.baggageQuantityProperty().set(0);
-      for (int i = 0; i < getMaxSegmentCount(); i++) {
-        form.seatClassProperty(i).set(SeatClass.Economy);
-        form.setSelectedSeat(i, null);
-      }
+        for (PassengerForm form : passengerForms)
+        {
+            form.setFirstName("");
+            form.setLastName("");
+            form.carryOnQuantityProperty().set(1);
+            form.baggageQuantityProperty().set(0);
+            for (int i = 0; i < getMaxSegmentCount(); i++)
+            {
+                form.seatClassProperty(i).set(new EconomyClass());
+                form.setSelectedSeat(i, null);
+            }
+        }
     }
-  }
 
   private String requireText(String value, String fieldName)
   {
@@ -281,22 +285,18 @@ public class PassengerDetailsViewModel
     return checkedLuggage == null ? 0 : checkedLuggage.getExtraPrice();
   }
 
-  private double calculateBaseFareForPassenger(Flight flight,
-      PassengerForm form)
-  {
-    double passengerBaseFare = 0;
-    List<Flight> segments = getAllSegments();
-    
-    for (int i = 0; i < segments.size(); i++) {
-        double segmentBaseFare = segments.get(i).getBasePrice();
-        if (form.getSeatClass(i) == SeatClass.Business)
+    private double calculateBaseFareForPassenger(Flight flight, PassengerForm form)
+    {
+        double passengerBaseFare = 0;
+        List<Flight> segments = getAllSegments();
+
+        for (int i = 0; i < segments.size(); i++)
         {
-          segmentBaseFare *= BUSINESS_CLASS_MULTIPLIER;
+            double segmentBaseFare = segments.get(i).getBasePrice();
+            passengerBaseFare += segmentBaseFare * form.getSeatClass(i).getPriceMultiplier();
         }
-        passengerBaseFare += segmentBaseFare;
+        return passengerBaseFare;
     }
-    return passengerBaseFare;
-  }
 
   public List<Flight> getFlightSegments()
   {
@@ -426,11 +426,11 @@ public class PassengerDetailsViewModel
     return false;
   }
 
-  public SeatClass getSeatClassForPassenger(int passengerNumber, int segmentIndex)
-  {
-    PassengerForm form = getPassengerForm(passengerNumber);
-    return form == null ? SeatClass.Economy : form.getSeatClass(segmentIndex);
-  }
+    public SeatClass getSeatClassForPassenger(int passengerNumber, int segmentIndex)
+    {
+        PassengerForm form = getPassengerForm(passengerNumber);
+        return form == null ? new EconomyClass() : form.getSeatClass(segmentIndex);
+    }
 
   public ObjectProperty<SeatClass> seatClassPropertyForPassenger(
       int passengerNumber, int segmentIndex)
@@ -546,22 +546,24 @@ public class PassengerDetailsViewModel
     private final List<ObjectProperty<Seat>> selectedSeats = new ArrayList<>();
     private final List<StringProperty> selectedSeatTexts = new ArrayList<>();
 
-    PassengerForm(int passengerNumber)
-    {
-      this.passengerNumber = passengerNumber;
-      
-      // initialize properties for up to 4 possible segments (outbound 2 + return 2)
-      for (int i = 0; i < 4; i++) {
-          seatClasses.add(new SimpleObjectProperty<>(SeatClass.Economy));
-          ObjectProperty<Seat> seatProp = new SimpleObjectProperty<>();
-          selectedSeats.add(seatProp);
-          StringProperty textProp = new SimpleStringProperty("Not selected");
-          selectedSeatTexts.add(textProp);
+      PassengerForm(int passengerNumber)
+      {
+          this.passengerNumber = passengerNumber;
 
-          seatProp.addListener((obs, oldSeat, newSeat) ->
-              textProp.set(newSeat == null ? "Not selected" : newSeat.getSeatNumber()));
+          for (int i = 0; i < 4; i++)
+          {
+              seatClasses.add(new SimpleObjectProperty<>(new model.EconomyClass()));
+
+              ObjectProperty<model.Seat> seatProp = new SimpleObjectProperty<>();
+              selectedSeats.add(seatProp);
+
+              StringProperty textProp = new SimpleStringProperty("Not selected");
+              selectedSeatTexts.add(textProp);
+
+              seatProp.addListener((obs, oldVal, newVal) ->
+                      textProp.set(Objects.toString(newVal, "Not selected")));
+          }
       }
-    }
 
     public int getPassengerNumber()
     {
@@ -620,8 +622,7 @@ public class PassengerDetailsViewModel
 
     public SeatClass getSeatClass(int segmentIndex)
     {
-      SeatClass value = seatClasses.get(segmentIndex).get();
-      return value == null ? SeatClass.Economy : value;
+        return Objects.requireNonNullElse(seatClasses.get(segmentIndex).get(), new EconomyClass());
     }
 
     public ObjectProperty<SeatClass> seatClassProperty(int segmentIndex)
