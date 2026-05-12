@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import model.Flight;
 import viewmodel.FlightsTabViewModel;
@@ -23,6 +24,7 @@ public class NavigationAdminViewController {
     @FXML private TableColumn<Flight, String> flightIdColumn, carrierColumn, aircraftColumn, routeColumn, departureColumn, arrivalColumn;
     @FXML private TextField originFilterField, destinationFilterField, carrierFilterField;
     @FXML private ComboBox<String> aircraftFilterCombo;
+    @FXML private Label authStatusLabel;
 
     private NavigationAdminViewModel navViewModel;
     private FlightsTabViewModel flightsViewModel;
@@ -90,6 +92,10 @@ public class NavigationAdminViewController {
         destinationFilterField.textProperty().bindBidirectional(flightsViewModel.destinationFilterProperty());
         carrierFilterField.textProperty().bindBidirectional(flightsViewModel.carrierFilterProperty());
         aircraftFilterCombo.valueProperty().bindBidirectional(flightsViewModel.aircraftFilterProperty());
+        if (authStatusLabel != null)
+        {
+            authStatusLabel.textProperty().bind(navViewModel.authStatusProperty());
+        }
     }
 
     private void setupNavigation() {
@@ -175,4 +181,21 @@ public class NavigationAdminViewController {
         }
         flightsTable.refresh();
     }
+
+    @FXML
+    private void onLogoutClick(MouseEvent event)
+    {
+        if (navViewModel != null)
+        {
+            navViewModel.logout();
+            authStatusLabel.textProperty().unbind();
+            authStatusLabel.setText("Not signed in");
+        }
+
+        if (viewHandler != null)
+        {
+            viewHandler.openView("flightScene");
+        }
+    }
+
 }

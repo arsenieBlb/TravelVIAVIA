@@ -1,5 +1,6 @@
 package model;
 
+import java.beans.PropertyChangeListener;
 import java.util.List;
 
 public interface Model
@@ -45,4 +46,10 @@ public interface Model
     List<Carrier> getCarriers();
 
     List<Flight> getAllFlights();
+
+    boolean isLoggedIn();
+
+    void addPropertyChangeListener(PropertyChangeListener listener);
+
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

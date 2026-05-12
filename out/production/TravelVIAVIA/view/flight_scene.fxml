@@ -22,8 +22,8 @@
 
 <StackPane fx:id="root"
            fx:controller="view.FlightSceneViewController"
-           prefWidth="1500.0"
-           prefHeight="750.0"
+           prefWidth="1010.0"
+           prefHeight="568.0"
            stylesheets="@flight_scene.css"
            xmlns="http://javafx.com/javafx/17"
            xmlns:fx="http://javafx.com/fxml/1">

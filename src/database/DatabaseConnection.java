@@ -6,9 +6,9 @@ import java.sql.SQLException;
 
 public class DatabaseConnection
 {
-  private static final String URL = "jdbc:postgresql://localhost:5432/travelviavia";
+  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
   private static final String USER = "postgres";
-  private static final String PASSWORD = "iulian";//Put yours if it doesn't work
+  private static final String PASSWORD = "ILike-this40k";//Put yours if it doesn't work
 
   // connects to the PostgreSQL database
   public static Connection getConnection() throws SQLException
@@ -20,4 +20,4 @@ public class DatabaseConnection
 //artem i want my kebab
 
 // This is a quest, you need to take a wallet, leave the house, approach a specially
-// trained person, pay him and you will get a kebab
+// trained person, pay him, and you will get a kebab

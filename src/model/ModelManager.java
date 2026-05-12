@@ -5,6 +5,8 @@ import database.DatabaseLoader;
 import database.FlightDAO;
 import database.UserDAO;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,9 +24,11 @@ public class ModelManager implements Model
     private int nextSeatAssignmentId = 1;
     private List<Flight> allFlights;
     private FlightDAO flightDAO;
+    private PropertyChangeSupport support;
 
     public ModelManager()
     {
+        this.support = new PropertyChangeSupport(this);
         this.userDAO = new UserDAO();
         this.bookingDAO = new BookingDAO();
         this.flightDAO = new FlightDAO();
@@ -112,15 +116,20 @@ public class ModelManager implements Model
     @Override
     public boolean login(String email, String password)
     {
-        try {
+        try
+        {
+            User oldUser = this.currentUser;
             User user = userDAO.login(email, password, flightSearchService);
             if (user != null)
             {
                 this.currentUser = user;
+                support.firePropertyChange("currentUser", oldUser, currentUser);
                 return true;
             }
-        } catch (SQLException e) {
-            System.out.println("Login error connecting to database");
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Login error");
         }
         return false;
     }
@@ -136,8 +145,11 @@ public class ModelManager implements Model
     }
 
     @Override
-    public void logout() {
+    public void logout()
+    {
+        User oldUser = this.currentUser;
         this.currentUser = null;
+        support.firePropertyChange("currentUser", oldUser, null);
     }
 
     @Override
@@ -199,6 +211,7 @@ public class ModelManager implements Model
             System.out.println("Failed to save booking");
             throw new IllegalStateException("Failed to save booking.", e);
         }
+        support.firePropertyChange("bookings", null, booking);
         return booking;
     }
 
@@ -211,6 +224,7 @@ public class ModelManager implements Model
             } catch (SQLException e) {
                 System.out.println("Failed to remove booking from database: " + e.getMessage());
             }
+            support.firePropertyChange("bookings", booking, null);
         }
     }
 
@@ -295,22 +309,19 @@ public class ModelManager implements Model
             try
             {
                 this.flightDAO.saveFlight(flight);
-
                 admin.createFlight(flight);
 
                 if (!allFlights.contains(flight))
                 {
+                    List<Flight> oldFlights = new ArrayList<>(allFlights);
                     allFlights.add(flight);
+                    support.firePropertyChange("allFlights", oldFlights, allFlights);
                 }
             }
             catch (SQLException e)
             {
-                throw new RuntimeException("Could not save flight to database", e);
+                throw new RuntimeException("Could not save flight", e);
             }
-        }
-        else
-        {
-            throw new SecurityException("Only admins can add flights.");
         }
     }
 
@@ -319,7 +330,10 @@ public class ModelManager implements Model
     {
         if (currentUser instanceof Admin admin)
         {
+            List<Flight> oldFlights = new ArrayList<>(allFlights);
             admin.deleteFlight(flight);
+            allFlights.remove(flight);
+            support.firePropertyChange("allFlights", oldFlights, allFlights);
         }
     }
     
@@ -366,5 +380,21 @@ public class ModelManager implements Model
     public List<Flight> getAllFlights()
     {
         return Objects.requireNonNullElse(allFlights, new ArrayList<>());
+    }
+
+    @Override
+    public boolean isLoggedIn()
+    {
+        return currentUser != null;
+    }
+
+    @Override
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        support.addPropertyChangeListener(listener);
+    }
+
+    @Override
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        support.removePropertyChangeListener(listener);
     }
 }

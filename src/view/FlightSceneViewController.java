@@ -508,7 +508,25 @@ public class FlightSceneViewController {
         loginDialogWrapper.setManaged(true);
         loginDialogController.show();
     }
-    public void reset() { flightSceneViewModel.clear(); }
+
+    public void reset()
+    {
+        if (authStatusLabel != null)
+        {
+            authStatusLabel.setText("Not signed in");
+        }
+
+        if (authButton != null)
+        {
+            authButton.setText("Login");
+        }
+
+        if (flightSceneViewModel != null)
+        {
+            flightSceneViewModel.clear();
+        }
+    }
+
     public Region getRoot() { return root; }
 
     @FXML private void onIncrementClick() { flightSceneViewModel.incrementPassengers(); }

@@ -945,3 +945,19 @@
     -fx-text-fill: #94a3b8;
     -fx-cursor: default;
 }
+
+.logo-style-btn {
+    -fx-background-color: #000000;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-transition: all 0.2s;
+}
+
+.logo-style-btn:hover {
+    -fx-background-color: #222222;
+}
+
+.logo-style-btn .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
