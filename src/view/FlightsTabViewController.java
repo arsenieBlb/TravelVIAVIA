@@ -14,9 +14,9 @@ import viewmodel.NavigationAdminViewModel.NavigationTab;
 
 import java.time.format.DateTimeFormatter;
 
-public class NavigationAdminViewController {
+public class FlightsTabViewController {
     @FXML private Button flightsNavButton, dashboardNavButton, bookingsNavButton;
-    @FXML private Region flightsView, bookingsView;
+    @FXML private Region flightsView, bookingsView, dashboardView;
     @FXML private BookingAdminViewController bookingAdminViewController;
     @FXML private DatePicker dateFilterPicker;
 
@@ -101,6 +101,7 @@ public class NavigationAdminViewController {
     private void setupNavigation() {
         flightsNavButton.setOnAction(e -> showTab(NavigationTab.FLIGHTS));
         bookingsNavButton.setOnAction(e -> showTab(NavigationTab.BOOKINGS));
+        dashboardNavButton.setOnAction(e -> showTab(NavigationTab.DASHBOARD));
         showTab(NavigationTab.FLIGHTS);
     }
 
@@ -116,18 +117,41 @@ public class NavigationAdminViewController {
 
         boolean showingFlights = tab == NavigationTab.FLIGHTS;
         boolean showingBookings = tab == NavigationTab.BOOKINGS;
+        boolean showingDashboard = tab == NavigationTab.DASHBOARD;
 
         flightsView.setVisible(showingFlights);
         flightsView.setManaged(showingFlights);
         bookingsView.setVisible(showingBookings);
         bookingsView.setManaged(showingBookings);
 
+        if (dashboardView != null) {
+            dashboardView.setVisible(showingDashboard);
+            dashboardView.setManaged(showingDashboard);
+        }
+
         setActiveNavButton(flightsNavButton, showingFlights);
         setActiveNavButton(bookingsNavButton, showingBookings);
+        setActiveNavButton(dashboardNavButton, showingDashboard);
         setActiveNavButton(dashboardNavButton, tab == NavigationTab.DASHBOARD);
+
+        if (showingDashboard) {
+            loadDashboardContent();
+        }
 
         if (showingBookings && bookingAdminViewController != null) {
             bookingAdminViewController.refresh();
+        }
+    }
+
+    private void loadDashboardContent() {
+        try {
+            Region dashboardContent = viewHandler.loadDashboardView("dashboard_view.fxml");
+
+            if (dashboardView instanceof javafx.scene.layout.Pane pane) {
+                pane.getChildren().setAll(dashboardContent);
+            }
+        } catch (java.io.IOException e) {
+            System.err.println("Failed to load dashboard: " + e.getMessage());
         }
     }
 

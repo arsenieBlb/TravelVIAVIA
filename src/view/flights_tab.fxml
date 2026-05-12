@@ -16,7 +16,7 @@
 
 <?import javafx.scene.control.DatePicker?>
 <HBox fx:id="admin"
-      fx:controller="view.NavigationAdminViewController"
+      fx:controller="view.FlightsTabViewController"
       prefWidth="1010" prefHeight="568"
       stylesheets="@admin_theme.css"
       styleClass="app-shell"
@@ -75,6 +75,8 @@
         </HBox>
 
         <StackPane fx:id="contentHost" styleClass="main-host" HBox.hgrow="ALWAYS">
+            <StackPane fx:id="dashboardView" visible="false" managed="false" />
+
             <VBox fx:id="flightsView" spacing="16" styleClass="page-container">
                 <padding><Insets top="32" right="32" bottom="16" left="32"/></padding>
 

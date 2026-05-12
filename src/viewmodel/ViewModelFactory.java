@@ -1,7 +1,7 @@
 package viewmodel;
 
 import model.Model;
-import view.NavigationAdminViewController;
+import view.DashboardViewController;
 
 public class ViewModelFactory
 {
@@ -14,6 +14,7 @@ public class ViewModelFactory
     private NavigationAdminViewModel navigationAdminViewModel;
     private FlightsTabViewModel flightsTabViewModel;
     private AddFlightTabViewModel addFlightTabViewModel;
+    private DashboardViewModel dashboardViewModel;
 
     public ViewModelFactory(Model model)
     {
@@ -87,5 +88,13 @@ public class ViewModelFactory
             addFlightTabViewModel = new AddFlightTabViewModel(model);
         }
         return addFlightTabViewModel;
+    }
+
+    public DashboardViewModel getDashBoardViewModel() {
+        if (dashboardViewModel == null)
+        {
+            dashboardViewModel = new DashboardViewModel(model);
+        }
+        return dashboardViewModel;
     }
 }

@@ -213,7 +213,6 @@ public class FlightSceneViewController {
                 cellData.getValue().getCarrier().getName() + "\n"
                         + cellData.getValue().getFlightNumber()));
         typeColumn.setCellValueFactory(cellData -> {
-            // checks if we should say direct or 1 stop
             if (cellData.getValue() instanceof ConnectingFlight connectingFlight) {
                 return new SimpleStringProperty("1 Stop in " + connectingFlight.getFirstSegment().getArrivalCity().getCityName());
             } else {

@@ -341,7 +341,7 @@ public class FlightSceneViewModel {
                 filteredFlights.sort(Comparator.comparingLong(Flight::getDurationInSeconds));
                 break;
             case "Departure (Early First)":
-                filteredFlights.sort(Comparator.comparing(Flight::getDepartureTime).reversed());
+                filteredFlights.sort(Comparator.comparing(Flight::getDepartureTime));
                 break;
         }
     }

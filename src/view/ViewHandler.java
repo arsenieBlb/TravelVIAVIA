@@ -5,7 +5,6 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import model.Booking;
-import viewmodel.AddFlightTabViewModel;
 import viewmodel.ViewModelFactory;
 
 import java.io.IOException;
@@ -16,7 +15,8 @@ public class ViewHandler {
     private FlightSceneViewController flightSceneViewController;
     private ViewModelFactory viewModelFactory;
     private MyBookingsViewController bookViewController;
-    private NavigationAdminViewController navigationAdminViewController;
+    private FlightsTabViewController navigationAdminViewController;
+    private DashboardViewController dashboardViewController;
 
     public ViewHandler(ViewModelFactory viewModelFactory)
     {
@@ -90,6 +90,17 @@ public class ViewHandler {
         return flightSceneViewController.getRoot();
     }
 
+    public Region loadDashboardView(String fxmlFile) throws IOException {
+        if (dashboardViewController == null) {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource(fxmlFile));
+            Region root = loader.load();
+            dashboardViewController = loader.getController();
+
+            dashboardViewController.init(viewModelFactory.getDashBoardViewModel(), root, this);
+        }
+        return dashboardViewController.getRoot();
+    }
 
     public void showBookFlight()
     {
