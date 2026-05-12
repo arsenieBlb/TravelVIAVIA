@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TravelVIAVIA Full App" type="CompoundRunConfigurationType">
+    <toRun name="TravelVIAVIA Server" type="Application" />
+    <toRun name="TravelVIAVIA Client" type="Application" />
+    <method v="2" />
+  </configuration>
+</component>

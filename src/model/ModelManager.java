@@ -4,6 +4,7 @@ import database.BookingDAO;
 import database.DatabaseLoader;
 import database.FlightDAO;
 import database.UserDAO;
+import log.Logger;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -25,6 +26,7 @@ public class ModelManager implements Model
     private List<Flight> allFlights;
     private FlightDAO flightDAO;
     private PropertyChangeSupport support;
+    private Logger logger;
 
     public ModelManager()
     {
@@ -34,6 +36,7 @@ public class ModelManager implements Model
         this.flightDAO = new FlightDAO();
         this.allFlights = new ArrayList<>();
         this.databaseLoader = new DatabaseLoader();
+        this.logger = Logger.getInstance();
 
         try
         {
@@ -80,7 +83,12 @@ public class ModelManager implements Model
 
     private Customer getActiveCustomer()
     {
-        if (currentUser instanceof Customer customer)
+        return getActiveCustomer(currentUser);
+    }
+
+    private Customer getActiveCustomer(User user)
+    {
+        if (user instanceof Customer customer)
         {
             return customer;
         }
@@ -89,7 +97,7 @@ public class ModelManager implements Model
 
     private List<Flight> getLoadedFlights()
     {
-        List<Flight> flights = databaseLoader.getFlights();
+        List<Flight> flights = allFlights;
         return flights == null ? Collections.emptyList() : flights;
     }
 
@@ -116,29 +124,48 @@ public class ModelManager implements Model
     @Override
     public boolean login(String email, String password)
     {
+        User oldUser = this.currentUser;
+        User user = authenticate(email, password);
+        if (user != null)
+        {
+            this.currentUser = user;
+            support.firePropertyChange("currentUser", oldUser, currentUser);
+            return true;
+        }
+        return false;
+    }
+
+    public User authenticate(String email, String password)
+    {
         try
         {
-            User oldUser = this.currentUser;
             User user = userDAO.login(email, password, flightSearchService);
             if (user != null)
             {
-                this.currentUser = user;
-                support.firePropertyChange("currentUser", oldUser, currentUser);
-                return true;
+                user.login(email, password);
             }
+            return user;
         }
         catch (SQLException e)
         {
+            logger.log("model", "LOGIN", "ERROR",
+                "Login error: " + e.getMessage());
             System.out.println("Login error");
+            return null;
         }
-        return false;
     }
 
     @Override
     public boolean register(String firstName, String lastName, String email, String password) {
         try {
-            return userDAO.registerCustomer(firstName, lastName, email, password);
+            boolean registered = userDAO.registerCustomer(firstName, lastName,
+                email, password);
+            logger.log("model", "REGISTER", registered ? "OK" : "ERROR",
+                "email=" + email);
+            return registered;
         } catch (SQLException e) {
+            logger.log("model", "REGISTER", "ERROR",
+                "Registration error: " + e.getMessage());
             System.out.println("Registration error connecting to database");
             return false;
         }
@@ -148,6 +175,10 @@ public class ModelManager implements Model
     public void logout()
     {
         User oldUser = this.currentUser;
+        if (oldUser != null)
+        {
+            oldUser.logout();
+        }
         this.currentUser = null;
         support.firePropertyChange("currentUser", oldUser, null);
     }
@@ -168,7 +199,13 @@ public class ModelManager implements Model
     public Booking createBooking(Flight flight, List<Passenger> passengers,
         List<Seat> selectedSeats)
     {
-        Customer customer = getActiveCustomer();
+        return createBooking(currentUser, flight, passengers, selectedSeats);
+    }
+
+    public Booking createBooking(User user, Flight flight,
+        List<Passenger> passengers, List<Seat> selectedSeats)
+    {
+        Customer customer = getActiveCustomer(user);
         Booking booking = customer.createBooking(flight, passengers);
 
         if (selectedSeats != null)
@@ -205,9 +242,14 @@ public class ModelManager implements Model
         // saves the booking to the database
         try {
             bookingDAO.saveBooking(booking);
+            logger.log("model", "CREATE_BOOKING", "OK",
+                "bookingId=" + booking.getBookingId()
+                    + ", customer=" + customer.getEmail());
         } catch (SQLException e) {
             booking.cancel();
             customer.removeBooking(booking);
+            logger.log("model", "CREATE_BOOKING", "ERROR",
+                "Failed to save booking: " + e.getMessage());
             System.out.println("Failed to save booking");
             throw new IllegalStateException("Failed to save booking.", e);
         }
@@ -218,7 +260,12 @@ public class ModelManager implements Model
     @Override
     public void cancelBooking(Booking booking)
     {
-        if (currentUser instanceof Customer customer)
+        cancelBooking(currentUser, booking);
+    }
+
+    public void cancelBooking(User user, Booking booking)
+    {
+        if (user instanceof Customer customer)
         {
             try
             {
@@ -235,10 +282,15 @@ public class ModelManager implements Model
                 }
                 bookingDAO.removeBooking(booking.getBookingId());
                 customer.cancelBooking(booking);
-                support.firePropertyChange("bookings", null, booking);
+                logger.log("model", "CANCEL_BOOKING", "OK",
+                    "bookingId=" + booking.getBookingId()
+                        + ", customer=" + customer.getEmail());
+                support.firePropertyChange("bookings", booking, null);
             }
             catch (SQLException e)
             {
+                logger.log("model", "CANCEL_BOOKING", "ERROR",
+                    "Failed to remove booking: " + e.getMessage());
                 System.out.println("Failed to remove booking: " + e.getMessage());
                 throw new RuntimeException("Database error during cancellation.");
             }
@@ -248,7 +300,12 @@ public class ModelManager implements Model
     @Override
     public List<Booking> getAllBookings()
     {
-        if (!(currentUser instanceof Admin))
+        return getAllBookings(currentUser);
+    }
+
+    public List<Booking> getAllBookings(User user)
+    {
+        if (!(user instanceof Admin))
         {
             return Collections.emptyList();
         }
@@ -270,7 +327,12 @@ public class ModelManager implements Model
     @Override
     public List<Booking> getUserBookings()
     {
-        Customer customer = getActiveCustomer();
+        return getUserBookings(currentUser);
+    }
+
+    public List<Booking> getUserBookings(User user)
+    {
+        Customer customer = getActiveCustomer(user);
         try
         {
             return bookingDAO.getBookingsForCustomer(customer,
@@ -287,7 +349,14 @@ public class ModelManager implements Model
     public Booking addBookingToCurrentUserById(int bookingId,
         String passengerLastName)
     {
-        Customer customer = getActiveCustomer();
+        return addBookingToCurrentUserById(currentUser, bookingId,
+            passengerLastName);
+    }
+
+    public Booking addBookingToCurrentUserById(User user, int bookingId,
+        String passengerLastName)
+    {
+        Customer customer = getActiveCustomer(user);
         try
         {
             if (!bookingDAO.bookingExists(bookingId))
@@ -309,10 +378,16 @@ public class ModelManager implements Model
                 throw new IllegalArgumentException(
                     "Booking exists, but its flight is not loaded.");
             }
+            logger.log("model", "ADD_BOOKING_TO_CURRENT_USER_BY_ID", "OK",
+                "bookingId=" + bookingId + ", customer="
+                    + customer.getEmail());
+            support.firePropertyChange("bookings", null, booking);
             return booking;
         }
         catch (SQLException e)
         {
+            logger.log("model", "ADD_BOOKING_TO_CURRENT_USER_BY_ID", "ERROR",
+                "Could not link booking: " + e.getMessage());
             throw new IllegalStateException(
                 "Could not add booking from the database.", e);
         }
@@ -321,7 +396,12 @@ public class ModelManager implements Model
     @Override
     public void addFlight(Flight flight)
     {
-        if (currentUser instanceof Admin admin)
+        addFlight(currentUser, flight);
+    }
+
+    public void addFlight(User user, Flight flight)
+    {
+        if (user instanceof Admin admin)
         {
             try
             {
@@ -334,9 +414,14 @@ public class ModelManager implements Model
                     allFlights.add(flight);
                     support.firePropertyChange("allFlights", oldFlights, allFlights);
                 }
+                logger.log("model", "ADD_FLIGHT", "OK",
+                    "flightId=" + flight.getFlightId()
+                        + ", admin=" + admin.getEmail());
             }
             catch (SQLException e)
             {
+                logger.log("model", "ADD_FLIGHT", "ERROR",
+                    "Could not save flight: " + e.getMessage());
                 throw new RuntimeException("Could not save flight", e);
             }
         }
@@ -345,12 +430,30 @@ public class ModelManager implements Model
     @Override
     public void removeFlight(Flight flight)
     {
-        if (currentUser instanceof Admin admin)
+        removeFlight(currentUser, flight);
+    }
+
+    public void removeFlight(User user, Flight flight)
+    {
+        if (user instanceof Admin admin)
         {
-            List<Flight> oldFlights = new ArrayList<>(allFlights);
-            admin.deleteFlight(flight);
-            allFlights.remove(flight);
-            support.firePropertyChange("allFlights", oldFlights, allFlights);
+            try
+            {
+                flightDAO.removeFlight(flight.getFlightId());
+                List<Flight> oldFlights = new ArrayList<>(allFlights);
+                admin.deleteFlight(flight);
+                allFlights.remove(flight);
+                logger.log("model", "REMOVE_FLIGHT", "OK",
+                    "flightId=" + flight.getFlightId()
+                        + ", admin=" + admin.getEmail());
+                support.firePropertyChange("allFlights", oldFlights, allFlights);
+            }
+            catch (SQLException e)
+            {
+                logger.log("model", "REMOVE_FLIGHT", "ERROR",
+                    "Could not remove flight: " + e.getMessage());
+                throw new RuntimeException("Could not remove flight", e);
+            }
         }
     }
     

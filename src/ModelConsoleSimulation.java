@@ -1,21 +1,37 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
-import model.*;
+import clientmediator.Client;
+import model.Model;
+import servermediator.Server;
 import view.ViewHandler;
 import viewmodel.ViewModelFactory;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 public class ModelConsoleSimulation extends Application
 {
     @Override
     public void start(Stage primaryStage) {
-        Model model = new ModelManager();
+        Model model = createClientModel();
 
         ViewModelFactory viewModelFactory = new ViewModelFactory(model);
         ViewHandler viewHandler = new ViewHandler(viewModelFactory);
 
         viewHandler.start(primaryStage);
+    }
+
+    private Model createClientModel()
+    {
+        try
+        {
+            return new Client("localhost", Server.PORT);
+        }
+        catch (IllegalStateException e)
+        {
+            System.out.println("No TravelVIAVIA server found. Starting a local socket server.");
+            Thread serverThread = new Thread(() -> new Server().start(),
+                    "TravelVIAVIA-local-server");
+            serverThread.setDaemon(true);
+            serverThread.start();
+            return new Client("localhost", Server.PORT);
+        }
     }
 }
