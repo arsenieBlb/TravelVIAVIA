@@ -103,7 +103,7 @@ public class SeatMapViewController {
             rowSeats.sort(Comparator.comparing(Seat::getSeatNumber));
             SeatClass rowClass = rowSeats.get(0).getSeatClass();
 
-            if (previousClass != null && previousClass != rowClass)
+            if (previousClass != null && !previousClass.getClass().equals(rowClass.getClass()))
             {
                 Label divider = new Label("Business / Economy");
                 divider.getStyleClass().add("seat-section-divider");
@@ -196,7 +196,7 @@ public class SeatMapViewController {
             button.getStyleClass().removeAll("seat-available", "seat-taken",
                     "seat-disabled", "seat-selected");
 
-            boolean wrongClass = seat.getSeatClass() != selectedClass;
+            boolean wrongClass = !seat.getSeatClass().getClass().equals(selectedClass.getClass());
             boolean taken = seatMapViewModel.isSeatTaken(seat);
             boolean selectedByOtherPassenger =
                     seatMapViewModel.isSeatAlreadySelectedByOtherPassenger(seat);

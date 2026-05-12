@@ -106,7 +106,7 @@ public class PassengerDetailsViewModel
         final int index = i;
         form.seatClassProperty(index).addListener((obs, oldValue, newValue) -> {
           Seat selectedSeat = form.getSelectedSeat(index);
-          if (selectedSeat != null && selectedSeat.getSeatClass() != newValue)
+          if (selectedSeat != null && !selectedSeat.getSeatClass().getClass().equals(newValue.getClass()))
           {
             form.setSelectedSeat(index, null);
           }
@@ -456,10 +456,9 @@ public class PassengerDetailsViewModel
       form.setSelectedSeat(segmentIndex, null);
       return;
     }
-    if (seat.getSeatClass() != form.getSeatClass(segmentIndex))
+    if (!seat.getSeatClass().getClass().equals(form.getSeatClass(segmentIndex).getClass()))
     {
-      throw new IllegalArgumentException(
-          "Seat does not match the selected class.");
+        throw new IllegalArgumentException("Seat does not match the selected class.");
     }
     if (isSeatTaken(seat, segmentIndex))
     {
