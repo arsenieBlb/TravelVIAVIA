@@ -72,10 +72,10 @@ public class SeatAssignment
     return passenger;
   }
 
-  public Seat getSeat()
-  {
-    return seat;
-  }
+    public Seat getSeat()
+    {
+        return seat;
+    }
 
   public Flight getFlight()
   {

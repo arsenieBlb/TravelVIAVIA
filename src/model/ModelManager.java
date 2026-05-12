@@ -216,15 +216,32 @@ public class ModelManager implements Model
     }
 
     @Override
-    public void cancelBooking(Booking booking) {
-        if (currentUser instanceof Customer customer) {
-            try {
+    public void cancelBooking(Booking booking)
+    {
+        if (currentUser instanceof Customer customer)
+        {
+            try
+            {
+                for (Passenger passenger : booking.getPassengers())
+                {
+                    for (SeatAssignment assignment : passenger.getSeatAssignments())
+                    {
+                        if (assignment.getSeat() != null)
+                        {
+                            assignment.getSeat().setOccupied(false);
+                        }
+                        assignment.release();
+                    }
+                }
                 bookingDAO.removeBooking(booking.getBookingId());
                 customer.cancelBooking(booking);
-            } catch (SQLException e) {
-                System.out.println("Failed to remove booking from database: " + e.getMessage());
+                support.firePropertyChange("bookings", null, booking);
             }
-            support.firePropertyChange("bookings", booking, null);
+            catch (SQLException e)
+            {
+                System.out.println("Failed to remove booking: " + e.getMessage());
+                throw new RuntimeException("Database error during cancellation.");
+            }
         }
     }
 

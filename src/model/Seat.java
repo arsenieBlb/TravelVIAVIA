@@ -93,8 +93,19 @@ public class Seat
     return Objects.hash(seatId);
   }
 
-    @Override
-    public String toString() {
-        return String.format("%s (%s)", seatNumber, seatClass.getClassName());
-    }
+  @Override
+  public String toString()
+  {
+      return String.format("%s (%s)", seatNumber, seatClass.getClassName());
+  }
+
+  public boolean isOccupied()
+  {
+      return "Occupied".equalsIgnoreCase(seatStatus);
+  }
+
+  public void setOccupied(boolean occupied)
+  {
+      this.seatStatus = occupied ? "Occupied" : "Available";
+  }
 }

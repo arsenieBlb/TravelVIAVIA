@@ -63,9 +63,19 @@ public class SeatMapViewModel {
         passengerDetailsViewModel.clearSeatForPassenger(passengerNumber, currentSegmentIndex);
     }
 
-    public void confirmSelection() {
-        if (temporarySelection.get() != null) {
-            passengerDetailsViewModel.selectSeatForPassenger(currentPassengerNumber, currentSegmentIndex, temporarySelection.get());
+    public void confirmSelection()
+    {
+        Seat selected = temporarySelection.get();
+        if (selected != null)
+        {
+            SeatClass passengerClass = getSelectedClass();
+            if (!selected.getSeatClass().getClass().equals(passengerClass.getClass()))
+            {
+                throw new IllegalArgumentException("This seat is for " + selected.getSeatClass()
+                        + " but you have an " + passengerClass + " ticket.");
+            }
+
+            passengerDetailsViewModel.selectSeatForPassenger(currentPassengerNumber, currentSegmentIndex, selected);
         }
     }
     

@@ -30,7 +30,8 @@ public class SeatMapViewController {
 
     public void init(Region root, ViewHandler viewHandler,
                      SeatMapViewModel seatMapViewModel,
-                     StackPane dialogWrapper) {
+                     StackPane dialogWrapper)
+    {
         this.root = root;
         this.viewHandler = viewHandler;
         this.seatMapViewModel = seatMapViewModel;
@@ -39,14 +40,40 @@ public class SeatMapViewController {
         seatOkButton.disableProperty().bind(seatMapViewModel.temporarySelectionProperty().isNull());
 
         closeSeatModalButton.setOnAction(e -> closeSeatPicker());
-        cancelSeatSelectionButton.setOnAction(e -> {
+
+        cancelSeatSelectionButton.setOnAction(e ->
+        {
             seatMapViewModel.cancelSelection();
             closeSeatPicker();
         });
+
         seatOkButton.setOnAction(e -> {
-            seatMapViewModel.confirmSelection();
-            closeSeatPicker();
+            try
+            {
+                seatMapViewModel.confirmSelection();
+                closeSeatPicker();
+            }
+            catch (IllegalArgumentException ex) {
+                showError("Selection Error", ex.getMessage());
+            }
+            catch (Exception ex) {
+                showError("System Error", "An unexpected error occurred.");
+            }
         });
+    }
+
+    private void showError(String title, String message)
+    {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        dialogPane.getStyleClass().add("card");
+
+        alert.showAndWait();
     }
 
     public void showForPassenger(int passengerNumber, int segmentIndex) {
@@ -59,6 +86,20 @@ public class SeatMapViewController {
         seatGridContainer.getChildren().add(createSeatGrid(passengerNumber,
                 seatMapViewModel.getSeats(),
                 seatMapViewModel.temporarySelectionProperty()));
+
+        dialogWrapper.setVisible(true);
+        dialogWrapper.setManaged(true);
+
+        seatGridContainer.getChildren().clear();
+
+        seatGridContainer.setAlignment(Pos.TOP_CENTER);
+
+        VBox nose = createPlaneNose();
+        GridPane grid = createSeatGrid(passengerNumber,
+                seatMapViewModel.getSeats(),
+                seatMapViewModel.temporarySelectionProperty());
+
+        seatGridContainer.getChildren().addAll(nose, grid);
 
         dialogWrapper.setVisible(true);
         dialogWrapper.setManaged(true);
@@ -89,7 +130,10 @@ public class SeatMapViewController {
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
         gridPane.setVgap(8);
-        gridPane.setPadding(new Insets(8));
+        gridPane.setPadding(new Insets(10));
+        gridPane.getStyleClass().add("seat-map");
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setMaxWidth(Double.MAX_VALUE);
         gridPane.getStyleClass().add("seat-map");
 
         Map<Integer, List<Seat>> seatsByRow = groupSeatsByRow(seats);
@@ -193,31 +237,23 @@ public class SeatMapViewController {
         {
             Seat seat = entry.getKey();
             Button button = entry.getValue();
-            button.getStyleClass().removeAll("seat-available", "seat-taken",
-                    "seat-disabled", "seat-selected");
 
-            boolean wrongClass = !seat.getSeatClass().getClass().equals(selectedClass.getClass());
-            boolean taken = seatMapViewModel.isSeatTaken(seat);
-            boolean selectedByOtherPassenger =
-                    seatMapViewModel.isSeatAlreadySelectedByOtherPassenger(seat);
+            button.getStyleClass().removeAll("seat-available", "seat-taken", "seat-disabled", "seat-selected");
 
-            button.setDisable(wrongClass || taken || selectedByOtherPassenger);
+            boolean isWrongClass = !seat.getSeatClass().getClass().equals(selectedClass.getClass());
+            boolean isTakenInDb = seatMapViewModel.isSeatTaken(seat);
+            boolean isSelectedByOther = seatMapViewModel.isSeatAlreadySelectedByOtherPassenger(seat);
 
-            if (taken || selectedByOtherPassenger)
-            {
+            button.setDisable(isWrongClass || isTakenInDb || isSelectedByOther);
+
+            if (isTakenInDb || isSelectedByOther) {
                 button.getStyleClass().add("seat-taken");
-            }
-            else if (wrongClass)
-            {
+            } else if (isWrongClass) {
                 button.getStyleClass().add("seat-disabled");
-            }
-            else
-            {
+            } else {
                 button.getStyleClass().add("seat-available");
             }
-
-            if (seat.equals(selectedSeat))
-            {
+            if (seat.equals(selectedSeat)) {
                 button.getStyleClass().add("seat-selected");
             }
         }
