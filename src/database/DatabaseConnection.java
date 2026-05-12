@@ -18,3 +18,6 @@ public class DatabaseConnection
 }
 
 //artem i want my kebab
+
+// This is a quest, you need to take a wallet, leave the house, approach a specially
+// trained person, pay him and you will get a kebab

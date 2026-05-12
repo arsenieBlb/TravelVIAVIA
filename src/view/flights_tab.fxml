@@ -17,7 +17,7 @@
 <?import javafx.scene.control.DatePicker?>
 <HBox fx:id="admin"
       fx:controller="view.NavigationAdminViewController"
-      prefWidth="1365" prefHeight="768"
+      prefWidth="1010" prefHeight="568"
       stylesheets="@admin_theme.css"
       styleClass="app-shell"
       xmlns="http://javafx.com/javafx/21"

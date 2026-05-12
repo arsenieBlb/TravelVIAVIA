@@ -169,7 +169,6 @@ public class NavigationAdminViewController {
 
     public void refreshTable()
     {
-        System.out.println("[DEBUG] NavigationAdminViewController: Запуск полного обновления...");
         if (flightsViewModel != null)
         {
             flightsViewModel.refreshFromModel();
