@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="loginModal"
+           fx:controller="client.view.LoginDialogController"
+           styleClass="modal-overlay"
+           xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1">
+
+    <children>
+        <VBox spacing="14.0" styleClass="modal-card">
+            <children>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Login" styleClass="modal-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="closeLoginButton" text="X" styleClass="btn-icon-plain"/>
+                    </children>
+                </HBox>
+
+                <VBox spacing="6.0">
+                    <children>
+                        <Label text="Email" styleClass="input-label"/>
+                        <TextField fx:id="loginEmailField" promptText="your@email.com" styleClass="field-input"/>
+                    </children>
+                </VBox>
+
+                <VBox spacing="6.0">
+                    <children>
+                        <Label text="Password" styleClass="input-label"/>
+                        <PasswordField fx:id="loginPasswordField" promptText="Enter password" styleClass="field-input"/>
+                    </children>
+                </VBox>
+
+                <!-- TEAM TODO: authenticate user -->
+                <Button fx:id="loginSubmitButton" text="Login" styleClass="btn-primary"/>
+                <Label fx:id="loginErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
+
+                <Separator/>
+
+                <!-- TEAM TODO: open Register dialog -->
+                <Button fx:id="switchToRegisterButton" text="Create account" styleClass="btn-link"/>
+                <Button fx:id="switchToAdminButton" text="Login as admin" styleClass="btn-link-dark"/>
+            </children>
+        </VBox>
+    </children>
+</StackPane>
+

@@ -1,4 +1,4 @@
-import database.DatabaseLoader;
+import server.database.DatabaseLoader;
 public class TestDB {
     public static void main(String[] args) {
         try {
@@ -10,3 +10,5 @@ public class TestDB {
         }
     }
 }
+
+

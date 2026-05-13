@@ -1,10 +1,10 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
-import clientmediator.Client;
-import model.Model;
-import servermediator.Server;
-import view.ViewHandler;
-import viewmodel.ViewModelFactory;
+import client.mediator.Client;
+import client.model.Model;
+import server.mediator.Server;
+import client.view.ViewHandler;
+import client.viewmodel.ViewModelFactory;
 
 public class ModelConsoleSimulation extends Application
 {
@@ -35,3 +35,5 @@ public class ModelConsoleSimulation extends Application
         }
     }
 }
+
+

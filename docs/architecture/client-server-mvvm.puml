@@ -1,0 +1,86 @@
+@startuml
+title TravelVIAVIA - MVVM and Socket Architecture
+
+package "Client" {
+  package "client.view" {
+    class ViewHandler
+    class FlightSceneViewController
+    class PassengerDetailsViewController
+  }
+
+  package "client.viewmodel" {
+    class ViewModelFactory
+    class FlightSceneViewModel
+    class PassengerDetailsViewModel
+    class MyBookingsViewModel
+  }
+
+  package "client.mediator" {
+    interface ServerModel
+    class Client
+  }
+}
+
+package "Client domain contracts" {
+  package "client.model" {
+    interface Model
+    class Flight
+    class Booking
+    class Customer
+  }
+}
+
+package "Server network contracts" {
+  package "server.network" {
+    class NetworkPackage
+    enum RequestType
+  }
+
+  package "server.network.dto" {
+    class DtoMapper
+    class FlightDto
+    class BookingDto
+  }
+}
+
+package "Server" {
+  package "server.mediator" {
+    class Server
+    class ClientHandler
+    class ServerSessionModel
+  }
+
+  package "server.model" {
+    class ModelManager
+  }
+
+  package "server.database" {
+    class DatabaseLoader
+    class BookingDAO
+    class FlightDAO
+    class UserDAO
+  }
+
+  package "server.logging" {
+    class ServerLogger <<singleton>>
+  }
+}
+
+ViewHandler --> FlightSceneViewController
+FlightSceneViewController --> FlightSceneViewModel
+FlightSceneViewModel --> ServerModel
+ServerModel <|.. Client
+Client --> NetworkPackage : JSON over socket
+NetworkPackage --> ClientHandler : TCP 8800
+ClientHandler --> ServerSessionModel
+ServerSessionModel --> ModelManager
+ModelManager ..|> Model
+ModelManager --> DatabaseLoader
+ModelManager --> BookingDAO
+Server --> ClientHandler
+Server --> ServerLogger
+ClientHandler --> ServerLogger
+Client --> DtoMapper
+ClientHandler --> DtoMapper
+
+@enduml

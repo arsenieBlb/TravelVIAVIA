@@ -5,3 +5,5 @@ public class Main {
         Application.launch(ModelConsoleSimulation.class, args);
     }
 }
+
+

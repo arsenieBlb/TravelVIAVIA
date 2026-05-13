@@ -1,25 +1,38 @@
-import clientmediator.Client;
-import model.Booking;
-import model.Flight;
-import model.Passenger;
-import model.Seat;
-import servermediator.Server;
+import client.mediator.Client;
+import client.model.Booking;
+import client.model.ConnectingFlight;
+import client.model.Flight;
+import client.model.LuggageType;
+import client.model.Passenger;
+import client.model.PassengerLuggage;
+import client.model.Seat;
+import server.mediator.Server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class TwoClientBookingSimulation
 {
   private static final String HOST = "localhost";
+  private static final int MAX_PASSENGERS_PER_BOOKING = 3;
+  private static final int MAX_LUGGAGE_QUANTITY = 3;
+  private static final int MAX_BOOKING_ATTEMPTS = 3;
+  private static final String[] RANDOM_FIRST_NAMES = {
+      "Maya", "Noah", "Lina", "Oscar", "Sofia", "Theo", "Nora", "Leo"
+  };
+  private static final String[] RANDOM_LAST_NAMES = {
+      "Andersen", "Khan", "Rossi", "Berg", "Patel", "Muller", "Silva",
+      "Novak"
+  };
   private static final ClientCredentials[] CLIENTS = {
-      new ClientCredentials("Client-1", "j.doe@gmail.com", "1234b",
-          "John", "Doe"),
-      new ClientCredentials("Client-2", "alice.smith@outlook.com", "1234c",
-          "Alice", "Smith")
+      new ClientCredentials("Client-1", "j.doe@gmail.com", "1234b"),
+      new ClientCredentials("Client-2", "alice.smith@outlook.com", "1234c")
   };
 
   public static void main(String[] args) throws InterruptedException
@@ -73,22 +86,16 @@ public class TwoClientBookingSimulation
         return;
       }
 
-      Flight flight = findBookableFlight(client.getAllFlights());
-      if (flight == null)
+      BookingPlan plan = createRandomBookingPlan(client, clientNumber);
+      if (plan == null)
       {
-        System.out.println(credentials.label + " found no flight with seats.");
+        System.out.println(credentials.label
+            + " found no random bookable flight with enough seats.");
         return;
       }
 
-      Seat seat = flight.getAvailableSeats().get(0);
-      Passenger passenger = new Passenger(9000 + clientNumber,
-          credentials.firstName, credentials.lastName);
-
-      System.out.println(credentials.label + " prepared flight "
-          + flight.getFlightNumber() + " "
-          + flight.getDepartureCity().getCityName() + " -> "
-          + flight.getArrivalCity().getCityName() + " seat "
-          + seat.getSeatNumber());
+      System.out.println(credentials.label + " prepared "
+          + describePlan(plan));
 
       prepared = true;
       readyToBook.countDown();
@@ -102,10 +109,14 @@ public class TwoClientBookingSimulation
 
       try
       {
-        Booking booking = client.createBooking(flight, List.of(passenger),
-            List.of(seat));
-        System.out.println(credentials.label + " booked successfully: booking #"
-            + booking.getBookingId() + ", seat " + seat.getSeatNumber());
+        Booking booking = bookWithRetries(client, credentials.label, plan,
+            clientNumber);
+        if (booking != null)
+        {
+          System.out.println(credentials.label
+              + " booked successfully: booking #"
+              + booking.getBookingId() + ".");
+        }
       }
       catch (RuntimeException e)
       {
@@ -134,16 +145,214 @@ public class TwoClientBookingSimulation
     }
   }
 
-  private static Flight findBookableFlight(List<Flight> flights)
+  private static Booking bookWithRetries(Client client, String clientLabel,
+      BookingPlan firstPlan, int clientNumber)
   {
-    for (Flight flight : flights)
+    BookingPlan plan = firstPlan;
+    for (int attempt = 1; attempt <= MAX_BOOKING_ATTEMPTS; attempt++)
     {
-      if (!flight.getAvailableSeats().isEmpty())
+      try
       {
-        return flight;
+        return client.createBooking(plan.flight, plan.passengers,
+            plan.selectedSeats);
+      }
+      catch (RuntimeException e)
+      {
+        System.out.println(clientLabel + " booking attempt " + attempt
+            + " failed: " + e.getMessage());
+        if (attempt == MAX_BOOKING_ATTEMPTS)
+        {
+          throw e;
+        }
+        plan = createRandomBookingPlan(client, clientNumber);
+        if (plan == null)
+        {
+          throw new IllegalStateException(
+              "No random retry booking plan could be prepared.", e);
+        }
+        System.out.println(clientLabel + " retrying with "
+            + describePlan(plan));
       }
     }
     return null;
+  }
+
+  private static BookingPlan createRandomBookingPlan(Client client,
+      int clientNumber)
+  {
+    ThreadLocalRandom random = ThreadLocalRandom.current();
+    List<Flight> candidates = new ArrayList<>();
+    for (Flight flight : client.getAllFlights())
+    {
+      if (maxPassengersForFlight(flight) > 0)
+      {
+        candidates.add(flight);
+      }
+    }
+    if (candidates.isEmpty())
+    {
+      return null;
+    }
+
+    Flight flight = randomItem(candidates, random);
+    int passengerCount = random.nextInt(1,
+        Math.min(MAX_PASSENGERS_PER_BOOKING,
+            maxPassengersForFlight(flight)) + 1);
+    List<LuggageType> luggageTypes = client.getLuggageTypes();
+    List<Passenger> passengers = randomPassengers(clientNumber,
+        passengerCount, luggageTypes, random);
+    List<Seat> selectedSeats = randomSeats(flight, passengerCount, random);
+    return new BookingPlan(flight, passengers, selectedSeats);
+  }
+
+  private static List<Passenger> randomPassengers(int clientNumber,
+      int passengerCount, List<LuggageType> luggageTypes,
+      ThreadLocalRandom random)
+  {
+    List<Passenger> passengers = new ArrayList<>();
+    int passengerBaseId = clientNumber * 100000 + random.nextInt(1000, 9000);
+    int luggageBaseId = clientNumber * 100000 + random.nextInt(100, 900);
+
+    for (int i = 0; i < passengerCount; i++)
+    {
+      Passenger passenger = new Passenger(passengerBaseId + i,
+          randomItem(RANDOM_FIRST_NAMES, random),
+          randomItem(RANDOM_LAST_NAMES, random));
+      addRandomLuggage(passenger, luggageTypes, luggageBaseId + (i * 10),
+          random);
+      passengers.add(passenger);
+    }
+    return passengers;
+  }
+
+  private static void addRandomLuggage(Passenger passenger,
+      List<LuggageType> luggageTypes, int luggageBaseId,
+      ThreadLocalRandom random)
+  {
+    if (luggageTypes == null || luggageTypes.isEmpty())
+    {
+      return;
+    }
+
+    boolean addedAny = false;
+    for (int i = 0; i < luggageTypes.size(); i++)
+    {
+      int quantity = random.nextInt(0, MAX_LUGGAGE_QUANTITY + 1);
+      if (quantity > 0)
+      {
+        passenger.addPassengerLuggage(new PassengerLuggage(luggageBaseId + i,
+            quantity, luggageTypes.get(i)));
+        addedAny = true;
+      }
+    }
+
+    if (!addedAny && random.nextBoolean())
+    {
+      passenger.addPassengerLuggage(new PassengerLuggage(luggageBaseId,
+          random.nextInt(1, MAX_LUGGAGE_QUANTITY + 1),
+          randomItem(luggageTypes, random)));
+    }
+  }
+
+  private static List<Seat> randomSeats(Flight flight, int passengerCount,
+      ThreadLocalRandom random)
+  {
+    List<List<Seat>> availableSeatsBySegment = new ArrayList<>();
+    for (Flight segment : getSegments(flight))
+    {
+      availableSeatsBySegment.add(new ArrayList<>(segment.getAvailableSeats()));
+    }
+
+    List<Seat> selectedSeats = new ArrayList<>();
+    for (int passengerIndex = 0; passengerIndex < passengerCount;
+        passengerIndex++)
+    {
+      for (List<Seat> availableSeats : availableSeatsBySegment)
+      {
+        selectedSeats.add(removeRandomSeat(availableSeats, random));
+      }
+    }
+    return selectedSeats;
+  }
+
+  private static Seat removeRandomSeat(List<Seat> seats,
+      ThreadLocalRandom random)
+  {
+    return seats.remove(random.nextInt(seats.size()));
+  }
+
+  private static int maxPassengersForFlight(Flight flight)
+  {
+    int maxPassengers = Integer.MAX_VALUE;
+    for (Flight segment : getSegments(flight))
+    {
+      maxPassengers = Math.min(maxPassengers,
+          segment.getAvailableSeats().size());
+    }
+    return maxPassengers == Integer.MAX_VALUE ? 0 : maxPassengers;
+  }
+
+  private static List<Flight> getSegments(Flight flight)
+  {
+    if (flight instanceof ConnectingFlight connectingFlight)
+    {
+      return List.of(connectingFlight.getFirstSegment(),
+          connectingFlight.getSecondSegment());
+    }
+    return List.of(flight);
+  }
+
+  private static String describePlan(BookingPlan plan)
+  {
+    return plan.passengers.size() + " passenger(s), flight "
+        + plan.flight.getFlightNumber() + " "
+        + plan.flight.getDepartureCity().getCityName() + " -> "
+        + plan.flight.getArrivalCity().getCityName()
+        + ", seats " + describeSeats(plan)
+        + ", luggage " + describeLuggage(plan.passengers);
+  }
+
+  private static String describeSeats(BookingPlan plan)
+  {
+    List<String> seatNames = new ArrayList<>();
+    for (Seat seat : plan.selectedSeats)
+    {
+      seatNames.add(seat.getSeatNumber());
+    }
+    return String.join(", ", seatNames);
+  }
+
+  private static String describeLuggage(List<Passenger> passengers)
+  {
+    List<String> values = new ArrayList<>();
+    for (Passenger passenger : passengers)
+    {
+      if (passenger.getPassengerLuggage().isEmpty())
+      {
+        values.add(passenger.getFullName() + ": none");
+        continue;
+      }
+
+      List<String> luggageValues = new ArrayList<>();
+      for (PassengerLuggage luggage : passenger.getPassengerLuggage())
+      {
+        luggageValues.add(luggage.getQuantity() + "x "
+            + luggage.getLuggageType().getName());
+      }
+      values.add(passenger.getFullName() + ": "
+          + String.join(", ", luggageValues));
+    }
+    return String.join(" | ", values);
+  }
+
+  private static <T> T randomItem(List<T> items, ThreadLocalRandom random)
+  {
+    return items.get(random.nextInt(items.size()));
+  }
+
+  private static String randomItem(String[] items, ThreadLocalRandom random)
+  {
+    return items[random.nextInt(items.length)];
   }
 
   private static void ensureServerIsRunning()
@@ -200,8 +409,12 @@ public class TwoClientBookingSimulation
     throw new IllegalStateException("TravelVIAVIA server did not start.");
   }
 
-  private record ClientCredentials(String label, String email, String password,
-      String firstName, String lastName)
+  private record ClientCredentials(String label, String email, String password)
+  {
+  }
+
+  private record BookingPlan(Flight flight, List<Passenger> passengers,
+      List<Seat> selectedSeats)
   {
   }
 }
