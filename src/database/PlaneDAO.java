@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlaneDAO {
-  // loads all plane types from the database, maps section type to seat counts
+  // loads all plane types from the database
   public List<PlaneType> getAllPlaneTypes() throws SQLException {
     List<PlaneType> planeTypes = new ArrayList<>();
 
@@ -28,11 +28,10 @@ public class PlaneDAO {
         String name = resultSet.getString("name");
         String model = resultSet.getString("model");
         int numberOfColumns = resultSet.getInt("num_of_columns");
-        int seatsCount = resultSet.getInt("num_of_seats");
-        String type = resultSet.getString("type");
 
-        int businessSeats = "Business".equalsIgnoreCase(type) ? seatsCount : 0;
-        int economySeats = "Economy".equalsIgnoreCase(type) ? seatsCount : 0;
+        // every plane gets both business and economy sections
+        int businessSeats = 20;
+        int economySeats = 150;
 
         planeTypes.add(new PlaneType(id, name, model, numberOfColumns, economySeats, businessSeats));
       }

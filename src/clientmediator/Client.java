@@ -326,6 +326,13 @@ public class Client implements ServerModel, AutoCloseable
   @Override public Booking createBooking(Flight flight,
       List<Passenger> passengers, List<Seat> selectedSeats)
   {
+    return createBooking(flight, passengers, selectedSeats, null, null);
+  }
+
+  @Override public Booking createBooking(Flight flight,
+      List<Passenger> passengers, List<Seat> selectedSeats,
+      Flight returnFlight, List<Seat> returnSeats)
+  {
     BookingRequest request = new BookingRequest(DtoMapper.toDto(flight),
         DtoMapper.passengerDtos(passengers), DtoMapper.seatDtos(selectedSeats));
     BookingDto dto = requestObject(RequestType.CREATE_BOOKING, request,

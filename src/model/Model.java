@@ -23,6 +23,9 @@ public interface Model
     Booking createBooking(Flight flight, List<Passenger> passengers,
         List<Seat> selectedSeats);
 
+    Booking createBooking(Flight flight, List<Passenger> passengers,
+        List<Seat> selectedSeats, Flight returnFlight, List<Seat> returnSeats);
+
     void cancelBooking(Booking booking);
 
     List<Booking> getAllBookings();

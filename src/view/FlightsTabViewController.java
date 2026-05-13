@@ -168,10 +168,12 @@ public class FlightsTabViewController {
     }
 
     public void clear() {
-        flightsViewModel.originFilterProperty().set("");
-        flightsViewModel.destinationFilterProperty().set("");
-        flightsViewModel.carrierFilterProperty().set("");
-        flightsViewModel.aircraftFilterProperty().set("All");
+        if (flightsViewModel != null) {
+            flightsViewModel.originFilterProperty().set("");
+            flightsViewModel.destinationFilterProperty().set("");
+            flightsViewModel.carrierFilterProperty().set("");
+            flightsViewModel.aircraftFilterProperty().set("All");
+        }
         if (bookingAdminViewController != null) {
             bookingAdminViewController.clearFilters();
         }

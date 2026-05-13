@@ -90,10 +90,17 @@ public class ServerSessionModel implements Model
   @Override public Booking createBooking(Flight flight,
       List<Passenger> passengers, List<Seat> selectedSeats)
   {
+    return createBooking(flight, passengers, selectedSeats, null, null);
+  }
+
+  @Override public Booking createBooking(Flight flight,
+      List<Passenger> passengers, List<Seat> selectedSeats,
+      Flight returnFlight, List<Seat> returnSeats)
+  {
     synchronized (sharedModel)
     {
-      return sharedModel.createBooking(currentUser, flight, passengers,
-          selectedSeats);
+      return sharedModel.createBookingInternal(currentUser, flight, passengers,
+          selectedSeats, returnFlight, returnSeats);
     }
   }
 

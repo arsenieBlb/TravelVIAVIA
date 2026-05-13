@@ -131,7 +131,18 @@ public class FlightSceneViewController {
         bookTabButton.setOnAction(event -> showBookFlight());
         bookingsTabButton.setOnAction(event -> showMyBookings());
         authButton.setOnAction(event -> handleAuthButton());
-        searchFlightsButton.setOnAction(event -> flightSceneViewModel.searchFlights());
+        searchFlightsButton.setOnAction(event -> {
+            if (flightSceneViewModel.roundTripProperty().get()) {
+                java.time.LocalDate travel = flightSceneViewModel.travelDateProperty().get();
+                java.time.LocalDate ret = flightSceneViewModel.returnDateProperty().get();
+                if (ret != null && travel != null && ret.isBefore(travel)) {
+                    showAlert(Alert.AlertType.ERROR, "Invalid Date",
+                        "Return date must be on or after the departure date.");
+                    return;
+                }
+            }
+            flightSceneViewModel.searchFlights();
+        });
         continueButton.setOnAction(event -> showPassengerDetails());
 
         loginDialogController.init(this);
@@ -548,5 +559,13 @@ public class FlightSceneViewController {
 
     public MyBookingsViewController getMyBookingsViewController() {
         return bookingsViewController;
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

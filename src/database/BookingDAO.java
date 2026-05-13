@@ -26,7 +26,9 @@ public class BookingDAO
     List<Booking> bookings = new ArrayList<>();
 
     try (Connection connection = DatabaseConnection.getConnection()) {
-      String sql = "SELECT booking_id, flight_id, second_flight_id, created_by_customer_id, "
+      String sql = "SELECT booking_id, flight_id, second_flight_id, "
+          + "return_flight_id, second_return_flight_id, "
+          + "created_by_customer_id, "
           + "passenger_count, total_price FROM flights.booking "
           + "ORDER BY booking_id";
       PreparedStatement statement = connection.prepareStatement(sql);
@@ -58,6 +60,26 @@ public class BookingDAO
           if (!passengers.isEmpty()) {
             Booking booking = new Booking(bookingId, LocalDateTime.now(),
                 customer, flight, passengers);
+
+            // load return flight
+            int returnFlightId = resultSet.getInt("return_flight_id");
+            if (!resultSet.wasNull()) {
+                Flight returnFlight = findFlightById(flights, returnFlightId);
+                int secondReturnId = resultSet.getInt("second_return_flight_id");
+                if (!resultSet.wasNull()) {
+                    Flight secondReturn = findFlightById(flights, secondReturnId);
+                    if (secondReturn != null && returnFlight != null) {
+                        returnFlight = new model.ConnectingFlight(returnFlight, secondReturn);
+                    }
+                }
+                if (returnFlight != null) {
+                    booking.setReturnFlight(returnFlight);
+                    for (Passenger passenger : passengers) {
+                        loadSeatAssignments(passenger, returnFlight, connection);
+                    }
+                }
+            }
+
             for (Passenger passenger : passengers) {
                 loadSeatAssignments(passenger, flight, connection);
             }
@@ -79,6 +101,7 @@ public class BookingDAO
     try (Connection connection = DatabaseConnection.getConnection())
     {
       String sql = "SELECT b.booking_id, b.flight_id, b.second_flight_id, "
+          + "b.return_flight_id, b.second_return_flight_id, "
           + "b.created_by_customer_id, b.passenger_count, b.total_price "
           + "FROM flights.booking b "
           + "JOIN flights.booking_customer bc "
@@ -109,7 +132,9 @@ public class BookingDAO
   {
     try (Connection connection = DatabaseConnection.getConnection())
     {
-      String sql = "SELECT booking_id, flight_id, second_flight_id, created_by_customer_id, "
+      String sql = "SELECT booking_id, flight_id, second_flight_id, "
+          + "return_flight_id, second_return_flight_id, "
+          + "created_by_customer_id, "
           + "passenger_count, total_price "
           + "FROM flights.booking WHERE booking_id = ?";
 
@@ -208,6 +233,26 @@ public class BookingDAO
 
     Booking booking = new Booking(bookingId, LocalDateTime.now(), customer, flight,
         passengers);
+
+    // load return flight if present
+    int returnFlightId = resultSet.getInt("return_flight_id");
+    if (!resultSet.wasNull()) {
+        Flight returnFlight = findFlightById(flights, returnFlightId);
+        int secondReturnId = resultSet.getInt("second_return_flight_id");
+        if (!resultSet.wasNull()) {
+            Flight secondReturn = findFlightById(flights, secondReturnId);
+            if (secondReturn != null && returnFlight != null) {
+                returnFlight = new model.ConnectingFlight(returnFlight, secondReturn);
+            }
+        }
+        if (returnFlight != null) {
+            booking.setReturnFlight(returnFlight);
+            for (Passenger passenger : passengers) {
+                loadSeatAssignments(passenger, returnFlight, connection);
+            }
+        }
+    }
+
     for (Passenger passenger : passengers) {
         loadSeatAssignments(passenger, flight, connection);
     }
@@ -278,11 +323,14 @@ public class BookingDAO
 
         // inserts the booking record
         String bookingSql = "INSERT INTO flights.booking "
-            + "(booking_id, flight_id, second_flight_id, created_by_customer_id, "
-            + "passenger_count, total_price) VALUES (?, ?, ?, ?, ?, ?)";
+            + "(booking_id, flight_id, second_flight_id, "
+            + "return_flight_id, second_return_flight_id, "
+            + "created_by_customer_id, "
+            + "passenger_count, total_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement bookingStatement = connection.prepareStatement(bookingSql);
         bookingStatement.setInt(1, booking.getBookingId());
         
+        // store flight IDs
         if (booking.getFlight() instanceof model.ConnectingFlight connectingFlight) {
             bookingStatement.setInt(2, connectingFlight.getFirstSegment().getFlightId());
             bookingStatement.setInt(3, connectingFlight.getSecondSegment().getFlightId());
@@ -290,10 +338,24 @@ public class BookingDAO
             bookingStatement.setInt(2, booking.getFlight().getFlightId());
             bookingStatement.setNull(3, java.sql.Types.INTEGER);
         }
+
+        // save return flight IDs if present
+        if (booking.getReturnFlight() != null) {
+            if (booking.getReturnFlight() instanceof model.ConnectingFlight connReturn) {
+                bookingStatement.setInt(4, connReturn.getFirstSegment().getFlightId());
+                bookingStatement.setInt(5, connReturn.getSecondSegment().getFlightId());
+            } else {
+                bookingStatement.setInt(4, booking.getReturnFlight().getFlightId());
+                bookingStatement.setNull(5, java.sql.Types.INTEGER);
+            }
+        } else {
+            bookingStatement.setNull(4, java.sql.Types.INTEGER);
+            bookingStatement.setNull(5, java.sql.Types.INTEGER);
+        }
         
-        bookingStatement.setInt(4, booking.getCustomer().getUserId());
-        bookingStatement.setInt(5, booking.getPassengers().size());
-        bookingStatement.setDouble(6, booking.getTotalPrice());
+        bookingStatement.setInt(6, booking.getCustomer().getUserId());
+        bookingStatement.setInt(7, booking.getPassengers().size());
+        bookingStatement.setDouble(8, booking.getTotalPrice());
         bookingStatement.executeUpdate();
         
         // inserts the booking-customer link
