@@ -183,7 +183,7 @@ public class ClientHandler implements Runnable, PropertyChangeListener
       case RequestType.GET_CARRIERS -> DtoMapper.carrierDtos(
           model.getCarriers());
       case RequestType.GET_ALL_FLIGHTS -> DtoMapper.flightDtos(
-          model.getAllFlights(), false);
+          model.getAllFlights());
       default -> throw new IllegalArgumentException(
           "Unknown request type: " + request.type);
     };
@@ -226,18 +226,13 @@ public class ClientHandler implements Runnable, PropertyChangeListener
         SearchFlightsRequest.class);
     SearchCriteria criteria = DtoMapper.toCriteria(searchRequest,
         model.getAllCities());
-    // includeSeats=true: the customer seat-map needs the full seat list.
-    // JSON size is safe here because the O(n²) connecting-flight scan is now
-    // guarded by hasCityFilter, so unfiltered calls no longer generate huge result sets.
-    // Admin list responses use GET_ALL_FLIGHTS with includeSeats=false instead.
-    return DtoMapper.flightDtos(model.searchFlights(criteria), true);
+    return DtoMapper.flightDtos(model.searchFlights(criteria));
   }
 
   private Object getFlightDetails(NetworkPackage request)
   {
     IdRequest idRequest = gson.fromJson(request.contentJson, IdRequest.class);
-    // includeSeats=true: detail response must carry the full seat list for the seat map.
-    return DtoMapper.toDto(model.getFlightDetails(idRequest.id), true);
+    return DtoMapper.toDto(model.getFlightDetails(idRequest.id));
   }
 
   private Object createBooking(NetworkPackage request)

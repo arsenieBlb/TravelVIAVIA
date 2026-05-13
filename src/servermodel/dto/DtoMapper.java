@@ -132,11 +132,6 @@ public final class DtoMapper
 
   public static PlaneDto toDto(Plane plane)
   {
-    return toDto(plane, true);
-  }
-
-  public static PlaneDto toDto(Plane plane, boolean includeSeats)
-  {
     if (plane == null)
     {
       return null;
@@ -155,12 +150,9 @@ public final class DtoMapper
     dto.numberOfEconomySeats = planeType.getNumberOfEconomySeats();
     dto.numberOfBusinessSeats = planeType.getNumberOfBusinessSeats();
 
-    if (includeSeats)
+    for (Seat seat : plane.getSeats())
     {
-      for (Seat seat : plane.getSeats())
-      {
-        dto.seats.add(toDto(seat));
-      }
+      dto.seats.add(toDto(seat));
     }
     return dto;
   }
@@ -193,19 +185,6 @@ public final class DtoMapper
 
   public static FlightDto toDto(Flight flight)
   {
-    return toDto(flight, true);
-  }
-
-  /**
-   * Converts a Flight to a FlightDto.
-   *
-   * @param includeSeats when true the full seat list is embedded in the plane
-   *                     DTO (needed for the seat-map view); when false only
-   *                     the metadata is included (used for list responses to
-   *                     keep JSON size manageable).
-   */
-  public static FlightDto toDto(Flight flight, boolean includeSeats)
-  {
     if (flight == null)
     {
       return null;
@@ -217,7 +196,7 @@ public final class DtoMapper
     dto.arrivalTime = flight.getArrivalTime().toString();
     dto.basePrice = flight.getBasePrice();
     dto.carrier = toDto(flight.getCarrier());
-    dto.plane = toDto(flight.getPlane(), includeSeats);
+    dto.plane = toDto(flight.getPlane());
     dto.departureCity = toDto(flight.getDepartureCity());
     dto.arrivalCity = toDto(flight.getArrivalCity());
 
@@ -229,8 +208,8 @@ public final class DtoMapper
     if (flight instanceof ConnectingFlight connectingFlight)
     {
       dto.connecting = true;
-      dto.firstSegment = toDto(connectingFlight.getFirstSegment(), includeSeats);
-      dto.secondSegment = toDto(connectingFlight.getSecondSegment(), includeSeats);
+      dto.firstSegment = toDto(connectingFlight.getFirstSegment());
+      dto.secondSegment = toDto(connectingFlight.getSecondSegment());
     }
     return dto;
   }
@@ -457,24 +436,12 @@ public final class DtoMapper
 
   public static List<FlightDto> flightDtos(List<Flight> flights)
   {
-    return flightDtos(flights, true);
-  }
-
-  /**
-   * Converts a list of flights to DTOs.
-   *
-   * @param includeSeats pass false for list/search responses to omit the
-   *                     per-plane seat list and keep the JSON payload small.
-   */
-  public static List<FlightDto> flightDtos(List<Flight> flights,
-      boolean includeSeats)
-  {
     List<FlightDto> dtos = new ArrayList<>();
     if (flights != null)
     {
       for (Flight flight : flights)
       {
-        dtos.add(toDto(flight, includeSeats));
+        dtos.add(toDto(flight));
       }
     }
     return dtos;

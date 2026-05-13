@@ -138,39 +138,30 @@ public class FlightSearchService
             }
         }
 
-        // Only search for connecting flights when at least one city filter is
-        // provided. Without any filter this is an O(n²) scan that generates
-        // every possible flight pair as a ConnectingFlight — useless and the
-        // primary cause of the OutOfMemoryError when no criteria is supplied.
-        boolean hasCityFilter = criteria.getDepartureCity() != null
-                || criteria.getArrivalCity() != null;
+        // then look for 1-stop connecting flights
+        for (Flight first : allFlights) {
+            boolean originMatch = (criteria.getDepartureCity() == null) || 
+                                  first.getDepartureCity().equals(criteria.getDepartureCity());
+            boolean dateMatch = (criteria.getDepartureDate() == null) || 
+                                first.getDepartureTime().toLocalDate().equals(criteria.getDepartureDate());
 
-        if (hasCityFilter) {
-            // then look for 1-stop connecting flights
-            for (Flight first : allFlights) {
-                boolean originMatch = (criteria.getDepartureCity() == null) ||
-                                      first.getDepartureCity().equals(criteria.getDepartureCity());
-                boolean dateMatch = (criteria.getDepartureDate() == null) ||
-                                    first.getDepartureTime().toLocalDate().equals(criteria.getDepartureDate());
-
-                if (originMatch && dateMatch) {
-                    for (Flight second : allFlights) {
-                        boolean destMatch = (criteria.getArrivalCity() == null) ||
-                                            second.getArrivalCity().equals(criteria.getArrivalCity());
-
-                        // checking if the cities connect
-                        boolean connects = first.getArrivalCity().equals(second.getDepartureCity());
-                        boolean differentCities = !first.getDepartureCity().equals(second.getArrivalCity());
-
-                        if (destMatch && connects && differentCities) {
-                            // checking the layover time, it should be between 1 and 336 hours (14 days)
-                            long layoverHours = java.time.Duration.between(first.getArrivalTime(), second.getDepartureTime()).toHours();
-                            if (layoverHours >= 1 && layoverHours <= 336) {
-                                if (first.getAvailableSeats().size() >= criteria.getPassengerCount() &&
-                                    second.getAvailableSeats().size() >= criteria.getPassengerCount()) {
-                                    ConnectingFlight connection = new ConnectingFlight(first, second);
-                                    results.add(connection);
-                                }
+            if (originMatch && dateMatch) {
+                for (Flight second : allFlights) {
+                    boolean destMatch = (criteria.getArrivalCity() == null) || 
+                                        second.getArrivalCity().equals(criteria.getArrivalCity());
+                    
+                    // checking if the cities connect
+                    boolean connects = first.getArrivalCity().equals(second.getDepartureCity());
+                    boolean differentCities = !first.getDepartureCity().equals(second.getArrivalCity());
+                    
+                    if (destMatch && connects && differentCities) {
+                        // checking the layover time, it should be between 1 and 336 hours (14 days)
+                        long layoverHours = java.time.Duration.between(first.getArrivalTime(), second.getDepartureTime()).toHours();
+                        if (layoverHours >= 1 && layoverHours <= 336) {
+                            if (first.getAvailableSeats().size() >= criteria.getPassengerCount() &&
+                                second.getAvailableSeats().size() >= criteria.getPassengerCount()) {
+                                ConnectingFlight connection = new ConnectingFlight(first, second);
+                                results.add(connection);
                             }
                         }
                     }

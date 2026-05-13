@@ -35,11 +35,7 @@ public class FlightsTabViewModel {
     }
 
     private void loadInitialData() {
-        // Use getAllFlights() instead of searchFlights(empty criteria).
-        // searchFlights with no filters runs an O(n²) connecting-flight scan
-        // across the full recurring-flight set and returns all results,
-        // which caused an OutOfMemoryError when Gson serialised the response.
-        allFlights.setAll(model.getAllFlights());
+        allFlights.setAll(model.searchFlights(new SearchCriteria()));
     }
 
     private void updatePredicate() {
@@ -71,6 +67,6 @@ public class FlightsTabViewModel {
 
     public void refreshFromModel()
     {
-        allFlights.setAll(model.getAllFlights());
+        allFlights.setAll(model.searchFlights(new SearchCriteria()));
     }
 }
