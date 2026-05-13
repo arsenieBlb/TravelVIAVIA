@@ -6,9 +6,9 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import model.Flight;
 import model.Model;
-import model.SearchCriteria;
 
 import java.time.LocalDate;
+import java.util.stream.Collectors;
 
 public class FlightsTabViewModel {
     private final Model model;
@@ -35,7 +35,7 @@ public class FlightsTabViewModel {
     }
 
     private void loadInitialData() {
-        allFlights.setAll(model.searchFlights(new SearchCriteria()));
+        allFlights.setAll(model.getAllFlights());
     }
 
     private void updatePredicate() {
@@ -67,6 +67,18 @@ public class FlightsTabViewModel {
 
     public void refreshFromModel()
     {
-        allFlights.setAll(model.searchFlights(new SearchCriteria()));
+        allFlights.setAll(model.getAllFlights());
+    }
+
+    public ObservableList<String> getUniqueAircraftModels()
+    {
+        return allFlights.stream()
+                .filter(flight -> flight.getPlane() != null
+                        && flight.getPlane().getPlaneType() != null
+                        && flight.getPlane().getPlaneType().getModel() != null)
+                .map(flight -> flight.getPlane().getPlaneType().getModel())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toCollection(FXCollections::observableArrayList));
     }
 }

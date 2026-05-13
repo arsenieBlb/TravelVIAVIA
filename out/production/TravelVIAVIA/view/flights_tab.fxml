@@ -101,10 +101,10 @@
                         <VBox spacing="4">
                             <Label text="Aircraft" styleClass="label-filter"/>
                             <ComboBox fx:id="aircraftFilterCombo"
-                                  promptText="All"
-                                  prefWidth="150"
-                                  maxWidth="150"
-                                  styleClass="filter-input"/>
+                                   promptText="All"
+                                   prefWidth="150"
+                                   maxWidth="150"
+                                   styleClass="filter-input"/>
                         </VBox>
                         <VBox spacing="4">
                             <Label text="Carrier" styleClass="label-filter"/>
@@ -133,29 +133,9 @@
                 </TableView>
             </VBox>
 
-<<<<<<< Updated upstream
             <StackPane fx:id="bookingsView" visible="false" managed="false">
                 <fx:include fx:id="bookingAdminView" source="booking_view_admin.fxml"/>
             </StackPane>
-=======
-            <StackPane styleClass="table-card" VBox.vgrow="ALWAYS">
-                <TableView fx:id="flightsTable" styleClass="data-table">
-                    <columns>
-                        <TableColumn fx:id="flightIdColumn" text="FLIGHT ID" prefWidth="120"/>
-                        <TableColumn fx:id="carrierColumn" text="CARRIER" prefWidth="220"/>
-                        <TableColumn fx:id="aircraftColumn" text="AIRCRAFT" prefWidth="170"/>
-                        <TableColumn fx:id="routeColumn" text="ROUTE" prefWidth="190"/>
-                        <TableColumn fx:id="departureColumn" text="DEPARTURE" prefWidth="170"/>
-                        <TableColumn fx:id="arrivalColumn" text="ARRIVAL" prefWidth="170"/>
-                    </columns>
-                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-                </TableView>
-            </StackPane>
-        </VBox>
-
-        <StackPane fx:id="bookingsView" visible="false" managed="false">
-            <fx:include fx:id="bookingAdminView" source="booking_view_admin.fxml"/>
->>>>>>> Stashed changes
         </StackPane>
     </VBox>
 </HBox>
