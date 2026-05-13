@@ -307,14 +307,16 @@
 
 .card-table {
     -fx-background-color: white;
-    -fx-background-radius: 14;
+    -fx-background-radius:8;
     -fx-border-color: #e2e8f0;
-    -fx-border-radius: 14;
+    -fx-border-radius: 8;
     -fx-padding: 0;
     -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.05), 10, 0.1, 0, 1);
 }
 
 .flight-table {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
     -fx-background-color: white;
     -fx-table-cell-border-color: #e2e8f0;
     -fx-border-color: transparent;
@@ -322,6 +324,7 @@
 
 .flight-table .column-header-background {
     -fx-background-color: linear-gradient(to right, #f8fafc, #f1f5f9);
+    -fx-background-radius: 8 8 0 0;
 }
 
 .flight-table .column-header,
