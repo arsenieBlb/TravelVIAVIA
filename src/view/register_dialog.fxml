@@ -17,7 +17,7 @@
            xmlns:fx="http://javafx.com/fxml/1">
 
     <children>
-        <VBox spacing="14.0" styleClass="modal-card" maxHeight="-Infinity">
+        <VBox spacing="14.0" styleClass="modal-card">
             <children>
                 <HBox alignment="CENTER_LEFT">
                     <children>
@@ -56,9 +56,7 @@
                 </VBox>
 
                 <!-- TEAM TODO: register new account -->
-                <HBox alignment="CENTER_RIGHT">
-                    <Button fx:id="registerSubmitButton" text="Create account" styleClass="btn-primary"/>
-                </HBox>
+                <Button fx:id="registerSubmitButton" text="Create account" styleClass="btn-primary"/>
                 <Label fx:id="registerErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
 
                 <Separator/>

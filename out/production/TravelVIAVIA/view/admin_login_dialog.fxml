@@ -17,8 +17,8 @@
            xmlns:fx="http://javafx.com/fxml/1">
 
     <children>
-        <VBox spacing="14.0" styleClass="modal-card" maxHeight="-Infinity">
-        <children>
+        <VBox spacing="14.0" styleClass="modal-card">
+            <children>
                 <HBox alignment="CENTER_LEFT">
                     <children>
                         <Label text="Admin Login" styleClass="modal-title"/>
@@ -42,10 +42,8 @@
                 </VBox>
 
                 <!-- TEAM TODO: admin auth + role routing -->
-            <HBox alignment="CENTER_RIGHT">
                 <Button fx:id="adminSubmitButton" text="Login as Admin" styleClass="btn-dark"/>
-            </HBox>
-            <Label fx:id="adminErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
+                <Label fx:id="adminErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
 
                 <Separator/>
 

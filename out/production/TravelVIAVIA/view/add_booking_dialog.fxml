@@ -15,9 +15,8 @@
            xmlns:fx="http://javafx.com/fxml/1">
 
     <children>
-        <VBox spacing="14.0" styleClass="modal-card" maxHeight="-Infinity">
-
-        <children>
+        <VBox spacing="14.0" styleClass="modal-card">
+            <children>
                 <HBox alignment="CENTER_LEFT">
                     <children>
                         <Label text="Add New Booking" styleClass="modal-title"/>
@@ -41,9 +40,8 @@
                 </VBox>
 
                 <Label fx:id="addBookingErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
-                <Region prefHeight="18.0"/>
 
-                <HBox spacing="14.0" alignment="CENTER">
+                <HBox spacing="10.0">
                     <children>
                         <!-- TEAM TODO: close modal + clear form -->
                         <Button fx:id="cancelAddBookingButton" text="Cancel" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="btn-outline"/>
