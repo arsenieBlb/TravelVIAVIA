@@ -187,11 +187,20 @@ public class FlightSceneViewModel {
     // checks if a flight has enough available seats for the number of passengers
     private boolean hasEnoughSeats(Flight flight, int needed) {
         if (flight instanceof ConnectingFlight conn) {
-            int seg1Seats = conn.getFirstSegment().getAvailableSeats().size();
-            int seg2Seats = conn.getSecondSegment().getAvailableSeats().size();
-            return seg1Seats >= needed && seg2Seats >= needed;
+            return hasEnoughSeats(conn.getFirstSegment(), needed)
+                    && hasEnoughSeats(conn.getSecondSegment(), needed);
         }
-        return flight.getAvailableSeats().size() >= needed;
+        List<Seat> available = flight.getAvailableSeats();
+        if (!available.isEmpty()) {
+            return available.size() >= needed;
+        }
+        // Summary DTO path: plane seats are not loaded (GET_ALL_FLIGHTS omits them
+        // to keep payload small). Fall back to the plane-type total seat capacity so
+        // that the initial flight list still shows results. Exact seat availability
+        // is enforced by the server at the time of booking / seat selection.
+        int capacity = flight.getPlane().getPlaneType().getNumberOfEconomySeats()
+                + flight.getPlane().getPlaneType().getNumberOfBusinessSeats();
+        return capacity >= needed;
     }
 
     private boolean isFlightDirect(Flight f) {
