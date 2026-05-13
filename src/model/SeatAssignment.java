@@ -25,7 +25,15 @@ public class SeatAssignment
     }
     boolean isValidFlight = passenger.getBooking().getFlight() == flight;
     if (passenger.getBooking().getFlight() instanceof ConnectingFlight cf) {
-        isValidFlight = cf.getFirstSegment() == flight || cf.getSecondSegment() == flight;
+        isValidFlight = isValidFlight || cf.getFirstSegment() == flight || cf.getSecondSegment() == flight;
+    }
+    // also accept return flight segments
+    Flight returnFlight = passenger.getBooking().getReturnFlight();
+    if (returnFlight != null) {
+        isValidFlight = isValidFlight || returnFlight == flight;
+        if (returnFlight instanceof ConnectingFlight rcf) {
+            isValidFlight = isValidFlight || rcf.getFirstSegment() == flight || rcf.getSecondSegment() == flight;
+        }
     }
     if (!isValidFlight)
     {

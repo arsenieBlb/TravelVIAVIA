@@ -48,9 +48,34 @@ public class RegisterDialogController
 
   private void register()
   {
-    if (!owner.registerCustomer(registerNameField.getText(),
-        registerLastNameField.getText(), registerEmailField.getText(),
-        registerPasswordField.getText()))
+    String firstName = registerNameField.getText().trim();
+    String lastName = registerLastNameField.getText().trim();
+    String email = registerEmailField.getText().trim();
+    String password = registerPasswordField.getText();
+
+    // name cannot contain numbers
+    if (firstName.isEmpty() || containsDigit(firstName)) {
+      showError("First name is required and cannot contain numbers.");
+      return;
+    }
+    if (lastName.isEmpty() || containsDigit(lastName)) {
+      showError("Last name is required and cannot contain numbers.");
+      return;
+    }
+
+    // email must end with @gmail.com
+    if (!email.contains("@gmail.com")) {
+      showError("Email must be a valid @gmail.com address.");
+      return;
+    }
+
+    // password at least 8 characters
+    if (password.length() < 8) {
+      showError("Password must be at least 8 characters long.");
+      return;
+    }
+
+    if (!owner.registerCustomer(firstName, lastName, email, password))
     {
       showError("Could not create the account. Check the fields and try again.");
       return;
@@ -59,6 +84,13 @@ public class RegisterDialogController
     registerPasswordField.clear();
     hide();
     owner.showLoginDialog();
+  }
+
+  private boolean containsDigit(String text) {
+    for (char c : text.toCharArray()) {
+      if (Character.isDigit(c)) return true;
+    }
+    return false;
   }
 
   private void showError(String message)

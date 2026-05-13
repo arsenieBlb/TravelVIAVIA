@@ -17,6 +17,7 @@ public class Booking
   private double totalPrice;
   private Customer customer;
   private Flight flight;
+  private Flight returnFlight;
   private final List<Passenger> passengers;
   private boolean cancelled;
 
@@ -58,6 +59,13 @@ public class Booking
         boolean isMatch = seatAssignment.getFlight().equals(flight);
         if (flight instanceof ConnectingFlight cf) {
             isMatch = isMatch || seatAssignment.getFlight().equals(cf.getFirstSegment()) || seatAssignment.getFlight().equals(cf.getSecondSegment());
+        }
+        // also check return flight seats
+        if (returnFlight != null) {
+            isMatch = isMatch || seatAssignment.getFlight().equals(returnFlight);
+            if (returnFlight instanceof ConnectingFlight rcf) {
+                isMatch = isMatch || seatAssignment.getFlight().equals(rcf.getFirstSegment()) || seatAssignment.getFlight().equals(rcf.getSecondSegment());
+            }
         }
         if (isMatch) {
           seatAssignment.release();
@@ -116,6 +124,14 @@ public class Booking
     }
 
     summary.append("Total price: ").append(totalPrice);
+
+    if (returnFlight != null) {
+        summary.append(System.lineSeparator());
+        summary.append("Return Flight: ").append(returnFlight.getFlightNumber()).append(" ")
+            .append(returnFlight.getDepartureCity().getCityName()).append(" -> ")
+            .append(returnFlight.getArrivalCity().getCityName());
+    }
+
     return summary.toString();
   }
 
@@ -144,6 +160,27 @@ public class Booking
             }
 
             basePrice += passengerBasePrice;
+
+            // add return flight base price if present
+            if (returnFlight != null) {
+                double returnBase = returnFlight.getBasePrice();
+                for (SeatAssignment sa : passenger.getSeatAssignments()) {
+                    if (returnFlight instanceof ConnectingFlight cf) {
+                        if (sa.getFlight().equals(cf.getFirstSegment()) || sa.getFlight().equals(cf.getSecondSegment())) {
+                            if (sa.getSeat().getSeatClass() instanceof BusinessClass) {
+                                returnBase *= 1.5;
+                                break;
+                            }
+                        }
+                    } else if (sa.getFlight().equals(returnFlight)) {
+                        if (sa.getSeat().getSeatClass() instanceof BusinessClass) {
+                            returnBase *= 1.5;
+                            break;
+                        }
+                    }
+                }
+                basePrice += returnBase;
+            }
 
             for (PassengerLuggage luggage : passenger.getPassengerLuggage())
             {
@@ -241,6 +278,16 @@ public class Booking
   public void setFlight(Flight flight)
   {
     this.flight = Objects.requireNonNull(flight, "Flight is required.");
+  }
+
+  public Flight getReturnFlight()
+  {
+    return returnFlight;
+  }
+
+  public void setReturnFlight(Flight returnFlight)
+  {
+    this.returnFlight = returnFlight;
   }
 
   public List<Passenger> getPassengers()
