@@ -14,7 +14,7 @@ public class ModelConsoleSimulation extends Application
 
         ViewModelFactory viewModelFactory = new ViewModelFactory(model);
         ViewHandler viewHandler = new ViewHandler(viewModelFactory);
-
+        primaryStage.setMaximized(true);
         viewHandler.start(primaryStage);
     }
 
