@@ -26,8 +26,11 @@ public class BookingDAO
     List<Booking> bookings = new ArrayList<>();
 
     try (Connection connection = DatabaseConnection.getConnection()) {
+      boolean hasReturnFlightColumns = hasReturnFlightColumns(connection);
       String sql = "SELECT booking_id, flight_id, second_flight_id, "
-          + "return_flight_id, second_return_flight_id, "
+          + (hasReturnFlightColumns
+          ? "return_flight_id, second_return_flight_id, "
+          : "NULL::int AS return_flight_id, NULL::int AS second_return_flight_id, ")
           + "created_by_customer_id, "
           + "passenger_count, total_price FROM flights.booking "
           + "ORDER BY booking_id";
@@ -100,8 +103,11 @@ public class BookingDAO
 
     try (Connection connection = DatabaseConnection.getConnection())
     {
+      boolean hasReturnFlightColumns = hasReturnFlightColumns(connection);
       String sql = "SELECT b.booking_id, b.flight_id, b.second_flight_id, "
-          + "b.return_flight_id, b.second_return_flight_id, "
+          + (hasReturnFlightColumns
+          ? "b.return_flight_id, b.second_return_flight_id, "
+          : "NULL::int AS return_flight_id, NULL::int AS second_return_flight_id, ")
           + "b.created_by_customer_id, b.passenger_count, b.total_price "
           + "FROM flights.booking b "
           + "JOIN flights.booking_customer bc "
@@ -132,8 +138,11 @@ public class BookingDAO
   {
     try (Connection connection = DatabaseConnection.getConnection())
     {
+      boolean hasReturnFlightColumns = hasReturnFlightColumns(connection);
       String sql = "SELECT booking_id, flight_id, second_flight_id, "
-          + "return_flight_id, second_return_flight_id, "
+          + (hasReturnFlightColumns
+          ? "return_flight_id, second_return_flight_id, "
+          : "NULL::int AS return_flight_id, NULL::int AS second_return_flight_id, ")
           + "created_by_customer_id, "
           + "passenger_count, total_price "
           + "FROM flights.booking WHERE booking_id = ?";
@@ -318,15 +327,27 @@ public class BookingDAO
       connection.setAutoCommit(false);
       try
       {
+        boolean hasReturnFlightColumns = hasReturnFlightColumns(connection);
+        if (!hasReturnFlightColumns && booking.getReturnFlight() != null)
+        {
+          throw new SQLException(
+              "Roundtrip bookings require return_flight_id columns in flights.booking.");
+        }
+
         int bookingId = getNextId(connection, "booking", "booking_id");
         booking.setBookingId(bookingId);
 
         // inserts the booking record
-        String bookingSql = "INSERT INTO flights.booking "
+        String bookingSql = hasReturnFlightColumns
+            ? "INSERT INTO flights.booking "
             + "(booking_id, flight_id, second_flight_id, "
             + "return_flight_id, second_return_flight_id, "
             + "created_by_customer_id, "
-            + "passenger_count, total_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            + "passenger_count, total_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            : "INSERT INTO flights.booking "
+            + "(booking_id, flight_id, second_flight_id, "
+            + "created_by_customer_id, "
+            + "passenger_count, total_price) VALUES (?, ?, ?, ?, ?, ?)";
         PreparedStatement bookingStatement = connection.prepareStatement(bookingSql);
         bookingStatement.setInt(1, booking.getBookingId());
         
@@ -339,23 +360,32 @@ public class BookingDAO
             bookingStatement.setNull(3, java.sql.Types.INTEGER);
         }
 
-        // save return flight IDs if present
-        if (booking.getReturnFlight() != null) {
-            if (booking.getReturnFlight() instanceof model.ConnectingFlight connReturn) {
-                bookingStatement.setInt(4, connReturn.getFirstSegment().getFlightId());
-                bookingStatement.setInt(5, connReturn.getSecondSegment().getFlightId());
-            } else {
-                bookingStatement.setInt(4, booking.getReturnFlight().getFlightId());
-                bookingStatement.setNull(5, java.sql.Types.INTEGER);
-            }
-        } else {
-            bookingStatement.setNull(4, java.sql.Types.INTEGER);
-            bookingStatement.setNull(5, java.sql.Types.INTEGER);
+        if (hasReturnFlightColumns)
+        {
+          // save return flight IDs if present
+          if (booking.getReturnFlight() != null) {
+              if (booking.getReturnFlight() instanceof model.ConnectingFlight connReturn) {
+                  bookingStatement.setInt(4, connReturn.getFirstSegment().getFlightId());
+                  bookingStatement.setInt(5, connReturn.getSecondSegment().getFlightId());
+              } else {
+                  bookingStatement.setInt(4, booking.getReturnFlight().getFlightId());
+                  bookingStatement.setNull(5, java.sql.Types.INTEGER);
+              }
+          } else {
+              bookingStatement.setNull(4, java.sql.Types.INTEGER);
+              bookingStatement.setNull(5, java.sql.Types.INTEGER);
+          }
+
+          bookingStatement.setInt(6, booking.getCustomer().getUserId());
+          bookingStatement.setInt(7, booking.getPassengers().size());
+          bookingStatement.setDouble(8, booking.getTotalPrice());
         }
-        
-        bookingStatement.setInt(6, booking.getCustomer().getUserId());
-        bookingStatement.setInt(7, booking.getPassengers().size());
-        bookingStatement.setDouble(8, booking.getTotalPrice());
+        else
+        {
+          bookingStatement.setInt(4, booking.getCustomer().getUserId());
+          bookingStatement.setInt(5, booking.getPassengers().size());
+          bookingStatement.setDouble(6, booking.getTotalPrice());
+        }
         bookingStatement.executeUpdate();
         
         // inserts the booking-customer link
@@ -475,6 +505,24 @@ public class BookingDAO
     ResultSet resultSet = statement.executeQuery();
     resultSet.next();
     return resultSet.getInt("next_id");
+  }
+
+  private boolean hasReturnFlightColumns(Connection connection)
+      throws SQLException
+  {
+    return hasColumn(connection, "flights", "booking", "return_flight_id")
+        && hasColumn(connection, "flights", "booking",
+        "second_return_flight_id");
+  }
+
+  private boolean hasColumn(Connection connection, String schemaName,
+      String tableName, String columnName) throws SQLException
+  {
+    try (ResultSet resultSet = connection.getMetaData()
+        .getColumns(null, schemaName, tableName, columnName))
+    {
+      return resultSet.next();
+    }
   }
 
   // finds a flight by ID in the provided list

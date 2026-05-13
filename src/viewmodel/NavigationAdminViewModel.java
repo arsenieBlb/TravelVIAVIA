@@ -46,10 +46,7 @@ public class NavigationAdminViewModel {
     }
 
     public ObservableList<String> getUniqueAircraftModels() {
-        return model.searchFlights(new model.SearchCriteria()).stream()
-                .map(flight -> flight.getPlane().getPlaneType().getModel())
-                .distinct()
-                .collect(java.util.stream.Collectors.toCollection(javafx.collections.FXCollections::observableArrayList));
+        return getFlightsTabViewModel().getUniqueAircraftModels();
     }
 
     public void logout()
