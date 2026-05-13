@@ -180,32 +180,28 @@ public class PassengerDetailsViewModel
       passengers.add(passenger);
     }
 
-    // create outbound booking
-    Booking outboundBooking = model.createBooking(flight, passengers, selectedSeats);
-
-    // create return booking if roundtrip
-    if (selectedReturnFlight.get() != null) {
-        Flight returnFlight = selectedReturnFlight.get();
-        List<Passenger> returnPassengers = new ArrayList<>();
-        List<Seat> returnSeats = new ArrayList<>();
+    // collect return seats if roundtrip
+    Flight returnFlight = selectedReturnFlight.get();
+    List<Seat> returnSeats = null;
+    if (returnFlight != null) {
+        returnSeats = new ArrayList<>();
         List<Flight> returnSegments = getReturnFlightSegments();
         int outboundSegmentCount = getFlightSegments().size();
 
         for (PassengerForm form : passengerForms) {
-            Passenger returnPassenger = new Passenger(nextDraftPassengerId++,
-                requireText(form.getFirstName(), "First name"),
-                requireText(form.getLastName(), "Last name"));
             for (int segmentIndex = 0; segmentIndex < returnSegments.size(); segmentIndex++) {
                 returnSeats.add(form.getSelectedSeat(outboundSegmentCount + segmentIndex));
             }
-            returnPassengers.add(returnPassenger);
         }
-        model.createBooking(returnFlight, returnPassengers, returnSeats);
     }
+
+    // create a single booking with both outbound and return
+    Booking booking = model.createBooking(flight, passengers, selectedSeats,
+        returnFlight, returnSeats);
 
     clearPassengerForms();
     flightSceneViewModel.clear();
-    return outboundBooking;
+    return booking;
   }
 
     private void clearPassengerForms()

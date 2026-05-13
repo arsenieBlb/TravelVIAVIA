@@ -122,38 +122,46 @@ public class FlightSceneViewModel {
 
     public void loadFirstFlight() {
         searchFlights();
-        if (!filteredFlights.isEmpty()) {
-            setSelectedFlight(filteredFlights.get(0));
-        }
     }
 
     public void searchFlights() {
         if (model == null) return;
 
-        SearchCriteria criteria = new SearchCriteria();
-        criteria.setDepartureCity(departureCity.get());
-        criteria.setArrivalCity(arrivalCity.get());
-        // set the travel date so we only search for flights on this day
-        criteria.setDepartureDate(travelDate.get());
+        boolean noCriteria = departureCity.get() == null
+            && arrivalCity.get() == null;
 
-        List<Flight> flights = model.searchFlights(criteria);
+        List<Flight> flights;
+
+        if (noCriteria) {
+            // show first 10 upcoming flights when no search criteria is set
+            List<Flight> upcoming = new ArrayList<>(model.getAllFlights());
+            upcoming.sort(Comparator.comparing(Flight::getDepartureTime));
+            // only show flights that haven't departed yet
+            upcoming.removeIf(f -> f.getDepartureTime().isBefore(java.time.LocalDateTime.now()));
+            flights = upcoming.size() > 10 ? upcoming.subList(0, 10) : upcoming;
+        } else {
+            SearchCriteria criteria = new SearchCriteria();
+            criteria.setDepartureCity(departureCity.get());
+            criteria.setArrivalCity(arrivalCity.get());
+            criteria.setDepartureDate(travelDate.get());
+            flights = model.searchFlights(criteria);
+        }
 
         allFlights.clear();
         filteredFlights.clear();
 
         if (flights != null) {
-            allFlights.addAll(flights);
+            int needed = passengerCount.get();
 
-            if (directOnly.get()) {
-                for (Flight f : flights) {
-                    // if it is not a connecting flight, it means it is direct
-                    if (!(f instanceof ConnectingFlight)) {
-                        filteredFlights.add(f);
-                    }
-                }
-            } else {
-                filteredFlights.addAll(flights);
+            for (Flight f : flights) {
+                // filter out flights with not enough seats
+                if (!hasEnoughSeats(f, needed)) continue;
+
+                if (directOnly.get() && f instanceof ConnectingFlight) continue;
+
+                allFlights.add(f);
             }
+            filteredFlights.addAll(allFlights);
         }
 
         // search return flights if roundtrip is selected
@@ -166,17 +174,24 @@ public class FlightSceneViewModel {
 
             List<Flight> returnResults = model.searchFlights(returnCriteria);
             if (returnResults != null) {
-                if (directOnly.get()) {
-                    for (Flight f : returnResults) {
-                        if (!(f instanceof ConnectingFlight)) {
-                            returnFlights.add(f);
-                        }
-                    }
-                } else {
-                    returnFlights.addAll(returnResults);
+                int needed = passengerCount.get();
+                for (Flight f : returnResults) {
+                    if (!hasEnoughSeats(f, needed)) continue;
+                    if (directOnly.get() && f instanceof ConnectingFlight) continue;
+                    returnFlights.add(f);
                 }
             }
         }
+    }
+
+    // checks if a flight has enough available seats for the number of passengers
+    private boolean hasEnoughSeats(Flight flight, int needed) {
+        if (flight instanceof ConnectingFlight conn) {
+            int seg1Seats = conn.getFirstSegment().getAvailableSeats().size();
+            int seg2Seats = conn.getSecondSegment().getAvailableSeats().size();
+            return seg1Seats >= needed && seg2Seats >= needed;
+        }
+        return flight.getAvailableSeats().size() >= needed;
     }
 
     private boolean isFlightDirect(Flight f) {
@@ -347,9 +362,12 @@ public class FlightSceneViewModel {
     }
 
     public ObservableList<String> getUniqueCarriers() {
-        return FXCollections.observableArrayList(
-                allFlights.stream().map(f -> f.getCarrier().getName()).distinct().sorted().toList()
-        );
+        List<String> names = new ArrayList<>();
+        for (Carrier c : model.getCarriers()) {
+            names.add(c.getName());
+        }
+        names.sort(String::compareTo);
+        return FXCollections.observableArrayList(names);
     }
 
     public void filterByCarrier(String carrierName) {

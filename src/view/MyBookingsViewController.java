@@ -95,9 +95,18 @@ public class MyBookingsViewController
     VBox dateBox = createBookingCardValue("DATE ADDED",
         booking.getBookingDate().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
         "booking-card-date");
-    VBox routeBox = createBookingCardValue("ROUTE",
-        flight.getDepartureCity().getCityName() + " -> "
-            + flight.getArrivalCity().getCityName(), "booking-card-value");
+
+    String routeText = flight.getDepartureCity().getCityName() + " → "
+        + flight.getArrivalCity().getCityName();
+
+    // show return route if roundtrip
+    if (booking.getReturnFlight() != null) {
+        Flight returnFlight = booking.getReturnFlight();
+        routeText += "\n↩ " + returnFlight.getDepartureCity().getCityName()
+            + " → " + returnFlight.getArrivalCity().getCityName();
+    }
+
+    VBox routeBox = createBookingCardValue("ROUTE", routeText, "booking-card-value");
 
     card.getChildren().addAll(header, passengerBox, dateBox, routeBox);
     return card;

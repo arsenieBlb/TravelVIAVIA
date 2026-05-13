@@ -77,6 +77,24 @@ public class BookingDetailsDialogController
 
     bookingDetailsContent.getChildren().add(createFlightInformationPanel(
         segments));
+
+    // show return flight info if roundtrip booking
+    if (currentBooking.getReturnFlight() != null) {
+        Flight returnFlight = currentBooking.getReturnFlight();
+        List<Flight> returnSegments = new java.util.ArrayList<>();
+        if (returnFlight instanceof model.ConnectingFlight connReturn) {
+            returnSegments.add(connReturn.getFirstSegment());
+            returnSegments.add(connReturn.getSecondSegment());
+        } else {
+            returnSegments.add(returnFlight);
+        }
+        bookingDetailsContent.getChildren().add(createReturnFlightPanel(
+            returnSegments));
+    }
+
+    // show all passengers with their seat info
+    bookingDetailsContent.getChildren().add(createPassengersPanel(segments));
+
     bookingDetailsContent.getChildren().add(createFareSummaryPanel());
   }
 
@@ -173,7 +191,7 @@ public class BookingDetailsDialogController
     details.setVgap(4);
     details.getStyleClass().add("booking-segment-details");
     details.add(createSmallDetail("Departure",
-        flight.getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm"))),
+        flight.getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm, MMM d"))),
         0, 0);
     details.add(createSmallDetail("Duration", flight.getDurationString()), 0,
         1);
@@ -196,7 +214,7 @@ public class BookingDetailsDialogController
         createDetailsValue(lastFlight.getArrivalCity().getCityName(),
             "booking-info-value"),
         createDetailsValue(lastFlight.getArrivalTime()
-            .format(DateTimeFormatter.ofPattern("HH:mm")), "subtle-body"));
+            .format(DateTimeFormatter.ofPattern("HH:mm, MMM d")), "subtle-body"));
     row.getChildren().addAll(label, spacer, value);
     return row;
   }
@@ -368,6 +386,80 @@ public class BookingDetailsDialogController
     Label label = new Label(text.toString());
     label.getStyleClass().add("subtle-body");
     return label;
+  }
+
+  // shows each passenger with their seat and luggage details
+  private VBox createPassengersPanel(List<Flight> outboundSegments)
+  {
+    VBox panel = new VBox(10);
+    panel.getStyleClass().add("booking-flight-panel");
+    Label title = new Label("PASSENGERS");
+    title.getStyleClass().add("booking-section-title");
+    panel.getChildren().add(title);
+
+    for (Passenger passenger : currentBooking.getPassengers())
+    {
+      VBox passengerBlock = new VBox(4);
+      passengerBlock.getStyleClass().add("booking-segment-block");
+
+      Label nameLabel = new Label(passenger.getFullName());
+      nameLabel.getStyleClass().add("booking-info-value");
+      passengerBlock.getChildren().add(nameLabel);
+
+      // seat info per segment
+      for (SeatAssignment sa : passenger.getSeatAssignments())
+      {
+        String seatInfo = sa.getFlight().getDepartureCity().getCityName()
+            + " → " + sa.getFlight().getArrivalCity().getCityName()
+            + "  |  Seat: " + sa.getSeat().getSeatNumber()
+            + " (" + sa.getSeat().getSeatClass() + ")";
+        Label seatLabel = new Label(seatInfo);
+        seatLabel.getStyleClass().add("subtle-body");
+        passengerBlock.getChildren().add(seatLabel);
+      }
+
+      // luggage info
+      for (PassengerLuggage luggage : passenger.getPassengerLuggage())
+      {
+        Label luggageLabel = new Label(luggage.getQuantity() + "x "
+            + luggage.getLuggageType().getName());
+        luggageLabel.getStyleClass().add("subtle-body");
+        passengerBlock.getChildren().add(luggageLabel);
+      }
+
+      panel.getChildren().add(passengerBlock);
+    }
+    return panel;
+  }
+
+  // shows return flight info for roundtrip bookings
+  private VBox createReturnFlightPanel(List<Flight> returnSegments)
+  {
+    Flight firstReturn = returnSegments.get(0);
+    Flight lastReturn = returnSegments.get(returnSegments.size() - 1);
+
+    VBox panel = new VBox(14);
+    panel.getStyleClass().add("booking-flight-panel");
+    Label title = new Label("↩ RETURN FLIGHT");
+    title.getStyleClass().add("booking-section-title");
+
+    VBox summary = new VBox(8);
+    summary.getChildren().addAll(
+        createInfoRow("Route:", createRouteText(returnSegments)),
+        createInfoRow("Flight Date:", firstReturn.getDepartureTime()
+            .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))),
+        createInfoRow("Airline:", firstReturn.getCarrier().getName() + " | "
+            + firstReturn.getFlightNumber()));
+
+    VBox segmentList = new VBox(10);
+    for (int i = 0; i < returnSegments.size(); i++)
+    {
+      segmentList.getChildren().add(createSegmentBlock(returnSegments.get(i),
+          i + 1));
+    }
+
+    panel.getChildren().addAll(title, summary, segmentList);
+    return panel;
   }
 
   private void cancelBooking()

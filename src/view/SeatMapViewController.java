@@ -82,16 +82,6 @@ public class SeatMapViewController {
                 + seatMapViewModel.getSelectedClass() + ")");
 
         seatGridContainer.getChildren().clear();
-        seatGridContainer.getChildren().add(createPlaneNose());
-        seatGridContainer.getChildren().add(createSeatGrid(passengerNumber,
-                seatMapViewModel.getSeats(),
-                seatMapViewModel.temporarySelectionProperty()));
-
-        dialogWrapper.setVisible(true);
-        dialogWrapper.setManaged(true);
-
-        seatGridContainer.getChildren().clear();
-
         seatGridContainer.setAlignment(Pos.TOP_CENTER);
 
         VBox nose = createPlaneNose();
@@ -128,13 +118,12 @@ public class SeatMapViewController {
                                     ObjectProperty<Seat> temporarySelection)
     {
         GridPane gridPane = new GridPane();
-        gridPane.setHgap(10);
-        gridPane.setVgap(8);
-        gridPane.setPadding(new Insets(10));
+        gridPane.setHgap(4);
+        gridPane.setVgap(4);
+        gridPane.setPadding(new Insets(6));
         gridPane.getStyleClass().add("seat-map");
         gridPane.setAlignment(Pos.CENTER);
         gridPane.setMaxWidth(Double.MAX_VALUE);
-        gridPane.getStyleClass().add("seat-map");
 
         Map<Integer, List<Seat>> seatsByRow = groupSeatsByRow(seats);
         Map<Seat, Button> seatButtons = new LinkedHashMap<>();
@@ -167,7 +156,7 @@ public class SeatMapViewController {
                 if (i == leftSideCount)
                 {
                     Region aisle = new Region();
-                    aisle.setMinWidth(24);
+                    aisle.setMinWidth(16);
                     aisle.getStyleClass().add("seat-aisle");
                     gridPane.add(aisle, gridColumn++, gridRow);
                 }
@@ -216,14 +205,16 @@ public class SeatMapViewController {
     {
         if (rowClass instanceof BusinessClass)
         {
-            seatButton.setMinSize(76, 44);
-            seatButton.setPrefSize(76, 44);
+            seatButton.setMinSize(48, 32);
+            seatButton.setPrefSize(48, 32);
+            seatButton.setMaxSize(48, 32);
             seatButton.getStyleClass().add("business-seat-button");
         }
         else
         {
-            seatButton.setMinSize(58, 38);
-            seatButton.setPrefSize(58, 38);
+            seatButton.setMinSize(40, 28);
+            seatButton.setPrefSize(40, 28);
+            seatButton.setMaxSize(40, 28);
             seatButton.getStyleClass().add("economy-seat-button");
         }
     }

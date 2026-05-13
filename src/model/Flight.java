@@ -376,6 +376,8 @@ public class Flight
         boolean dateMatch = (criteria.getDepartureDate() == null) ||
                 this.getDepartureTime().toLocalDate().equals(criteria.getDepartureDate());
 
-        return originMatch && destMatch && dateMatch;
+        boolean seatMatch = this.getAvailableSeats().size() >= criteria.getPassengerCount();
+
+        return originMatch && destMatch && dateMatch && seatMatch;
     }
 }

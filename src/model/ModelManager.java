@@ -45,7 +45,10 @@ public class ModelManager implements Model
             if (databaseLoader.getFlights() != null)
             {
                 this.allFlights.clear();
-                this.allFlights.addAll(databaseLoader.getFlights());
+                // generate recurring flights so each route flies multiple times per week
+                List<Flight> recurring = FlightSearchService.generateRecurringFlights(
+                    databaseLoader.getFlights());
+                this.allFlights.addAll(recurring);
             }
         }
         catch (SQLException e)
@@ -199,15 +202,25 @@ public class ModelManager implements Model
     public Booking createBooking(Flight flight, List<Passenger> passengers,
         List<Seat> selectedSeats)
     {
-        return createBooking(currentUser, flight, passengers, selectedSeats);
+        return createBooking(flight, passengers, selectedSeats, null, null);
     }
 
-    public Booking createBooking(User user, Flight flight,
-        List<Passenger> passengers, List<Seat> selectedSeats)
+    @Override
+    public Booking createBooking(Flight flight, List<Passenger> passengers,
+        List<Seat> selectedSeats, Flight returnFlight, List<Seat> returnSeats)
+    {
+        return createBookingInternal(currentUser, flight, passengers,
+            selectedSeats, returnFlight, returnSeats);
+    }
+
+    public Booking createBookingInternal(User user, Flight flight,
+        List<Passenger> passengers, List<Seat> selectedSeats,
+        Flight returnFlight, List<Seat> returnSeats)
     {
         Customer customer = getActiveCustomer(user);
         Booking booking = customer.createBooking(flight, passengers);
 
+        // assign outbound seats
         if (selectedSeats != null)
         {
             List<Flight> segments = new ArrayList<>();
@@ -234,6 +247,39 @@ public class ModelManager implements Model
                 booking.cancel();
                 customer.removeBooking(booking);
                 throw e;
+            }
+        }
+
+        // assign return flight seats if this is a roundtrip booking
+        if (returnFlight != null) {
+            booking.setReturnFlight(returnFlight);
+
+            if (returnSeats != null) {
+                List<Flight> returnSegments = new ArrayList<>();
+                if (returnFlight instanceof ConnectingFlight connReturn) {
+                    returnSegments.add(connReturn.getFirstSegment());
+                    returnSegments.add(connReturn.getSecondSegment());
+                } else {
+                    returnSegments.add(returnFlight);
+                }
+
+                int seatIndex = 0;
+                try {
+                    for (int p = 0; p < passengers.size(); p++) {
+                        for (int s = 0; s < returnSegments.size(); s++) {
+                            if (seatIndex < returnSeats.size()) {
+                                Seat seat = returnSeats.get(seatIndex++);
+                                if (seat != null) {
+                                    new SeatAssignment(nextSeatAssignmentId++, passengers.get(p), seat, returnSegments.get(s));
+                                }
+                            }
+                        }
+                    }
+                } catch (IllegalArgumentException e) {
+                    booking.cancel();
+                    customer.removeBooking(booking);
+                    throw e;
+                }
             }
         }
 

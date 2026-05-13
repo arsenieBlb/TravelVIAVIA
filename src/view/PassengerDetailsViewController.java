@@ -330,6 +330,9 @@ public class PassengerDetailsViewController
 
         VBox section = new VBox(12, title, seatGrid);
         section.getStyleClass().add("passenger-segment-card");
+        section.setMinHeight(100);
+        seatClassCombo.setMinWidth(120);
+        seatClassCombo.setPrefWidth(150);
         return section;
     }
 
