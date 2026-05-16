@@ -16,7 +16,8 @@ import client.viewmodel.SeatMapViewModel;
 
 import java.time.format.DateTimeFormatter;
 
-public class FlightSceneViewController {
+public class FlightSceneViewController
+{
 
     @FXML private StackPane bookViewWrapper;
     @FXML private StackPane bookingsViewWrapper;
@@ -26,6 +27,8 @@ public class FlightSceneViewController {
     @FXML private StackPane adminLoginDialogWrapper;
     @FXML private StackPane registerDialogWrapper;
     @FXML private StackPane addBookingDialogWrapper;
+    @FXML private StackPane bookingDetailsDialogWrapper;
+
     @FXML private Button bookTabButton;
     @FXML private Button bookingsTabButton;
     @FXML private Button authButton;
@@ -76,24 +79,20 @@ public class FlightSceneViewController {
     @FXML private RegisterDialogController registerDialogController;
     @FXML private AddBookingDialogController addBookingDialogController;
     @FXML private BookingDetailsDialogController bookingDetailsDialogController;
-    @FXML private PassengerDetailsViewModel passengerDetailsViewModel;
-    @FXML private MyBookingsViewModel myBookingsViewModel;
-    @FXML private SeatMapViewController seatMapViewController;
 
-    @FXML
     private Region root;
     private ViewHandler viewHandler;
     private FlightSceneViewModel flightSceneViewModel;
     private String pendingCustomerAction;
-    @FXML private StackPane bookingDetailsDialogWrapper;
 
-    public void init(Region root, ViewHandler viewHandler, FlightSceneViewModel flightSceneViewModel) {
+    public void init(ViewHandler viewHandler, FlightSceneViewModel flightSceneViewModel, Region root)
+    {
         this.root = root;
         this.viewHandler = viewHandler;
         this.flightSceneViewModel = flightSceneViewModel;
 
-        this.myBookingsViewModel = flightSceneViewModel.getMyBookingsViewModel();
-        this.passengerDetailsViewModel = flightSceneViewModel.getPassengerDetailsViewModel();
+        MyBookingsViewModel myBookingsViewModel = flightSceneViewModel.getMyBookingsViewModel();
+        PassengerDetailsViewModel passengerDetailsViewModel = flightSceneViewModel.getPassengerDetailsViewModel();
         SeatMapViewModel smVM = flightSceneViewModel.getSeatMapViewModel();
         flightSceneViewModel.setSeatMapViewModel(smVM);
 
@@ -132,12 +131,14 @@ public class FlightSceneViewController {
         bookingsTabButton.setOnAction(event -> showMyBookings());
         authButton.setOnAction(event -> handleAuthButton());
         searchFlightsButton.setOnAction(event -> {
-            if (flightSceneViewModel.roundTripProperty().get()) {
+            if (flightSceneViewModel.roundTripProperty().get())
+            {
                 java.time.LocalDate travel = flightSceneViewModel.travelDateProperty().get();
                 java.time.LocalDate ret = flightSceneViewModel.returnDateProperty().get();
-                if (ret != null && travel != null && ret.isBefore(travel)) {
+                if (ret != null && travel != null && ret.isBefore(travel))
+                {
                     showAlert(Alert.AlertType.ERROR, "Invalid Date",
-                        "Return date must be on or after the departure date.");
+                            "Return date must be on or after the departure date.");
                     return;
                 }
             }
@@ -145,21 +146,37 @@ public class FlightSceneViewController {
         });
         continueButton.setOnAction(event -> showPassengerDetails());
 
-        loginDialogController.init(this);
-        adminLoginDialogController.init(this, adminLoginDialogWrapper);
-        registerDialogController.init(this, registerDialogWrapper);
-        passengerViewController.init(viewHandler, passengerDetailsViewModel, passengerViewWrapper);
-
-        if (bookingsViewController != null) {
-            bookingsViewController.init(myBookingsViewModel, bookingsViewWrapper, viewHandler);
+        if (loginDialogController != null)
+        {
+            loginDialogController.init(this);
         }
-
-        if (bookingDetailsDialogController != null) {
-            bookingDetailsDialogController.init(
-                    myBookingsViewModel,
-                    viewHandler,
-                    bookingDetailsDialogWrapper
-            );
+        if (adminLoginDialogController != null)
+        {
+            adminLoginDialogController.init(this, adminLoginDialogWrapper);
+        }
+        if (registerDialogController != null)
+        {
+            registerDialogController.init(this, registerDialogWrapper);
+        }
+        if (passengerViewController != null)
+        {
+            passengerViewController.init(this, passengerDetailsViewModel, passengerViewWrapper);
+        }
+        if (bookingsViewController != null)
+        {
+            bookingsViewController.init(this, myBookingsViewModel, bookingsViewWrapper);
+        }
+        if (bookingDetailsDialogController != null)
+        {
+            bookingDetailsDialogController.init(myBookingsViewModel, viewHandler, bookingDetailsDialogWrapper);
+        }
+        if (seatMapDialogController != null)
+        {
+            seatMapDialogController.init(root, viewHandler, smVM, seatMapDialogWrapper);
+        }
+        if (addBookingDialogController != null)
+        {
+            addBookingDialogController.init(myBookingsViewModel, viewHandler, addBookingDialogWrapper);
         }
 
         directOnlyCheck.selectedProperty().bindBidirectional(flightSceneViewModel.directOnlyProperty());
@@ -167,51 +184,40 @@ public class FlightSceneViewController {
             flightSceneViewModel.searchFlights();
         });
 
-        // roundtrip toggle
-        if (roundTripRadio != null) {
+        if (roundTripRadio != null)
+        {
             roundTripRadio.selectedProperty().bindBidirectional(flightSceneViewModel.roundTripProperty());
             roundTripRadio.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
                 returnDateBox.setVisible(isSelected);
                 returnDateBox.setManaged(isSelected);
                 returnTableSection.setVisible(isSelected);
                 returnTableSection.setManaged(isSelected);
-                if (!isSelected) {
+                if (!isSelected)
+                {
                     flightSceneViewModel.setSelectedReturnFlight(null);
                 }
             });
         }
-        if (returnDatePicker != null) {
+        if (returnDatePicker != null)
+        {
             returnDatePicker.valueProperty().bindBidirectional(flightSceneViewModel.returnDateProperty());
         }
 
-        // setup the return flights table
-        if (returnFlightsTable != null) {
+        if (returnFlightsTable != null)
+        {
             returnFlightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
             setupReturnTableColumns();
             returnFlightsTable.setItems(flightSceneViewModel.getReturnFlights());
             returnFlightsTable.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldFlight, newFlight) -> {
-                    flightSceneViewModel.setSelectedReturnFlight(newFlight);
-                    updateFlightSummary(flightSceneViewModel.getSelectedFlight());
-                });
-        }
-
-        if (seatMapDialogController != null) {
-            seatMapDialogController.init(root, viewHandler, smVM, seatMapDialogWrapper);
-        }
-
-        if (addBookingDialogController != null) {
-            this.myBookingsViewModel = flightSceneViewModel.getMyBookingsViewModel();
-
-            addBookingDialogController.init(
-                    myBookingsViewModel,
-                    viewHandler,
-                    addBookingDialogWrapper
-            );
+                    (obs, oldFlight, newFlight) -> {
+                        flightSceneViewModel.setSelectedReturnFlight(newFlight);
+                        updateFlightSummary(flightSceneViewModel.getSelectedFlight());
+                    });
         }
     }
 
-    private void setupFlightTable() {
+    private void setupFlightTable()
+    {
         flightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         routeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
                 cellData.getValue().getDepartureCity().getCityName() + " → "
@@ -224,9 +230,12 @@ public class FlightSceneViewController {
                 cellData.getValue().getCarrier().getName() + "\n"
                         + cellData.getValue().getFlightNumber()));
         typeColumn.setCellValueFactory(cellData -> {
-            if (cellData.getValue() instanceof ConnectingFlight connectingFlight) {
+            if (cellData.getValue() instanceof ConnectingFlight connectingFlight)
+            {
                 return new SimpleStringProperty("1 Stop in " + connectingFlight.getFirstSegment().getArrivalCity().getCityName());
-            } else {
+            }
+            else
+            {
                 return new SimpleStringProperty("Direct");
             }
         });
@@ -234,35 +243,39 @@ public class FlightSceneViewController {
                 String.format("EUR %.0f", cellData.getValue().getBasePrice())));
     }
 
-    private void updateFlightSummary(Flight flight) {
+    private void updateFlightSummary(Flight flight)
+    {
         boolean hasFlight = flight != null;
         flightSummaryCard.setVisible(hasFlight);
         flightSummaryCard.setManaged(hasFlight);
-        if (hasFlight) {
+        if (hasFlight)
+        {
             detailDateLabel.setText(flight.getDepartureTime()
                     .format(DateTimeFormatter.ofPattern("MMM dd, yyyy - HH:mm")));
             detailPriceLabel.textProperty().bind(
                     flightSceneViewModel.totalPriceProperty().asString("EUR %.2f")
             );
 
-            // update the label to show if it has a stop
-            if (flight instanceof ConnectingFlight connectingFlight) {
+            if (flight instanceof ConnectingFlight connectingFlight)
+            {
                 detailRouteLabel.setText(connectingFlight.getFirstSegment().getDepartureCity().getCityName() + " → "
                         + connectingFlight.getFirstSegment().getArrivalCity().getCityName() + " → "
                         + connectingFlight.getSecondSegment().getArrivalCity().getCityName());
                 detailInfoLabel.setText(flight.getDurationString() + " - 1 Stop");
                 detailAircraftLabel.setText(connectingFlight.getFirstSegment().getPlane().getPlaneType().getModel() + " & "
                         + connectingFlight.getSecondSegment().getPlane().getPlaneType().getModel());
-            } else {
+            }
+            else
+            {
                 detailRouteLabel.setText(flight.getDepartureCity().getCityName() + " → "
                         + flight.getArrivalCity().getCityName());
                 detailInfoLabel.setText(flight.getDurationString() + " - Direct");
                 detailAircraftLabel.setText(flight.getPlane().getPlaneType().getModel());
             }
 
-            // append return flight info if roundtrip
             Flight returnFlight = flightSceneViewModel.getSelectedReturnFlight();
-            if (returnFlight != null) {
+            if (returnFlight != null)
+            {
                 String returnRoute = returnFlight.getDepartureCity().getCityName() + " → "
                         + returnFlight.getArrivalCity().getCityName();
                 detailRouteLabel.setText(detailRouteLabel.getText() + "\n↩ " + returnRoute);
@@ -271,7 +284,8 @@ public class FlightSceneViewController {
         }
     }
 
-    private void setupReturnTableColumns() {
+    private void setupReturnTableColumns()
+    {
         returnRouteColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
                 cellData.getValue().getDepartureCity().getCityName() + " \u2192 "
                         + cellData.getValue().getArrivalCity().getCityName()));
@@ -283,9 +297,12 @@ public class FlightSceneViewController {
                 cellData.getValue().getCarrier().getName() + "\n"
                         + cellData.getValue().getFlightNumber()));
         returnTypeColumn.setCellValueFactory(cellData -> {
-            if (cellData.getValue() instanceof ConnectingFlight connectingFlight) {
+            if (cellData.getValue() instanceof ConnectingFlight connectingFlight)
+            {
                 return new SimpleStringProperty("1 Stop in " + connectingFlight.getFirstSegment().getArrivalCity().getCityName());
-            } else {
+            }
+            else
+            {
                 return new SimpleStringProperty("Direct");
             }
         });
@@ -293,24 +310,30 @@ public class FlightSceneViewController {
                 String.format("EUR %.0f", cellData.getValue().getBasePrice())));
     }
 
-    private void setupFilters() {
-        if (sortByCombo != null) {
+    private void setupFilters()
+    {
+        if (sortByCombo != null)
+        {
             sortByCombo.getItems().setAll("Price (Low to High)", "Duration (Shortest First)", "Departure (Early First)");
             sortByCombo.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
-                if (newVal != null) {
+                if (newVal != null)
+                {
                     flightSceneViewModel.sortFlights(newVal);
                 }
             });
         }
 
-        if (airlineCombo != null) {
+        if (airlineCombo != null)
+        {
             airlineCombo.setItems(flightSceneViewModel.getUniqueCarriers());
-            if (!airlineCombo.getItems().contains("All Airlines")) {
+            if (!airlineCombo.getItems().contains("All Airlines"))
+            {
                 airlineCombo.getItems().add(0, "All Airlines");
             }
             airlineCombo.getSelectionModel().selectFirst();
             airlineCombo.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
-                if (newVal != null) {
+                if (newVal != null)
+                {
                     flightSceneViewModel.filterByCarrier(newVal);
                 }
             });
@@ -318,15 +341,19 @@ public class FlightSceneViewController {
     }
 
     @FXML
-    private void onResetClick() {
+    private void onResetClick()
+    {
         flightSceneViewModel.clear();
-        if (sortByCombo != null) {
+        if (sortByCombo != null)
+        {
             sortByCombo.getSelectionModel().clearSelection();
         }
-        if (airlineCombo != null) {
+        if (airlineCombo != null)
+        {
             airlineCombo.getSelectionModel().selectFirst();
         }
-        if (oneWayRadio != null) {
+        if (oneWayRadio != null)
+        {
             oneWayRadio.setSelected(true);
         }
         returnDateBox.setVisible(false);
@@ -337,33 +364,45 @@ public class FlightSceneViewController {
         updateAuthHeader();
     }
 
-    private void setupCityConverter() {
-        StringConverter<City> cityConverter = new StringConverter<>() {
+    private void setupCityConverter()
+    {
+        StringConverter<City> cityConverter = new StringConverter<>()
+        {
             @Override
-            public String toString(City city) { return (city == null) ? "" : city.getCityName(); }
+            public String toString(City city)
+            {
+                return (city == null) ? "" : city.getCityName();
+            }
+
             @Override
-            public City fromString(String string) { return null; }
+            public City fromString(String string)
+            {
+                return null;
+            }
         };
         originCombo.setConverter(cityConverter);
         destinationCombo.setConverter(cityConverter);
     }
 
-    public void showBookFlight() { showContent(bookViewWrapper); }
+    public void showBookFlight()
+    {
+        showContent(bookViewWrapper);
+    }
 
-    public void showPassengerDetails() {
-        if (flightSceneViewModel.getSelectedFlight() == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Please select a flight first.");
-            alert.showAndWait();
+    public void showPassengerDetails()
+    {
+        if (flightSceneViewModel.getSelectedFlight() == null)
+        {
+            showAlert(Alert.AlertType.ERROR, "Selection Required", "Please select a flight first.");
             return;
         }
-        if (flightSceneViewModel.roundTripProperty().get() && flightSceneViewModel.getSelectedReturnFlight() == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Please select a return flight.");
-            alert.showAndWait();
+        if (flightSceneViewModel.roundTripProperty().get() && flightSceneViewModel.getSelectedReturnFlight() == null)
+        {
+            showAlert(Alert.AlertType.ERROR, "Selection Required", "Please select a return flight.");
             return;
         }
-        if (!isCustomerLoggedIn()) {
+        if (!isCustomerLoggedIn())
+        {
             pendingCustomerAction = "passengerDetails";
             showLoginDialog();
             return;
@@ -372,8 +411,10 @@ public class FlightSceneViewController {
         passengerViewController.refresh();
     }
 
-    public void showMyBookings() {
-        if (!isCustomerLoggedIn()) {
+    public void showMyBookings()
+    {
+        if (!isCustomerLoggedIn())
+        {
             pendingCustomerAction = "myBookings";
             showLoginDialog();
             return;
@@ -382,10 +423,14 @@ public class FlightSceneViewController {
         bookingsViewController.refresh();
     }
 
-    private void handleAuthButton() {
-        if (flightSceneViewModel.getLoggedInUser() == null) {
+    private void handleAuthButton()
+    {
+        if (flightSceneViewModel.getLoggedInUser() == null)
+        {
             showLoginDialog();
-        } else {
+        }
+        else
+        {
             flightSceneViewModel.logout();
             pendingCustomerAction = null;
             updateAuthHeader();
@@ -393,9 +438,11 @@ public class FlightSceneViewController {
         }
     }
 
-    public boolean loginCustomer(String email, String password) {
+    public boolean loginCustomer(String email, String password)
+    {
         boolean success = flightSceneViewModel.login(email, password);
-        if (success && flightSceneViewModel.getLoggedInUser() instanceof Customer) {
+        if (success && flightSceneViewModel.getLoggedInUser() instanceof Customer)
+        {
             updateAuthHeader();
             runPendingCustomerAction();
             return true;
@@ -405,31 +452,37 @@ public class FlightSceneViewController {
         return false;
     }
 
-    private void runPendingCustomerAction() {
+    private void runPendingCustomerAction()
+    {
         String action = pendingCustomerAction;
         pendingCustomerAction = null;
         if ("passengerDetails".equals(action)) showPassengerDetails();
         else if ("myBookings".equals(action)) showMyBookings();
     }
 
-    private void updateAuthHeader() {
+    private void updateAuthHeader()
+    {
         User user = flightSceneViewModel.getLoggedInUser();
 
-        if (user instanceof Customer customer) {
+        if (user instanceof Customer customer)
+        {
             authStatusLabel.setText("Welcome, " + customer.getFirstName());
             authButton.setText("Logout");
         }
-        else if (user instanceof Admin admin) {
+        else if (user instanceof Admin admin)
+        {
             authStatusLabel.setText("Logged in as Admin");
             authButton.setText("Logout");
         }
-        else {
+        else
+        {
             authStatusLabel.setText("Not signed in");
             authButton.setText("Login");
         }
     }
 
-    private void showContent(StackPane visibleWrapper) {
+    private void showContent(StackPane visibleWrapper)
+    {
         setVisible(bookViewWrapper, visibleWrapper == bookViewWrapper);
         setVisible(bookingsViewWrapper, visibleWrapper == bookingsViewWrapper);
         setVisible(passengerViewWrapper, visibleWrapper == passengerViewWrapper);
@@ -440,7 +493,8 @@ public class FlightSceneViewController {
         else bookTabButton.getStyleClass().add("tab-btn-active");
     }
 
-    private void setVisible(StackPane wrapper, boolean visible) {
+    private void setVisible(StackPane wrapper, boolean visible)
+    {
         wrapper.setVisible(visible);
         wrapper.setManaged(visible);
     }
@@ -448,7 +502,6 @@ public class FlightSceneViewController {
     public void showAddBookingDialog()
     {
         if (!isCustomerLoggedIn())
-
         {
             pendingCustomerAction = "myBookings";
             showLoginDialog();
@@ -457,7 +510,8 @@ public class FlightSceneViewController {
         addBookingDialogController.show();
     }
 
-    public void showSeatPicker(int passengerNumber, int segmentIndex) {
+    public void showSeatPicker(int passengerNumber, int segmentIndex)
+    {
         seatMapDialogController.showForPassenger(passengerNumber, segmentIndex);
     }
 
@@ -471,7 +525,7 @@ public class FlightSceneViewController {
         hideAuthDialogs();
         adminLoginDialogController.show();
     }
-    
+
     public void showRegisterDialog()
     {
         hideAuthDialogs();
@@ -490,11 +544,13 @@ public class FlightSceneViewController {
         adminLoginDialogWrapper.setManaged(false);
     }
 
-    public boolean loginAdmin(String email, String password) {
+    public boolean loginAdmin(String email, String password)
+    {
         if (email == null || password == null) return false;
 
         if (!flightSceneViewModel.login(email.trim(), password.trim())
-                || !(flightSceneViewModel.getLoggedInUser() instanceof Admin)) {
+                || !(flightSceneViewModel.getLoggedInUser() instanceof Admin))
+        {
 
             flightSceneViewModel.logout();
             updateAuthHeader();
@@ -503,16 +559,21 @@ public class FlightSceneViewController {
 
         updateAuthHeader();
         viewHandler.openView("admin");
-
         return true;
     }
 
-    public boolean registerCustomer(String firstName, String lastName, String email, String password) {
+    public boolean registerCustomer(String firstName, String lastName, String email, String password)
+    {
         return flightSceneViewModel.register(firstName.trim(), lastName.trim(), email.trim(), password.trim());
     }
 
-    private boolean isCustomerLoggedIn() { return flightSceneViewModel.getLoggedInUser() instanceof Customer; }
-    public void showLoginDialog() {
+    private boolean isCustomerLoggedIn()
+    {
+        return flightSceneViewModel.getLoggedInUser() instanceof Customer;
+    }
+
+    public void showLoginDialog()
+    {
         hideAuthDialogs();
         loginDialogWrapper.setVisible(true);
         loginDialogWrapper.setManaged(true);
@@ -525,43 +586,53 @@ public class FlightSceneViewController {
         {
             authStatusLabel.setText("Not signed in");
         }
-
         if (authButton != null)
         {
             authButton.setText("Login");
         }
-
         if (flightSceneViewModel != null)
         {
             flightSceneViewModel.clear();
         }
     }
 
-    public Region getRoot() { return root; }
-
-    @FXML private void onIncrementClick() { flightSceneViewModel.incrementPassengers(); }
-    @FXML private void onDecrementClick() { flightSceneViewModel.decrementPassengers(); }
-    @FXML public void loginButton() { handleAuthButton(); }
-
-    public void refresh() {
-
+    public Region getRoot()
+    {
+        return root;
     }
 
-    @FXML
-    private void onSearchClick() {
+    @FXML private void onIncrementClick()
+    {
+        flightSceneViewModel.incrementPassengers();
+    }
+
+    @FXML private void onDecrementClick()
+    {
+        flightSceneViewModel.decrementPassengers();
+    }
+
+    @FXML public void loginButton()
+    {
+        handleAuthButton();
+    }
+
+    @FXML private void onSearchClick()
+    {
         flightSceneViewModel.searchFlights();
     }
 
-    @FXML
-    private void onContinueClick() {
+    @FXML private void onContinueClick()
+    {
         showPassengerDetails();
     }
 
-    public MyBookingsViewController getMyBookingsViewController() {
+    public MyBookingsViewController getMyBookingsViewController()
+    {
         return bookingsViewController;
     }
 
-    private void showAlert(Alert.AlertType type, String title, String message) {
+    private void showAlert(Alert.AlertType type, String title, String message)
+    {
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -569,4 +640,3 @@ public class FlightSceneViewController {
         alert.showAndWait();
     }
 }
-

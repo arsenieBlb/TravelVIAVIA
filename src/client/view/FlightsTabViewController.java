@@ -25,6 +25,7 @@ public class FlightsTabViewController {
     @FXML private TextField originFilterField, destinationFilterField, carrierFilterField;
     @FXML private ComboBox<String> aircraftFilterCombo;
     @FXML private Label authStatusLabel;
+    @FXML private DashboardViewController dashboardViewController;
 
     private NavigationAdminViewModel navViewModel;
     private FlightsTabViewModel flightsViewModel;
@@ -42,6 +43,11 @@ public class FlightsTabViewController {
         setupBindings();
         setupBookingsView();
         setupNavigation();
+
+        if (dashboardViewController != null)
+        {
+            dashboardViewController.init(navViewModel.getDashboardViewModel(), root, viewHandler);
+        }
 
         ObservableList<String> aircraftModels = FXCollections.observableArrayList();
         aircraftModels.add("All");
@@ -134,26 +140,11 @@ public class FlightsTabViewController {
         setActiveNavButton(dashboardNavButton, showingDashboard);
         setActiveNavButton(dashboardNavButton, tab == NavigationTab.DASHBOARD);
 
-        if (showingDashboard) {
-            loadDashboardContent();
-        }
-
         if (showingBookings && bookingAdminViewController != null) {
             bookingAdminViewController.refresh();
         }
     }
 
-    private void loadDashboardContent() {
-        try {
-            Region dashboardContent = viewHandler.loadDashboardView("dashboard_view.fxml");
-
-            if (dashboardView instanceof javafx.scene.layout.Pane pane) {
-                pane.getChildren().setAll(dashboardContent);
-            }
-        } catch (java.io.IOException e) {
-            System.err.println("Failed to load dashboard: " + e.getMessage());
-        }
-    }
 
     private void setActiveNavButton(Button button, boolean active) {
         if (active && !button.getStyleClass().contains("sidebar-link-active")) {

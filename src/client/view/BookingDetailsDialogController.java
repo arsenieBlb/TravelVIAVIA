@@ -462,16 +462,16 @@ public class BookingDetailsDialogController
     return panel;
   }
 
-  private void cancelBooking()
-  {
-    if (currentBooking == null)
+    private void cancelBooking()
     {
-      return;
+        if (currentBooking == null)
+        {
+            return;
+        }
+        viewModel.cancelBooking(currentBooking);
+        viewModel.refresh();
+        hide();
     }
-    viewModel.cancelBooking(currentBooking);
-    viewHandler.refreshMyBookings();
-    hide();
-  }
 }
 
 

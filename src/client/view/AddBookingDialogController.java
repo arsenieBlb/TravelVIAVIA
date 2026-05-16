@@ -50,20 +50,20 @@ public class AddBookingDialogController
     wrapper.setManaged(false);
   }
 
-  private void saveBooking()
-  {
-    try
+    private void saveBooking()
     {
-      viewModel.addBookingById(addBookingCodeField.getText(),
-          addBookingLastNameField.getText());
-      viewHandler.refreshMyBookings();
-      hide();
+        try
+        {
+            viewModel.addBookingById(addBookingCodeField.getText(),
+                    addBookingLastNameField.getText());
+            viewModel.refresh();
+            hide();
+        }
+        catch (RuntimeException e)
+        {
+            showError(e.getMessage());
+        }
     }
-    catch (RuntimeException e)
-    {
-      showError(e.getMessage());
-    }
-  }
 
   private void showError(String message)
   {

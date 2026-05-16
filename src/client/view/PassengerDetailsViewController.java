@@ -39,17 +39,17 @@ public class PassengerDetailsViewController
   @FXML private Button confirmBookingButton;
 
   private Region root;
-  private ViewHandler viewHandler;
+  private FlightSceneViewController parentController;
   private PassengerDetailsViewModel viewModel;
 
-  public void init(ViewHandler viewHandler, PassengerDetailsViewModel viewModel, Region root)
+  public void init(FlightSceneViewController parentController, PassengerDetailsViewModel viewModel, Region root)
   {
-    this.viewHandler = viewHandler;
-    this.viewModel = viewModel;
-    this.root = root;
+      this.parentController = parentController;
+      this.viewModel = viewModel;
+      this.root = root;
 
     cancelPassengerDetailsButton.setOnAction(event ->
-        viewHandler.showBookFlight());
+            parentController.showBookFlight());
     confirmBookingButton.setOnAction(event -> confirmBooking());
   }
 
@@ -65,7 +65,7 @@ public class PassengerDetailsViewController
     catch (RuntimeException e)
     {
       showError(e.getMessage());
-      viewHandler.showBookFlight();
+        parentController.showBookFlight();
     }
   }
 
@@ -309,7 +309,7 @@ public class PassengerDetailsViewController
         chooseSeatButton.getStyleClass().add("passenger-seat-button");
         chooseSeatButton.setMaxWidth(Double.MAX_VALUE);
         chooseSeatButton.setOnAction(event ->
-                viewHandler.showSeatPicker(form.getPassengerNumber(), segmentIndex));
+                parentController.showSeatPicker(form.getPassengerNumber(), segmentIndex));
 
         GridPane seatGrid = new GridPane();
         seatGrid.setHgap(16);
@@ -440,10 +440,10 @@ public class PassengerDetailsViewController
     try
     {
       Booking booking = viewModel.confirmBooking();
-      viewHandler.refreshMyBookings();
+      parentController.getMyBookingsViewController().refresh();
       showInformation("Booking confirmed",
           "Booking #" + booking.getBookingId() + " has been saved.");
-      viewHandler.showMyBookings();
+        parentController.showMyBookings();
     }
     catch (RuntimeException e)
     {

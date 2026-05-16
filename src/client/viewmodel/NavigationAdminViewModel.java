@@ -14,6 +14,7 @@ public class NavigationAdminViewModel {
 
     private FlightsTabViewModel flightsTabViewModel;
     private BookingAdminViewModel bookingAdminViewModel;
+    private DashboardViewModel dashboardViewModel;
 
     public enum NavigationTab {
         DASHBOARD, FLIGHTS, BOOKINGS
@@ -67,6 +68,14 @@ public class NavigationAdminViewModel {
         {
             return new SimpleStringProperty("Not signed in");
         }
+    }
+
+    public DashboardViewModel getDashboardViewModel()
+    {
+        if (dashboardViewModel == null) {
+            dashboardViewModel = new DashboardViewModel(model);
+        }
+        return dashboardViewModel;
     }
 }
 
