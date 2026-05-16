@@ -1,5 +1,6 @@
 package client.viewmodel;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -29,6 +30,20 @@ public class BookingAdminViewModel
         updatePredicate());
     emailFilter.addListener((observable, oldValue, newValue) ->
         updatePredicate());
+    model.addPropertyChangeListener(event ->
+    {
+      if ("bookings".equals(event.getPropertyName()))
+      {
+        if (Platform.isFxApplicationThread())
+        {
+          refresh();
+        }
+        else
+        {
+          Platform.runLater(this::refresh);
+        }
+      }
+    });
 
     refresh();
   }

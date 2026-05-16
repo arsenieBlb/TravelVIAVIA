@@ -7,29 +7,25 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class ServerLogger
+public final class ServerLogger
 {
   private static final DateTimeFormatter TIME_FORMATTER =
       DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
   private static final DateTimeFormatter DATE_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy_MM_dd");
-  private static ServerLogger instance;
+  private static final ServerLogger INSTANCE = new ServerLogger();
 
   private final Object lock = new Object();
   private final File logDirectory;
 
   private ServerLogger()
   {
-    logDirectory = new File(System.getProperty("user.home"), "Downloads");
+    logDirectory = new File("logs");
   }
 
-  public static synchronized ServerLogger getInstance()
+  public static ServerLogger getInstance()
   {
-    if (instance == null)
-    {
-      instance = new ServerLogger();
-    }
-    return instance;
+    return INSTANCE;
   }
 
   public void log(String clientId, String request, String result,

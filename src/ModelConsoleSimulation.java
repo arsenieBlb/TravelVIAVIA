@@ -16,6 +16,7 @@ public class ModelConsoleSimulation extends Application
         ViewHandler viewHandler = new ViewHandler(viewModelFactory);
         primaryStage.setMaximized(true);
         viewHandler.start(primaryStage);
+        TwoClientBookingSimulation.startRandomClientsInBackground();
     }
 
     private Model createClientModel()

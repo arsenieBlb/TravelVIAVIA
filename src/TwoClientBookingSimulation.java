@@ -20,9 +20,14 @@ import java.util.concurrent.TimeUnit;
 public class TwoClientBookingSimulation
 {
   private static final String HOST = "localhost";
+  private static final int RANDOM_CLIENT_COUNT = 2;
   private static final int MAX_PASSENGERS_PER_BOOKING = 3;
   private static final int MAX_LUGGAGE_QUANTITY = 3;
   private static final int MAX_BOOKING_ATTEMPTS = 3;
+  private static final int MAX_REGISTRATION_ATTEMPTS = 5;
+  private static final long BACKGROUND_START_DELAY_MILLIS = 1500;
+  private static final String RANDOM_PASSWORD = "random1234";
+  private static final String RANDOM_EMAIL_DOMAIN = "travelvia.local";
   private static final String[] RANDOM_FIRST_NAMES = {
       "Maya", "Noah", "Lina", "Oscar", "Sofia", "Theo", "Nora", "Leo"
   };
@@ -30,27 +35,48 @@ public class TwoClientBookingSimulation
       "Andersen", "Khan", "Rossi", "Berg", "Patel", "Muller", "Silva",
       "Novak"
   };
-  private static final ClientCredentials[] CLIENTS = {
-      new ClientCredentials("Client-1", "j.doe@gmail.com", "1234b"),
-      new ClientCredentials("Client-2", "alice.smith@outlook.com", "1234c")
-  };
 
   public static void main(String[] args) throws InterruptedException
   {
+    runSimulation();
+  }
+
+  public static void startRandomClientsInBackground()
+  {
+    Thread simulationThread = new Thread(() -> {
+      try
+      {
+        Thread.sleep(BACKGROUND_START_DELAY_MILLIS);
+        runSimulation();
+      }
+      catch (InterruptedException e)
+      {
+        Thread.currentThread().interrupt();
+      }
+      catch (RuntimeException e)
+      {
+        System.out.println("Random client booking simulation stopped: "
+            + e.getMessage());
+      }
+    }, "TravelVIAVIA-random-client-booking-simulation");
+    simulationThread.setDaemon(true);
+    simulationThread.start();
+  }
+
+  private static void runSimulation() throws InterruptedException
+  {
     ensureServerIsRunning();
 
-    CountDownLatch readyToBook = new CountDownLatch(CLIENTS.length);
+    CountDownLatch readyToBook = new CountDownLatch(RANDOM_CLIENT_COUNT);
     CountDownLatch startBooking = new CountDownLatch(1);
-    Thread[] threads = new Thread[CLIENTS.length];
+    Thread[] threads = new Thread[RANDOM_CLIENT_COUNT];
 
-    for (int i = 0; i < CLIENTS.length; i++)
+    for (int i = 0; i < RANDOM_CLIENT_COUNT; i++)
     {
       int clientNumber = i + 1;
-      ClientCredentials credentials = CLIENTS[i];
       threads[i] = new Thread(
-          () -> runClient(credentials, clientNumber, readyToBook,
-              startBooking),
-          credentials.label);
+          () -> runClient(clientNumber, readyToBook, startBooking),
+          "Random-client-" + clientNumber);
       threads[i].start();
     }
 
@@ -59,7 +85,7 @@ public class TwoClientBookingSimulation
       System.out.println("Not all clients reached the booking step in time.");
     }
 
-    System.out.println("Both client threads are released to book now.");
+    System.out.println("Random client threads are released to book now.");
     startBooking.countDown();
 
     for (Thread thread : threads)
@@ -67,18 +93,27 @@ public class TwoClientBookingSimulation
       thread.join();
     }
 
-    System.out.println("Two-client booking simulation finished.");
+    System.out.println("Random client booking simulation finished.");
   }
 
-  private static void runClient(ClientCredentials credentials, int clientNumber,
+  private static void runClient(int clientNumber,
       CountDownLatch readyToBook, CountDownLatch startBooking)
   {
     boolean prepared = false;
+    String clientLabel = "Random-client-" + clientNumber;
 
     try (Client client = new Client(HOST, Server.PORT))
     {
-      System.out.println(credentials.label + " logging in as "
-          + credentials.email);
+      ClientCredentials credentials = registerRandomCustomer(client,
+          clientNumber);
+      if (credentials == null)
+      {
+        System.out.println(clientLabel + " could not register a customer.");
+        return;
+      }
+
+      System.out.println(credentials.label + " registered as "
+          + credentials.email + " and is logging in.");
 
       if (!client.login(credentials.email, credentials.password))
       {
@@ -134,7 +169,7 @@ public class TwoClientBookingSimulation
       {
         Thread.currentThread().interrupt();
       }
-      System.out.println(credentials.label + " stopped: " + e.getMessage());
+      System.out.println(clientLabel + " stopped: " + e.getMessage());
     }
     finally
     {
@@ -143,6 +178,32 @@ public class TwoClientBookingSimulation
         readyToBook.countDown();
       }
     }
+  }
+
+  private static ClientCredentials registerRandomCustomer(Client client,
+      int clientNumber)
+  {
+    ThreadLocalRandom random = ThreadLocalRandom.current();
+    for (int attempt = 1; attempt <= MAX_REGISTRATION_ATTEMPTS; attempt++)
+    {
+      String firstName = randomItem(RANDOM_FIRST_NAMES, random);
+      String lastName = randomItem(RANDOM_LAST_NAMES, random);
+      String email = randomEmail(clientNumber, random);
+
+      if (client.register(firstName, lastName, email, RANDOM_PASSWORD))
+      {
+        return new ClientCredentials("Random-client-" + clientNumber, email,
+            RANDOM_PASSWORD);
+      }
+    }
+    return null;
+  }
+
+  private static String randomEmail(int clientNumber, ThreadLocalRandom random)
+  {
+    return "random.client." + clientNumber + "."
+        + System.currentTimeMillis() + "."
+        + random.nextInt(1000, 10000) + "@" + RANDOM_EMAIL_DOMAIN;
   }
 
   private static Booking bookWithRetries(Client client, String clientLabel,
