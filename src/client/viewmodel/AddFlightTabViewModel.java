@@ -6,7 +6,6 @@ import javafx.collections.ObservableList;
 import client.model.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 public class AddFlightTabViewModel
 {
@@ -32,7 +31,6 @@ public class AddFlightTabViewModel
     {
         this.model = model;
         refreshData();
-        loadDataFromModel();
     }
 
     public void refreshData()
@@ -47,27 +45,6 @@ public class AddFlightTabViewModel
                 .orElse(100);
 
         flightId.set(String.valueOf(maxId + 1));
-    }
-
-    private void loadDataFromModel()
-    {
-        List<City> cities = model.getCities();
-        if (cities != null)
-        {
-            citiesList.addAll(cities);
-        }
-
-        List<Plane> planes = model.getPlanes();
-        if (planes != null)
-        {
-            planesList.addAll(planes);
-        }
-
-        List<Carrier> carriers = model.getCarriers();
-        if (carriers != null)
-        {
-            carriersList.addAll(carriers);
-        }
     }
 
     public void addFlight() throws Exception

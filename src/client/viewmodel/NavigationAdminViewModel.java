@@ -15,6 +15,7 @@ public class NavigationAdminViewModel {
     private FlightsTabViewModel flightsTabViewModel;
     private BookingAdminViewModel bookingAdminViewModel;
     private DashboardViewModel dashboardViewModel;
+    private AddFlightTabViewModel addFlightTabViewModel;
 
     public enum NavigationTab {
         DASHBOARD, FLIGHTS, BOOKINGS
@@ -36,6 +37,13 @@ public class NavigationAdminViewModel {
             bookingAdminViewModel = new BookingAdminViewModel(model);
         }
         return bookingAdminViewModel;
+    }
+
+    public AddFlightTabViewModel getAddFlightTabViewModel() {
+        if (addFlightTabViewModel == null) {
+            addFlightTabViewModel = new AddFlightTabViewModel(model);
+        }
+        return addFlightTabViewModel;
     }
 
     public void navigateTo(NavigationTab tab) {

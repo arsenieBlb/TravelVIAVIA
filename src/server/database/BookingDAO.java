@@ -408,6 +408,8 @@ public class BookingDAO
   private void saveBookingRow(Booking booking, Connection connection)
       throws SQLException
   {
+    ensureExtendedBookingColumns(connection);
+
     if (!hasExtendedBookingColumns(connection))
     {
       if (booking.getFlight() instanceof client.model.ConnectingFlight
@@ -603,6 +605,28 @@ public class BookingDAO
     return hasBookingColumn(connection, "second_flight_id")
         && hasBookingColumn(connection, "return_flight_id")
         && hasBookingColumn(connection, "second_return_flight_id");
+  }
+
+  private void ensureExtendedBookingColumns(Connection connection)
+      throws SQLException
+  {
+    addBookingColumnIfMissing(connection, "second_flight_id");
+    addBookingColumnIfMissing(connection, "return_flight_id");
+    addBookingColumnIfMissing(connection, "second_return_flight_id");
+  }
+
+  private void addBookingColumnIfMissing(Connection connection,
+      String columnName) throws SQLException
+  {
+    if (hasBookingColumn(connection, columnName))
+    {
+      return;
+    }
+
+    String sql = "ALTER TABLE flights.booking ADD COLUMN IF NOT EXISTS "
+        + columnName + " INTEGER";
+    PreparedStatement statement = connection.prepareStatement(sql);
+    statement.executeUpdate();
   }
 
   private boolean hasBookingColumn(Connection connection, String columnName)
