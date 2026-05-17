@@ -50,9 +50,31 @@ public class BookingAdminViewModel
 
   public void refresh()
   {
-    List<Booking> bookings = model.getAllBookings();
-    allBookings.setAll(bookings);
-    updatePredicate();
+    javafx.concurrent.Task<List<Booking>> loadTask = new javafx.concurrent.Task<>()
+    {
+      @Override
+      protected List<Booking> call()
+      {
+        return model.getAllBookings();
+      }
+    };
+
+    loadTask.setOnSucceeded(event -> {
+      List<Booking> bookings = loadTask.getValue();
+      allBookings.setAll(bookings);
+      updatePredicate();
+    });
+
+    loadTask.setOnFailed(event -> {
+      Throwable e = loadTask.getException();
+      if (e != null) {
+          e.printStackTrace();
+      }
+    });
+
+    Thread thread = new Thread(loadTask);
+    thread.setDaemon(true);
+    thread.start();
   }
 
   public void clearFilters()

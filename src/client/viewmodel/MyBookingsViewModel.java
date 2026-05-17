@@ -42,16 +42,38 @@ public class MyBookingsViewModel implements BookingObserver
       bookings.clear();
       return;
     }
-    List<Booking> currentBookings = model.getUserBookings().stream()
-        .filter(booking -> !cancelledBookingIds.contains(booking.getBookingId()))
-        .collect(Collectors.toList());
-    bookings.setAll(currentBookings);
-
-    // register as observer on each booking so we get state change updates
-    for (Booking booking : bookings)
+    javafx.concurrent.Task<List<Booking>> loadTask = new javafx.concurrent.Task<>()
     {
-      booking.addObserver(this);
-    }
+      @Override
+      protected List<Booking> call()
+      {
+        return model.getUserBookings();
+      }
+    };
+
+    loadTask.setOnSucceeded(event -> {
+      List<Booking> currentBookings = loadTask.getValue().stream()
+          .filter(booking -> !cancelledBookingIds.contains(booking.getBookingId()))
+          .collect(Collectors.toList());
+      bookings.setAll(currentBookings);
+
+      // register as observer on each booking so we get state change updates
+      for (Booking booking : bookings)
+      {
+        booking.addObserver(this);
+      }
+    });
+
+    loadTask.setOnFailed(event -> {
+      Throwable e = loadTask.getException();
+      if (e != null) {
+          e.printStackTrace();
+      }
+    });
+
+    Thread thread = new Thread(loadTask);
+    thread.setDaemon(true);
+    thread.start();
   }
 
   @Override

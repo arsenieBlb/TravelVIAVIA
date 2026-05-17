@@ -28,17 +28,34 @@ public class DashboardViewModel implements PropertyChangeListener {
     }
 
     public void updateStats() {
-        List<Flight> flights = model.getAllFlights();
-        List<Booking> bookings = model.getAllBookings();
+        javafx.concurrent.Task<String[]> task = new javafx.concurrent.Task<>() {
+            @Override
+            protected String[] call() {
+                List<Flight> flights = model.getAllFlights();
+                List<Booking> bookings = model.getAllBookings();
 
-        totalFlights.set(String.valueOf(flights.size()));
-        activeBookings.set(String.valueOf(bookings.size()));
+                int passengerCount = 0;
+                for (int i = 0; i < bookings.size(); i++) {
+                    passengerCount += bookings.get(i).getPassengers().size();
+                }
+                return new String[]{
+                        String.valueOf(flights.size()),
+                        String.valueOf(bookings.size()),
+                        String.valueOf(passengerCount)
+                };
+            }
+        };
 
-        int passengerCount = 0;
-        for (int i = 0; i < bookings.size(); i++) {
-            passengerCount += bookings.get(i).getPassengers().size();
-        }
-        totalPassengers.set(String.valueOf(passengerCount));
+        task.setOnSucceeded(e -> {
+            String[] result = task.getValue();
+            totalFlights.set(result[0]);
+            activeBookings.set(result[1]);
+            totalPassengers.set(result[2]);
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     @Override
