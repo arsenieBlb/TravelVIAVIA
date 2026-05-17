@@ -128,6 +128,9 @@ public class Flight
   void removeSeatAssignment(SeatAssignment seatAssignment)
   {
     seatAssignments.remove(seatAssignment);
+    if (seatAssignment.getSeat() != null) {
+      occupiedSeats.remove(seatAssignment.getSeat());
+    }
   }
 
   boolean isSeatAssigned(Seat seat)

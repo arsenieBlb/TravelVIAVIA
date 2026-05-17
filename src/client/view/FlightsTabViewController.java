@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 
 public class FlightsTabViewController {
     @FXML private Button flightsNavButton, dashboardNavButton, bookingsNavButton;
-    @FXML private Region flightsView, bookingsView, dashboardView;
+    @FXML private Region flightsView, bookingsView, dashboardContainer;
     @FXML private BookingAdminViewController bookingAdminViewController;
     @FXML private DatePicker dateFilterPicker;
 
@@ -130,9 +130,9 @@ public class FlightsTabViewController {
         bookingsView.setVisible(showingBookings);
         bookingsView.setManaged(showingBookings);
 
-        if (dashboardView != null) {
-            dashboardView.setVisible(showingDashboard);
-            dashboardView.setManaged(showingDashboard);
+        if (dashboardContainer != null) {
+            dashboardContainer.setVisible(showingDashboard);
+            dashboardContainer.setManaged(showingDashboard);
         }
 
         setActiveNavButton(flightsNavButton, showingFlights);
@@ -213,6 +213,95 @@ public class FlightsTabViewController {
         {
             viewHandler.openView("flightScene");
         }
+    }
+
+    @FXML
+    private void onRemoveFlightClick()
+    {
+        Flight selected = flightsTable.getSelectionModel().getSelectedItem();
+        if (selected == null)
+        {
+            showAlert(Alert.AlertType.WARNING, "No Selection",
+                "Please select a flight to remove.");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+            "Remove flight " + selected.getFlightNumber() + "?\n"
+            + "This will mark the flight as unavailable for customers.");
+        confirm.setTitle("Confirm Removal");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK)
+            {
+                try
+                {
+                    flightsViewModel.removeFlight(selected);
+                    refreshTable();
+                    showAlert(Alert.AlertType.INFORMATION, "Flight Removed",
+                        "Flight " + selected.getFlightNumber() + " has been removed.");
+                }
+                catch (Exception e)
+                {
+                    showAlert(Alert.AlertType.ERROR, "Error",
+                        "Could not remove flight: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    @FXML
+    private void onEditFlightClick()
+    {
+        Flight selected = flightsTable.getSelectionModel().getSelectedItem();
+        if (selected == null)
+        {
+            showAlert(Alert.AlertType.WARNING, "No Selection",
+                "Please select a flight to edit.");
+            return;
+        }
+        openEditFlightDialog(selected);
+    }
+
+    private void openEditFlightDialog(Flight flight)
+    {
+        try
+        {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader();
+            loader.setLocation(getClass().getResource("EditFlightModalView.fxml"));
+            javafx.scene.layout.StackPane modalRoot = loader.load();
+
+            EditFlightDialogController editController = loader.getController();
+            editController.init(flight, flightsViewModel, this);
+
+            javafx.scene.Scene scene = flightsTable.getScene();
+            javafx.scene.layout.StackPane sceneRoot;
+
+            if (scene.getRoot() instanceof javafx.scene.layout.StackPane sp)
+            {
+                sceneRoot = sp;
+            }
+            else
+            {
+                sceneRoot = new javafx.scene.layout.StackPane(scene.getRoot());
+                scene.setRoot(sceneRoot);
+            }
+
+            sceneRoot.getChildren().add(modalRoot);
+        }
+        catch (Exception e)
+        {
+            showAlert(Alert.AlertType.ERROR, "Error",
+                "Could not open edit dialog: " + e.getMessage());
+        }
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String content)
+    {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
 }

@@ -226,10 +226,9 @@ public class BookingDetailsDialogController
     Label title = new Label("FARE SUMMARY");
     title.getStyleClass().add("booking-section-title");
 
-    double baseFare = currentBooking.getFlight().getBasePrice()
-        * currentBooking.getPassengers().size();
     double carryOnFare = getLuggageTotal("carry");
     double baggageFare = getLuggageTotal("baggage");
+    double baseFare = currentBooking.getTotalPrice() - carryOnFare - baggageFare;
 
     panel.getChildren().addAll(title,
         createFareRow("Base Fare:", String.format("EUR %.0f", baseFare),
@@ -421,8 +420,9 @@ public class BookingDetailsDialogController
       // luggage info
       for (PassengerLuggage luggage : passenger.getPassengerLuggage())
       {
+        String priceText = luggage.getTotalExtraPrice() == 0 ? "Free" : "EUR " + String.format("%.0f", luggage.getTotalExtraPrice());
         Label luggageLabel = new Label(luggage.getQuantity() + "x "
-            + luggage.getLuggageType().getName());
+            + luggage.getLuggageType().getName() + " (" + priceText + ")");
         luggageLabel.getStyleClass().add("subtle-body");
         passengerBlock.getChildren().add(luggageLabel);
       }
@@ -470,6 +470,14 @@ public class BookingDetailsDialogController
         }
         viewModel.cancelBooking(currentBooking);
         viewModel.refresh();
+
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+            javafx.scene.control.Alert.AlertType.INFORMATION);
+        alert.setTitle("Booking Cancelled");
+        alert.setHeaderText(null);
+        alert.setContentText("Booking #" + currentBooking.getBookingId() + " has been cancelled.");
+        alert.showAndWait();
+
         hide();
     }
 }

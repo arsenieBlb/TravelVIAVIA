@@ -236,6 +236,68 @@ public final class DtoMapper
     return flight;
   }
 
+  // reconstructs a flight from DTO using the server's live lists
+  public static Flight flightFromDto(FlightDto dto, List<Carrier> carriers,
+      List<Plane> planes, List<City> cities)
+  {
+    if (dto == null)
+    {
+      return null;
+    }
+    Carrier carrier = dto.carrier != null
+        ? findCarrier(carriers, dto.carrier.carrierId) : null;
+    if (carrier == null)
+    {
+      carrier = fromDto(dto.carrier);
+    }
+
+    Plane plane = dto.plane != null
+        ? findPlane(planes, dto.plane.planeId) : null;
+    if (plane == null)
+    {
+      plane = fromDto(dto.plane, carrier);
+    }
+
+    City depCity = dto.departureCity != null
+        ? findCity(cities, dto.departureCity.cityId) : null;
+    if (depCity == null)
+    {
+      depCity = fromDto(dto.departureCity);
+    }
+
+    City arrCity = dto.arrivalCity != null
+        ? findCity(cities, dto.arrivalCity.cityId) : null;
+    if (arrCity == null)
+    {
+      arrCity = fromDto(dto.arrivalCity);
+    }
+
+    return new Flight(dto.flightId, dto.flightNumber,
+        LocalDateTime.parse(dto.departureTime),
+        LocalDateTime.parse(dto.arrivalTime), dto.basePrice,
+        carrier, plane, depCity, arrCity);
+  }
+
+  private static Carrier findCarrier(List<Carrier> carriers, int carrierId)
+  {
+    if (carriers == null) return null;
+    for (Carrier c : carriers)
+    {
+      if (c.getCarrierId() == carrierId) return c;
+    }
+    return null;
+  }
+
+  private static Plane findPlane(List<Plane> planes, int planeId)
+  {
+    if (planes == null) return null;
+    for (Plane p : planes)
+    {
+      if (p.getPlaneId() == planeId) return p;
+    }
+    return null;
+  }
+
   public static UserDto toDto(User user)
   {
     if (user == null)

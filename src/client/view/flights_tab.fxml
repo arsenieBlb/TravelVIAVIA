@@ -75,12 +75,21 @@
         </HBox>
 
         <StackPane fx:id="contentHost" styleClass="main-host" HBox.hgrow="ALWAYS">
-            <StackPane fx:id="dashboardView" visible="false" managed="false" />
-
+            <StackPane fx:id="dashboardContainer" visible="false" managed="false">
+                <fx:include fx:id="dashboardView" source="dashboard_view.fxml"/>
+            </StackPane>
             <VBox fx:id="flightsView" spacing="16" styleClass="page-container">
                 <padding><Insets top="32" right="32" bottom="16" left="32"/></padding>
 
-                <HBox alignment="CENTER_RIGHT">
+                <HBox alignment="CENTER_RIGHT" spacing="10">
+                    <Button fx:id="editFlightButton"
+                        text="Edit Flight"
+                        onAction="#onEditFlightClick"
+                        styleClass="outline-button"/>
+                    <Button fx:id="removeFlightButton"
+                        text="Remove Flight"
+                        onAction="#onRemoveFlightClick"
+                        styleClass="outline-button"/>
                     <Button fx:id="addFlightButton"
                         text="+ Add Flight"
                         onAction="#onAddFlightClick"

@@ -174,6 +174,7 @@ public class ClientHandler implements Runnable, PropertyChangeListener
           addBookingToCurrentUserById(request);
       case RequestType.ADD_FLIGHT -> addFlight(request);
       case RequestType.REMOVE_FLIGHT -> removeFlight(request);
+      case RequestType.EDIT_FLIGHT -> editFlight(request);
       case RequestType.GET_LUGGAGE_TYPES -> DtoMapper.luggageTypeDtos(
           model.getLuggageTypes());
       case RequestType.GET_ALL_CITIES -> DtoMapper.cityDtos(
@@ -338,6 +339,29 @@ public class ClientHandler implements Runnable, PropertyChangeListener
     logger.log(clientLabel(), RequestType.REMOVE_FLIGHT, "OK",
         "user=" + currentUserLabel() + ", change=" + changeSummary);
     server.broadcastPropertyChange("allFlights", changeSummary);
+    return null;
+  }
+
+  private Object editFlight(NetworkPackage request)
+  {
+    FlightDto flightDto = gson.fromJson(request.contentJson, FlightDto.class);
+    logger.log(clientLabel(), RequestType.EDIT_FLIGHT, "OK",
+        "user=" + currentUserLabel() + ", flightId=" + flightDto.flightId);
+
+    Flight existingFlight = findFlightById(model.getAllFlights(), flightDto.flightId);
+    if (existingFlight == null)
+    {
+      throw new IllegalArgumentException(
+          "Flight " + flightDto.flightId + " was not found.");
+    }
+
+    Flight updatedFlight = DtoMapper.flightFromDto(flightDto,
+        model.getCarriers(), model.getPlanes(), model.getAllCities());
+    model.editFlight(updatedFlight);
+
+    logger.log(clientLabel(), RequestType.EDIT_FLIGHT, "OK",
+        "user=" + currentUserLabel() + ", updated=" + flightLogValue(updatedFlight));
+    server.broadcastPropertyChange("allFlights", "{edited=" + flightDto.flightId + "}");
     return null;
   }
 

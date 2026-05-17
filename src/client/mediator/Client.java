@@ -393,6 +393,16 @@ public class Client implements ServerModel, AutoCloseable
     support.firePropertyChange("allFlights", flight, null);
   }
 
+  @Override public void editFlight(Flight flight)
+  {
+    if (flight == null)
+    {
+      return;
+    }
+    request(RequestType.EDIT_FLIGHT, DtoMapper.toDto(flight));
+    support.firePropertyChange("allFlights", null, getAllFlights());
+  }
+
   @Override public List<LuggageType> getLuggageTypes()
   {
     if (luggageTypesCache == null)

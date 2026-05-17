@@ -51,7 +51,18 @@ public class LoginDialogController
       showError("Please use a valid customer account.");
       return;
     }
+    showInfo("Welcome back!");
     hide();
+  }
+
+  private void showInfo(String message)
+  {
+    javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+        javafx.scene.control.Alert.AlertType.INFORMATION);
+    alert.setTitle("Login");
+    alert.setHeaderText(null);
+    alert.setContentText(message);
+    alert.showAndWait();
   }
 
   private void showError(String message)

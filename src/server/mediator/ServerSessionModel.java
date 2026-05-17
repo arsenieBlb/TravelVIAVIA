@@ -154,6 +154,14 @@ public class ServerSessionModel implements Model
     }
   }
 
+  @Override public void editFlight(Flight flight)
+  {
+    synchronized (serverModel)
+    {
+      serverModel.editFlight(currentUser, flight);
+    }
+  }
+
   @Override public List<LuggageType> getLuggageTypes()
   {
     synchronized (serverModel)

@@ -16,6 +16,7 @@ public final class RequestType
   public static final String ADD_BOOKING_TO_CURRENT_USER_BY_ID = "ADD_BOOKING_TO_CURRENT_USER_BY_ID";
   public static final String ADD_FLIGHT = "ADD_FLIGHT";
   public static final String REMOVE_FLIGHT = "REMOVE_FLIGHT";
+  public static final String EDIT_FLIGHT = "EDIT_FLIGHT";
   public static final String GET_LUGGAGE_TYPES = "GET_LUGGAGE_TYPES";
   public static final String GET_ALL_CITIES = "GET_ALL_CITIES";
   public static final String GET_CITIES = "GET_CITIES";

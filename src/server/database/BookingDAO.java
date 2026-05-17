@@ -39,55 +39,55 @@ public class BookingDAO
 
       while (resultSet.next())
       {
-        int bookingId = resultSet.getInt("booking_id");
-        int flightId = resultSet.getInt("flight_id");
-        int customerId = resultSet.getInt("created_by_customer_id");
+        try {
+          int bookingId = resultSet.getInt("booking_id");
+          int flightId = resultSet.getInt("flight_id");
+          int customerId = resultSet.getInt("created_by_customer_id");
 
-        Flight flight = findFlightById(flights, flightId);
+          Flight flight = findFlightById(flights, flightId);
 
-        int secondFlightId = resultSet.getInt("second_flight_id");
-        if (!resultSet.wasNull()) {
-            Flight secondFlight = findFlightById(flights, secondFlightId);
-            if (secondFlight != null) {
-                flight = new client.model.ConnectingFlight(flight, secondFlight);
-            }
-        }
-
-        Customer customer = findCustomerById(customers, customerId);
-
-        if (flight != null && customer != null) {
-          // loads passengers that belong to this booking
-          List<Passenger> passengers = loadPassengers(bookingId, flight, luggageTypes,
-              connection);
-          
-          if (!passengers.isEmpty()) {
-            Booking booking = new Booking(bookingId, LocalDateTime.now(),
-                customer, flight, passengers);
-
-            // load return flight
-            int returnFlightId = resultSet.getInt("return_flight_id");
-            if (!resultSet.wasNull()) {
-                Flight returnFlight = findFlightById(flights, returnFlightId);
-                int secondReturnId = resultSet.getInt("second_return_flight_id");
-                if (!resultSet.wasNull()) {
-                    Flight secondReturn = findFlightById(flights, secondReturnId);
-                    if (secondReturn != null && returnFlight != null) {
-                        returnFlight = new client.model.ConnectingFlight(returnFlight, secondReturn);
-                    }
-                }
-                if (returnFlight != null) {
-                    booking.setReturnFlight(returnFlight);
-                    for (Passenger passenger : passengers) {
-                        loadSeatAssignments(passenger, returnFlight, connection);
-                    }
-                }
-            }
-
-            for (Passenger passenger : passengers) {
-                loadSeatAssignments(passenger, flight, connection);
-            }
-            bookings.add(booking);
+          int secondFlightId = resultSet.getInt("second_flight_id");
+          if (!resultSet.wasNull()) {
+              Flight secondFlight = findFlightById(flights, secondFlightId);
+              if (secondFlight != null) {
+                  flight = new client.model.ConnectingFlight(flight, secondFlight);
+              }
           }
+
+          Customer customer = findCustomerById(customers, customerId);
+
+          if (flight != null && customer != null) {
+            // loads passengers that belong to this booking
+            List<Passenger> passengers = loadPassengers(bookingId, flight, luggageTypes,
+                connection);
+            
+            if (!passengers.isEmpty()) {
+              Booking booking = new Booking(bookingId, LocalDateTime.now(),
+                  customer, flight, passengers);
+
+              // load return flight
+              int returnFlightId = resultSet.getInt("return_flight_id");
+              if (!resultSet.wasNull()) {
+                  Flight returnFlight = findFlightById(flights, returnFlightId);
+                  int secondReturnId = resultSet.getInt("second_return_flight_id");
+                  if (!resultSet.wasNull()) {
+                      Flight secondReturn = findFlightById(flights, secondReturnId);
+                      if (secondReturn != null && returnFlight != null) {
+                          returnFlight = new client.model.ConnectingFlight(returnFlight, secondReturn);
+                      }
+                  }
+                  if (returnFlight != null) {
+                      booking.setReturnFlight(returnFlight);
+                  }
+              }
+
+              loadAllSeatAssignmentsForBooking(booking, connection);
+
+              bookings.add(booking);
+            }
+          }
+        } catch (Exception e) {
+            System.err.println("Warning: Skipping corrupted booking. Reason: " + e.getMessage());
         }
       }
     }
@@ -120,11 +120,15 @@ public class BookingDAO
 
       while (resultSet.next())
       {
-        Booking booking = createBookingFromResultSet(resultSet, customer,
-            flights, luggageTypes, connection);
-        if (booking != null)
-        {
-          bookings.add(booking);
+        try {
+          Booking booking = createBookingFromResultSet(resultSet, customer,
+              flights, luggageTypes, connection);
+          if (booking != null)
+          {
+            bookings.add(booking);
+          }
+        } catch (Exception e) {
+            System.err.println("Warning: Skipping corrupted booking for customer. Reason: " + e.getMessage());
         }
       }
     }
@@ -151,8 +155,13 @@ public class BookingDAO
 
       if (resultSet.next())
       {
-        return createBookingFromResultSet(resultSet, customer, flights,
-            luggageTypes, connection);
+        try {
+          return createBookingFromResultSet(resultSet, customer, flights,
+              luggageTypes, connection);
+        } catch (Exception e) {
+            System.err.println("Warning: Skipping corrupted booking lookup. Reason: " + e.getMessage());
+            return null;
+        }
       }
     }
     return null;
@@ -254,15 +263,11 @@ public class BookingDAO
         }
         if (returnFlight != null) {
             booking.setReturnFlight(returnFlight);
-            for (Passenger passenger : passengers) {
-                loadSeatAssignments(passenger, returnFlight, connection);
-            }
         }
     }
 
-    for (Passenger passenger : passengers) {
-        loadSeatAssignments(passenger, flight, connection);
-    }
+    loadAllSeatAssignmentsForBooking(booking, connection);
+
     return booking;
   }
 
@@ -514,25 +519,44 @@ public class BookingDAO
     statement.executeUpdate();
   }
 
-  private void loadSeatAssignments(Passenger passenger, Flight flight, Connection connection) throws SQLException {
-    String sql = "SELECT flight_id, seat_id FROM flights.flight_seat WHERE passenger_id = ?";
+  private void loadAllSeatAssignmentsForBooking(Booking booking, Connection connection) throws SQLException {
+    String sql = "SELECT p.passenger_id, fs.flight_id, fs.seat_id "
+        + "FROM flights.passenger p "
+        + "JOIN flights.flight_seat fs ON p.passenger_id = fs.passenger_id "
+        + "WHERE p.booking_id = ?";
     PreparedStatement statement = connection.prepareStatement(sql);
-    statement.setInt(1, passenger.getPassengerId());
+    statement.setInt(1, booking.getBookingId());
     ResultSet resultSet = statement.executeQuery();
 
     while (resultSet.next()) {
+        int passengerId = resultSet.getInt("passenger_id");
         int flightId = resultSet.getInt("flight_id");
         int seatId = resultSet.getInt("seat_id");
 
-        Flight specificFlight = null;
-        if (flight instanceof client.model.ConnectingFlight connectingFlight) {
-            if (connectingFlight.getFirstSegment().getFlightId() == flightId) {
-                specificFlight = connectingFlight.getFirstSegment();
-            } else if (connectingFlight.getSecondSegment().getFlightId() == flightId) {
-                specificFlight = connectingFlight.getSecondSegment();
+        Passenger passenger = null;
+        for (Passenger p : booking.getPassengers()) {
+            if (p.getPassengerId() == passengerId) {
+                passenger = p;
+                break;
             }
-        } else if (flight.getFlightId() == flightId) {
-            specificFlight = flight;
+        }
+        if (passenger == null) continue;
+
+        Flight specificFlight = null;
+        Flight[] potentialFlights = {booking.getFlight(), booking.getReturnFlight()};
+        
+        for (Flight f : potentialFlights) {
+            if (f == null) continue;
+            if (f instanceof client.model.ConnectingFlight connectingFlight) {
+                if (connectingFlight.getFirstSegment().getFlightId() == flightId) {
+                    specificFlight = connectingFlight.getFirstSegment();
+                } else if (connectingFlight.getSecondSegment().getFlightId() == flightId) {
+                    specificFlight = connectingFlight.getSecondSegment();
+                }
+            } else if (f.getFlightId() == flightId) {
+                specificFlight = f;
+            }
+            if (specificFlight != null) break;
         }
 
         if (specificFlight != null) {

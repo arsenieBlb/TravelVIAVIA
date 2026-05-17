@@ -175,6 +175,29 @@ public class FlightDAO {
       }
     }
   }
+
+  public void updateFlight(Flight flight) throws SQLException {
+    String sql = "UPDATE flights.flight SET carrier_id = ?, plane_id = ?, "
+        + "departure_city_id = ?, arrival_city_id = ?, "
+        + "departure_time = ?, arrival_time = ?, base_price = ? "
+        + "WHERE flight_id = ?";
+
+    try (Connection connection = DatabaseConnection.getConnection();
+        PreparedStatement stmt = connection.prepareStatement(sql)) {
+      stmt.setInt(1, flight.getCarrier().getCarrierId());
+      stmt.setInt(2, flight.getPlane().getPlaneId());
+      stmt.setInt(3, flight.getDepartureCity().getCityId());
+      stmt.setInt(4, flight.getArrivalCity().getCityId());
+      stmt.setTimestamp(5, Timestamp.valueOf(flight.getDepartureTime()));
+      stmt.setTimestamp(6, Timestamp.valueOf(flight.getArrivalTime()));
+      stmt.setDouble(7, flight.getBasePrice());
+      stmt.setInt(8, flight.getFlightId());
+
+      if (stmt.executeUpdate() == 0) {
+        throw new SQLException("Flight " + flight.getFlightId() + " was not found.");
+      }
+    }
+  }
 }
 
 

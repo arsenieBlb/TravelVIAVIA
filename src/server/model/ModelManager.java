@@ -289,6 +289,7 @@ public class ModelManager implements Model
         // saves the booking to the database
         try {
             bookingDAO.saveBooking(booking);
+            booking.confirmBooking();
             logger.log("model", "CREATE_BOOKING", "OK",
                 "bookingId=" + booking.getBookingId()
                     + ", customer=" + customer.getEmail());
@@ -501,6 +502,45 @@ public class ModelManager implements Model
                 logger.log("model", "REMOVE_FLIGHT", "ERROR",
                     "Could not remove flight: " + e.getMessage());
                 throw new RuntimeException("Could not remove flight", e);
+            }
+        }
+    }
+
+    @Override
+    public void editFlight(Flight flight)
+    {
+        editFlight(currentUser, flight);
+    }
+
+    public void editFlight(User user, Flight flight)
+    {
+        if (user instanceof Admin admin)
+        {
+            try
+            {
+                flightDAO.updateFlight(flight);
+
+                // replace the old flight in the in-memory list
+                for (int i = 0; i < allFlights.size(); i++)
+                {
+                    if (allFlights.get(i).getFlightId() == flight.getFlightId())
+                    {
+                        allFlights.set(i, flight);
+                        break;
+                    }
+                }
+
+                admin.updateFlight(flight);
+                logger.log("model", "EDIT_FLIGHT", "OK",
+                    "flightId=" + flight.getFlightId()
+                        + ", admin=" + admin.getEmail());
+                support.firePropertyChange("allFlights", null, allFlights);
+            }
+            catch (SQLException e)
+            {
+                logger.log("model", "EDIT_FLIGHT", "ERROR",
+                    "Could not edit flight: " + e.getMessage());
+                throw new RuntimeException("Could not edit flight", e);
             }
         }
     }

@@ -1,5 +1,7 @@
 package client.view;
 
+import client.model.Admin;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
@@ -14,6 +16,7 @@ import client.viewmodel.MyBookingsViewModel;
 import client.viewmodel.PassengerDetailsViewModel;
 import client.viewmodel.SeatMapViewModel;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class FlightSceneViewController
@@ -122,6 +125,16 @@ public class FlightSceneViewController
         );
 
         travelDatePicker.valueProperty().bindBidirectional(flightSceneViewModel.travelDateProperty());
+
+        // block dates that already passed
+        travelDatePicker.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setDisable(empty || date.isBefore(LocalDate.now()));
+            }
+        });
+
         resultCountLabel.textProperty().bind(Bindings.size(flightSceneViewModel.getFilteredFlights()).asString());
 
         setupFilters();
@@ -201,11 +214,22 @@ public class FlightSceneViewController
         if (returnDatePicker != null)
         {
             returnDatePicker.valueProperty().bindBidirectional(flightSceneViewModel.returnDateProperty());
+
+            // block dates before the travel date
+            returnDatePicker.setDayCellFactory(picker -> new DateCell() {
+                @Override
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    LocalDate earliest = travelDatePicker.getValue();
+                    if (earliest == null) earliest = LocalDate.now();
+                    setDisable(empty || date.isBefore(earliest));
+                }
+            });
         }
 
         if (returnFlightsTable != null)
         {
-            returnFlightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+            returnFlightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
             setupReturnTableColumns();
             returnFlightsTable.setItems(flightSceneViewModel.getReturnFlights());
             returnFlightsTable.getSelectionModel().selectedItemProperty().addListener(
@@ -218,7 +242,7 @@ public class FlightSceneViewController
 
     private void setupFlightTable()
     {
-        flightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        flightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         routeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
                 cellData.getValue().getDepartureCity().getCityName() + " → "
                         + cellData.getValue().getArrivalCity().getCityName()));
@@ -434,6 +458,7 @@ public class FlightSceneViewController
             flightSceneViewModel.logout();
             pendingCustomerAction = null;
             updateAuthHeader();
+            showAlert(Alert.AlertType.INFORMATION, "Logged Out", "You have been logged out.");
             showBookFlight();
         }
     }
@@ -451,6 +476,8 @@ public class FlightSceneViewController
         updateAuthHeader();
         return false;
     }
+
+
 
     private void runPendingCustomerAction()
     {

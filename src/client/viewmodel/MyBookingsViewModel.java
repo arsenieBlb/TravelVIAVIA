@@ -5,6 +5,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import client.model.Booking;
+import client.model.BookingObserver;
 import client.model.Customer;
 import client.model.Model;
 import client.model.User;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class MyBookingsViewModel
+public class MyBookingsViewModel implements BookingObserver
 {
   private final Model model;
   private final ObservableList<Booking> bookings =
@@ -45,6 +46,18 @@ public class MyBookingsViewModel
         .filter(booking -> !cancelledBookingIds.contains(booking.getBookingId()))
         .collect(Collectors.toList());
     bookings.setAll(currentBookings);
+
+    // register as observer on each booking so we get state change updates
+    for (Booking booking : bookings)
+    {
+      booking.addObserver(this);
+    }
+  }
+
+  @Override
+  public void onBookingStateChanged(Booking booking, String oldState, String newState)
+  {
+    javafx.application.Platform.runLater(this::refresh);
   }
 
   public Booking addBookingById(String bookingCode, String lastName)

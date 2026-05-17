@@ -138,6 +138,11 @@ public class FlightSearchService
             }
         }
 
+        // Optimization: Do not compute millions of connecting flights if the user didn't specify an origin or destination
+        if (criteria.getDepartureCity() == null && criteria.getArrivalCity() == null) {
+            return results;
+        }
+
         // then look for 1-stop connecting flights
         for (Flight first : allFlights) {
             boolean originMatch = (criteria.getDepartureCity() == null) || 

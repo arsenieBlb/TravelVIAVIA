@@ -38,6 +38,8 @@ public interface Model
 
     void removeFlight(Flight flight);
 
+    void editFlight(Flight flight);
+
     List<LuggageType> getLuggageTypes();
 
     List<City> getAllCities();

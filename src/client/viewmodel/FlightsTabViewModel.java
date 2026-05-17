@@ -7,6 +7,7 @@ import javafx.collections.transformation.FilteredList;
 import client.model.Flight;
 import client.model.Model;
 import client.model.SearchCriteria;
+import java.util.List;
 
 import java.time.LocalDate;
 
@@ -35,7 +36,8 @@ public class FlightsTabViewModel {
     }
 
     private void loadInitialData() {
-        allFlights.setAll(model.searchFlights(new SearchCriteria()));
+        List<Flight> all = model.getAllFlights();
+        allFlights.setAll(all);
     }
 
     private void updatePredicate() {
@@ -67,7 +69,32 @@ public class FlightsTabViewModel {
 
     public void refreshFromModel()
     {
-        allFlights.setAll(model.searchFlights(new SearchCriteria()));
+        List<Flight> all = model.getAllFlights();
+        allFlights.setAll(all);
+    }
+
+    public void removeFlight(Flight flight)
+    {
+        model.removeFlight(flight);
+        allFlights.remove(flight);
+    }
+
+    public void editFlight(Flight flight)
+    {
+        model.editFlight(flight);
+        refreshFromModel();
+    }
+
+    public List<client.model.City> getCities() {
+        return model.getCities();
+    }
+
+    public List<client.model.Carrier> getCarriers() {
+        return model.getCarriers();
+    }
+
+    public List<client.model.Plane> getPlanes() {
+        return model.getPlanes();
     }
 }
 

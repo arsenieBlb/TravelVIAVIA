@@ -81,6 +81,7 @@ public class RegisterDialogController
       return;
     }
 
+    showInfo("Account created successfully! You can now log in.");
     registerPasswordField.clear();
     hide();
     owner.showLoginDialog();
@@ -104,6 +105,16 @@ public class RegisterDialogController
   {
     registerErrorLabel.setVisible(false);
     registerErrorLabel.setManaged(false);
+  }
+
+  private void showInfo(String message)
+  {
+    javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+        javafx.scene.control.Alert.AlertType.INFORMATION);
+    alert.setTitle("Registration");
+    alert.setHeaderText(null);
+    alert.setContentText(message);
+    alert.showAndWait();
   }
 }
 

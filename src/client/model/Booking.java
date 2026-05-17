@@ -20,6 +20,8 @@ public class Booking
   private Flight returnFlight;
   private final List<Passenger> passengers;
   private boolean cancelled;
+  private BookingState state;
+  private final List<BookingObserver> observers;
 
   public Booking(Customer customer, Flight flight, List<Passenger> passengers)
   {
@@ -36,6 +38,8 @@ public class Booking
       Flight flight, List<Passenger> passengers)
   {
     this.passengers = new ArrayList<>();
+    this.observers = new ArrayList<>();
+    this.state = new PendingState();
     setBookingId(bookingId);
     setBookingDate(bookingDate);
     setCustomer(customer);
@@ -46,12 +50,23 @@ public class Booking
     this.flight.addBooking(this);
   }
 
+  // confirms the booking using the state pattern
+  public void confirmBooking()
+  {
+    String oldStatus = state.getStatus();
+    state.confirm(this);
+    notifyObservers(oldStatus, state.getStatus());
+  }
+
   public void cancel()
   {
     if (cancelled)
     {
       return;
     }
+
+    String oldStatus = state.getStatus();
+    state.cancel(this);
 
     for (Passenger passenger : passengers)
     {
@@ -73,6 +88,40 @@ public class Booking
       }
     }
     cancelled = true;
+    notifyObservers(oldStatus, state.getStatus());
+  }
+
+  // used by state classes to switch the internal state
+  void setInternalState(BookingState newState)
+  {
+    this.state = newState;
+  }
+
+  public String getStateStatus()
+  {
+    return state.getStatus();
+  }
+
+  // observer pattern methods
+  public void addObserver(BookingObserver observer)
+  {
+    if (!observers.contains(observer))
+    {
+      observers.add(observer);
+    }
+  }
+
+  public void removeObserver(BookingObserver observer)
+  {
+    observers.remove(observer);
+  }
+
+  private void notifyObservers(String oldState, String newState)
+  {
+    for (BookingObserver observer : observers)
+    {
+      observer.onBookingStateChanged(this, oldState, newState);
+    }
   }
 
   public String getBookingSummary()
@@ -81,56 +130,125 @@ public class Booking
 
     StringBuilder summary = new StringBuilder();
     summary.append("Booking #").append(bookingId).append(System.lineSeparator());
-    summary.append("Cancelled: ").append(cancelled).append(System.lineSeparator());
+    summary.append("Status: ").append(getStateStatus()).append(System.lineSeparator());
     summary.append("Customer: ").append(customer.getFullName())
-        .append(System.lineSeparator());
-    summary.append("Flight: ").append(flight.getFlightNumber()).append(" ")
-        .append(flight.getDepartureCity().getCityName()).append(" -> ")
-        .append(flight.getArrivalCity().getCityName())
-        .append(System.lineSeparator());
-    summary.append("Departure time: ").append(flight.getDepartureTime())
-        .append(System.lineSeparator());
-    summary.append("Arrival time: ").append(flight.getArrivalTime())
         .append(System.lineSeparator());
     summary.append("Booking date: ").append(bookingDate)
         .append(System.lineSeparator());
-    summary.append("Passengers:").append(System.lineSeparator());
+
+    // outbound flight details
+    java.util.List<Flight> outboundSegments = new java.util.ArrayList<>();
+    if (flight instanceof ConnectingFlight cf) {
+        outboundSegments.add(cf.getFirstSegment());
+        outboundSegments.add(cf.getSecondSegment());
+    } else {
+        outboundSegments.add(flight);
+    }
+
+    summary.append(System.lineSeparator());
+    summary.append("--- OUTBOUND FLIGHT ---").append(System.lineSeparator());
+    summary.append("Route: ").append(flight.getDepartureCity().getCityName())
+        .append(" -> ").append(flight.getArrivalCity().getCityName());
+    if (flight instanceof ConnectingFlight) {
+        summary.append(" (1 Stop)");
+    } else {
+        summary.append(" (Direct)");
+    }
+    summary.append(System.lineSeparator());
+    summary.append("Carrier: ").append(outboundSegments.get(0).getCarrier().getName())
+        .append(" | ").append(flight.getFlightNumber()).append(System.lineSeparator());
+    summary.append("Aircraft: ").append(outboundSegments.get(0).getPlane().getPlaneType().getModel());
+    if (outboundSegments.size() > 1) {
+        summary.append(" / ").append(outboundSegments.get(1).getPlane().getPlaneType().getModel());
+    }
+    summary.append(System.lineSeparator());
+
+    for (int i = 0; i < outboundSegments.size(); i++) {
+        Flight seg = outboundSegments.get(i);
+        summary.append("  Segment ").append(i + 1).append(": ")
+            .append(seg.getDepartureCity().getCityName()).append(" -> ")
+            .append(seg.getArrivalCity().getCityName()).append(System.lineSeparator());
+        summary.append("    Departure: ").append(seg.getDepartureTime())
+            .append(" | Arrival: ").append(seg.getArrivalTime())
+            .append(" | Duration: ").append(seg.getDurationString())
+            .append(System.lineSeparator());
+    }
+
+    // return flight details
+    java.util.List<Flight> returnSegments = new java.util.ArrayList<>();
+    if (returnFlight != null) {
+        if (returnFlight instanceof ConnectingFlight rcf) {
+            returnSegments.add(rcf.getFirstSegment());
+            returnSegments.add(rcf.getSecondSegment());
+        } else {
+            returnSegments.add(returnFlight);
+        }
+
+        summary.append(System.lineSeparator());
+        summary.append("--- RETURN FLIGHT ---").append(System.lineSeparator());
+        summary.append("Route: ").append(returnFlight.getDepartureCity().getCityName())
+            .append(" -> ").append(returnFlight.getArrivalCity().getCityName());
+        if (returnFlight instanceof ConnectingFlight) {
+            summary.append(" (1 Stop)");
+        } else {
+            summary.append(" (Direct)");
+        }
+        summary.append(System.lineSeparator());
+        summary.append("Carrier: ").append(returnSegments.get(0).getCarrier().getName())
+            .append(" | ").append(returnFlight.getFlightNumber()).append(System.lineSeparator());
+        summary.append("Aircraft: ").append(returnSegments.get(0).getPlane().getPlaneType().getModel());
+        if (returnSegments.size() > 1) {
+            summary.append(" / ").append(returnSegments.get(1).getPlane().getPlaneType().getModel());
+        }
+        summary.append(System.lineSeparator());
+
+        for (int i = 0; i < returnSegments.size(); i++) {
+            Flight seg = returnSegments.get(i);
+            summary.append("  Segment ").append(i + 1).append(": ")
+                .append(seg.getDepartureCity().getCityName()).append(" -> ")
+                .append(seg.getArrivalCity().getCityName()).append(System.lineSeparator());
+            summary.append("    Departure: ").append(seg.getDepartureTime())
+                .append(" | Arrival: ").append(seg.getArrivalTime())
+                .append(" | Duration: ").append(seg.getDurationString())
+                .append(System.lineSeparator());
+        }
+    }
+
+    // passenger details with per-segment seat info and baggage
+    summary.append(System.lineSeparator());
+    summary.append("--- PASSENGERS ---").append(System.lineSeparator());
 
     for (Passenger passenger : passengers)
     {
-      summary.append("- ").append(passenger.getFullName());
-      for (SeatAssignment seatAssignment : passenger.getSeatAssignments()) {
-          summary.append(", seat ")
-              .append(seatAssignment.getSeat().getSeatNumber())
-              .append(" (").append(seatAssignment.getFlight().getDepartureCity().getCityName()).append(")");
+      summary.append("Passenger: ").append(passenger.getFullName())
+          .append(System.lineSeparator());
+
+      // show seat assignments grouped by segment
+      for (SeatAssignment sa : passenger.getSeatAssignments()) {
+          summary.append("  Seat (")
+              .append(sa.getFlight().getDepartureCity().getCityName())
+              .append(" -> ")
+              .append(sa.getFlight().getArrivalCity().getCityName())
+              .append("): ").append(sa.getSeat().getSeatNumber())
+              .append(" (").append(sa.getSeat().getSeatClass()).append(")")
+              .append(System.lineSeparator());
       }
 
+      // show luggage for this passenger
       if (!passenger.getPassengerLuggage().isEmpty())
       {
-        summary.append(", luggage: ");
-        for (int i = 0; i < passenger.getPassengerLuggage().size(); i++)
+        for (PassengerLuggage luggage : passenger.getPassengerLuggage())
         {
-          PassengerLuggage luggage = passenger.getPassengerLuggage().get(i);
-          if (i > 0)
-          {
-            summary.append("; ");
-          }
-          summary.append(luggage.getQuantity()).append(" x ")
-              .append(luggage.getLuggageType().getName()).append(" (")
-              .append(luggage.getTotalExtraPrice()).append(")");
+          summary.append("  Luggage: ").append(luggage.getQuantity())
+              .append("x ").append(luggage.getLuggageType().getName())
+              .append(" (EUR ").append(luggage.getTotalExtraPrice()).append(")")
+              .append(System.lineSeparator());
         }
       }
-      summary.append(System.lineSeparator());
     }
 
-    summary.append("Total price: ").append(totalPrice);
-
-    if (returnFlight != null) {
-        summary.append(System.lineSeparator());
-        summary.append("Return Flight: ").append(returnFlight.getFlightNumber()).append(" ")
-            .append(returnFlight.getDepartureCity().getCityName()).append(" -> ")
-            .append(returnFlight.getArrivalCity().getCityName());
-    }
+    summary.append(System.lineSeparator());
+    summary.append("Total price: EUR ").append(String.format("%.2f", totalPrice));
 
     return summary.toString();
   }
@@ -142,45 +260,24 @@ public class Booking
 
         for (Passenger passenger : passengers)
         {
-            double passengerBasePrice = flight.getBasePrice();
-            boolean hasBusinessClass = false;
+            double passengerBasePrice = 0;
 
-            for (SeatAssignment seatAssignment : passenger.getSeatAssignments())
-            {
-                if (seatAssignment.getSeat().getSeatClass() instanceof BusinessClass)
-                {
-                    hasBusinessClass = true;
-                    break;
+            if (passenger.getSeatAssignments().isEmpty()) {
+                passengerBasePrice = flight.getBasePrice();
+                if (returnFlight != null) {
+                    passengerBasePrice += returnFlight.getBasePrice();
                 }
-            }
-
-            if (hasBusinessClass)
-            {
-                passengerBasePrice *= 1.5;
+            } else {
+                for (SeatAssignment sa : passenger.getSeatAssignments()) {
+                    double segmentPrice = sa.getFlight().getBasePrice();
+                    if (sa.getSeat().getSeatClass() instanceof BusinessClass) {
+                        segmentPrice *= 1.5;
+                    }
+                    passengerBasePrice += segmentPrice;
+                }
             }
 
             basePrice += passengerBasePrice;
-
-            // add return flight base price if present
-            if (returnFlight != null) {
-                double returnBase = returnFlight.getBasePrice();
-                for (SeatAssignment sa : passenger.getSeatAssignments()) {
-                    if (returnFlight instanceof ConnectingFlight cf) {
-                        if (sa.getFlight().equals(cf.getFirstSegment()) || sa.getFlight().equals(cf.getSecondSegment())) {
-                            if (sa.getSeat().getSeatClass() instanceof BusinessClass) {
-                                returnBase *= 1.5;
-                                break;
-                            }
-                        }
-                    } else if (sa.getFlight().equals(returnFlight)) {
-                        if (sa.getSeat().getSeatClass() instanceof BusinessClass) {
-                            returnBase *= 1.5;
-                            break;
-                        }
-                    }
-                }
-                basePrice += returnBase;
-            }
 
             for (PassengerLuggage luggage : passenger.getPassengerLuggage())
             {

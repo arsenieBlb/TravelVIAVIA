@@ -57,6 +57,14 @@ public class AddBookingDialogController
             viewModel.addBookingById(addBookingCodeField.getText(),
                     addBookingLastNameField.getText());
             viewModel.refresh();
+
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle("Booking Added");
+            alert.setHeaderText(null);
+            alert.setContentText("Booking has been added to your account.");
+            alert.showAndWait();
+
             hide();
         }
         catch (RuntimeException e)
