@@ -51,7 +51,7 @@ public class LoginDialogController
       showError("Please use a valid customer account.");
       return;
     }
-    showInfo("Welcome back!");
+    showInfo("Welcome");
     hide();
   }
 

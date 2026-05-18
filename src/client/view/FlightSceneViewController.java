@@ -496,9 +496,9 @@ public class FlightSceneViewController
             authStatusLabel.setText("Welcome, " + customer.getFirstName());
             authButton.setText("Logout");
         }
-        else if (user instanceof Admin admin)
+        else if (user instanceof Admin)
         {
-            authStatusLabel.setText("Logged in as Admin");
+            authStatusLabel.setText("Welcome, Admin");
             authButton.setText("Logout");
         }
         else

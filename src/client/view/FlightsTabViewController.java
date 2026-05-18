@@ -4,14 +4,19 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import client.model.Flight;
 import client.viewmodel.FlightsTabViewModel;
 import client.viewmodel.NavigationAdminViewModel;
 import client.viewmodel.NavigationAdminViewModel.NavigationTab;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
 public class FlightsTabViewController {
@@ -187,7 +192,28 @@ public class FlightsTabViewController {
     @FXML
     private void onAddFlightClick()
     {
-        viewHandler.openView("ADD_FLIGHT");
+        try
+        {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("add_flight_tab.fxml"));
+            Region addFlightRoot = loader.load();
+
+            AddFlightTabController controller = loader.getController();
+            controller.init(navViewModel.getAddFlightTabViewModel(), this::refreshTable);
+
+            Stage dialog = new Stage();
+            dialog.initModality(Modality.WINDOW_MODAL);
+            dialog.initOwner(flightsTable.getScene().getWindow());
+            dialog.setTitle("Add Flight");
+            dialog.setScene(new Scene(addFlightRoot));
+            dialog.setOnHidden(event -> refreshTable());
+            dialog.showAndWait();
+        }
+        catch (IOException e)
+        {
+            showAlert(Alert.AlertType.ERROR, "Error",
+                "Could not open add flight view: " + e.getMessage());
+        }
     }
 
     public void refreshTable()

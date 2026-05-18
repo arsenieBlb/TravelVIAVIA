@@ -23,10 +23,17 @@ public class AddFlightTabController
     @FXML private Button cancelButton;
 
     private AddFlightTabViewModel viewModel;
+    private Runnable onSaved;
 
     public void init(AddFlightTabViewModel viewModel)
     {
+        init(viewModel, null);
+    }
+
+    public void init(AddFlightTabViewModel viewModel, Runnable onSaved)
+    {
         this.viewModel = viewModel;
+        this.onSaved = onSaved;
 
         viewModel.refreshData();
 
@@ -67,7 +74,11 @@ public class AddFlightTabController
             saveFlightButton.setDisable(true);
             viewModel.addFlight();
 
-            ((Stage) saveFlightButton.getScene().getWindow()).close();
+            if (onSaved != null)
+            {
+                onSaved.run();
+            }
+            closeWindow(saveFlightButton);
         }
         catch (Exception e)
         {
@@ -80,7 +91,12 @@ public class AddFlightTabController
     @FXML
     private void onCancel()
     {
-        ((Stage) cancelButton.getScene().getWindow()).close();
+        closeWindow(cancelButton);
+    }
+
+    private void closeWindow(Button source)
+    {
+        ((Stage) source.getScene().getWindow()).close();
     }
 }
 
