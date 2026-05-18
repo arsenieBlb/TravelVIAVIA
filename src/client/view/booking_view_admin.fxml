@@ -20,7 +20,7 @@
     </padding>
 
     <VBox spacing="2">
-        <Label text="Booking Management" styleClass="section-title"/>
+        <Label text="Bookings" styleClass="section-title"/>
         <Label text="View bookings" styleClass="section-subtitle"/>
     </VBox>
 

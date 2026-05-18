@@ -33,7 +33,7 @@ public class PassengerDetailsViewModel
   private static int nextDraftPassengerId = 1000;
   private static int nextDraftLuggageId = 1000;
   public static final double CARRY_ON_UNIT_PRICE = 15;
-  public static final int MAX_CARRY_ON_BAGS = 2;
+  //public static final int MAX_CARRY_ON_BAGS = 2;
   public static final double BUSINESS_CLASS_MULTIPLIER = 1.5;
 
   private final Model model;
@@ -90,7 +90,7 @@ public class PassengerDetailsViewModel
       }
     }
 
-    prefillFirstPassenger();
+//    prefillFirstPassenger();
     updateFareTotals();
   }
 
@@ -116,29 +116,29 @@ public class PassengerDetailsViewModel
     return form;
   }
 
-  private void prefillFirstPassenger()
-  {
-    if (passengerForms.isEmpty())
-    {
-      return;
-    }
-
-    User user = model.getLoggedInUser();
-    if (!(user instanceof Customer customer))
-    {
-      return;
-    }
-
-    PassengerForm firstPassenger = passengerForms.get(0);
-    if (firstPassenger.getFirstName().isBlank())
-    {
-      firstPassenger.setFirstName(customer.getFirstName());
-    }
-    if (firstPassenger.getLastName().isBlank())
-    {
-      firstPassenger.setLastName(customer.getLastName());
-    }
-  }
+//  private void prefillFirstPassenger()
+//  {
+//    if (passengerForms.isEmpty())
+//    {
+//      return;
+//    }
+//
+//    User user = model.getLoggedInUser();
+//    if (!(user instanceof Customer customer))
+//    {
+//      return;
+//    }
+//
+//    PassengerForm firstPassenger = passengerForms.get(0);
+//    if (firstPassenger.getFirstName().isBlank())
+//    {
+//      firstPassenger.setFirstName(customer.getFirstName());
+//    }
+//    if (firstPassenger.getLastName().isBlank())
+//    {
+//      firstPassenger.setLastName(customer.getLastName());
+//    }
+//  }
 
   public Booking confirmBooking()
   {
@@ -210,7 +210,7 @@ public class PassengerDetailsViewModel
         {
             form.setFirstName("");
             form.setLastName("");
-            form.carryOnQuantityProperty().set(1);
+            form.carryOnQuantityProperty().set(0);
             form.baggageQuantityProperty().set(0);
             for (int i = 0; i < getMaxSegmentCount(); i++)
             {
@@ -534,7 +534,7 @@ public class PassengerDetailsViewModel
     private final StringProperty firstName = new SimpleStringProperty("");
     private final StringProperty lastName = new SimpleStringProperty("");
     private final IntegerProperty carryOnQuantity =
-        new SimpleIntegerProperty(1);
+        new SimpleIntegerProperty(0);
     private final IntegerProperty baggageQuantity =
         new SimpleIntegerProperty(0);
     private final List<ObjectProperty<SeatClass>> seatClasses = new ArrayList<>();

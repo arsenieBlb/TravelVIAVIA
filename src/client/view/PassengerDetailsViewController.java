@@ -397,8 +397,8 @@ public class PassengerDetailsViewController
   private void updateCheckedBaggage(PassengerDetailsViewModel.PassengerForm form,
       int delta)
   {
-    int nextValue = Math.max(0, Math.min(5,
-        form.getBaggageQuantity() + delta));
+    int nextValue = Math.max(0,
+        form.getBaggageQuantity() + delta);
     form.baggageQuantityProperty().set(nextValue);
     renderPassengerForms();
     refreshFareLabels();
@@ -407,9 +407,8 @@ public class PassengerDetailsViewController
   private void updateCarryOnBags(PassengerDetailsViewModel.PassengerForm form,
       int delta)
   {
-    int nextValue = Math.max(0, Math.min(
-        PassengerDetailsViewModel.MAX_CARRY_ON_BAGS,
-        form.getCarryOnQuantity() + delta));
+    int nextValue = Math.max(0,
+        form.getCarryOnQuantity() + delta);
     form.carryOnQuantityProperty().set(nextValue);
     renderPassengerForms();
     refreshFareLabels();

@@ -2,6 +2,7 @@ package client.view;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -16,6 +17,17 @@ import client.model.EconomyClass;
 import java.util.*;
 
 public class SeatMapViewController {
+    private static final int SEAT_COLUMN_WIDTH = 64;
+    private static final int AISLE_COLUMN_WIDTH = 44;
+    private static final int BUSINESS_SEAT_WIDTH = 78;
+    private static final int BUSINESS_SEAT_HEIGHT = 50;
+    private static final int BUSINESS_PAIR_GAP = 16;
+    private static final int BUSINESS_ROW_WIDTH =
+            (SEAT_COLUMN_WIDTH * 6) + AISLE_COLUMN_WIDTH + (6 * 4);
+    private static final int BUSINESS_AISLE_GAP =
+            BUSINESS_ROW_WIDTH - (BUSINESS_SEAT_WIDTH * 4)
+                    - (BUSINESS_PAIR_GAP * 2);
+
     @FXML private StackPane seatModal;
     @FXML private VBox seatGridContainer;
     @FXML private Label seatModalTitleLabel;
@@ -84,12 +96,16 @@ public class SeatMapViewController {
         seatGridContainer.getChildren().clear();
         seatGridContainer.setAlignment(Pos.TOP_CENTER);
 
-        VBox nose = createPlaneNose();
         GridPane grid = createSeatGrid(passengerNumber,
                 seatMapViewModel.getSeats(),
                 seatMapViewModel.temporarySelectionProperty());
+        VBox planeBox = new VBox(16, createPlaneNose(), grid);
+        planeBox.setAlignment(Pos.TOP_CENTER);
+        planeBox.setPrefWidth(540);
+        planeBox.setMaxWidth(540);
+        planeBox.getStyleClass().add("seat-map");
 
-        seatGridContainer.getChildren().addAll(nose, grid);
+        seatGridContainer.getChildren().add(planeBox);
 
         dialogWrapper.setVisible(true);
         dialogWrapper.setManaged(true);
@@ -121,9 +137,9 @@ public class SeatMapViewController {
         gridPane.setHgap(4);
         gridPane.setVgap(4);
         gridPane.setPadding(new Insets(6));
-        gridPane.getStyleClass().add("seat-map");
         gridPane.setAlignment(Pos.CENTER);
         gridPane.setMaxWidth(Double.MAX_VALUE);
+        configureSeatGridColumns(gridPane);
 
         Map<Integer, List<Seat>> seatsByRow = groupSeatsByRow(seats);
         Map<Seat, Button> seatButtons = new LinkedHashMap<>();
@@ -148,26 +164,15 @@ public class SeatMapViewController {
             rowLabel.getStyleClass().add("seat-row-label");
             gridPane.add(rowLabel, 0, gridRow);
 
-            int leftSideCount = calculateLeftSideSeatCount(rowClass,
-                    rowSeats.size());
-            int gridColumn = 1;
-            for (int i = 0; i < rowSeats.size(); i++)
+            if (rowClass instanceof BusinessClass && rowSeats.size() <= 4)
             {
-                if (i == leftSideCount)
-                {
-                    Region aisle = new Region();
-                    aisle.setMinWidth(16);
-                    aisle.getStyleClass().add("seat-aisle");
-                    gridPane.add(aisle, gridColumn++, gridRow);
-                }
-
-                Seat seat = rowSeats.get(i);
-                Button seatButton = new Button(seat.getSeatNumber());
-                configureSeatButtonSize(seatButton, rowClass);
-                seatButton.getStyleClass().add("seat-button");
-                seatButton.setOnAction(event -> temporarySelection.set(seat));
-                seatButtons.put(seat, seatButton);
-                gridPane.add(seatButton, gridColumn++, gridRow);
+                addBusinessSeatRow(gridPane, gridRow, rowSeats, seatButtons,
+                        temporarySelection);
+            }
+            else
+            {
+                addStandardSeatRow(gridPane, gridRow, rowSeats, rowClass,
+                        seatButtons, temporarySelection);
             }
             gridRow++;
         }
@@ -178,6 +183,135 @@ public class SeatMapViewController {
                 temporarySelection.get());
 
         return gridPane;
+    }
+
+    private void configureSeatGridColumns(GridPane gridPane)
+    {
+        ColumnConstraints rowLabelColumn = new ColumnConstraints();
+        rowLabelColumn.setMinWidth(28);
+        rowLabelColumn.setPrefWidth(28);
+        rowLabelColumn.setHalignment(HPos.RIGHT);
+        gridPane.getColumnConstraints().add(rowLabelColumn);
+
+        for (int i = 0; i < 3; i++)
+        {
+            gridPane.getColumnConstraints().add(createSeatColumn());
+        }
+
+        ColumnConstraints aisleColumn = new ColumnConstraints();
+        aisleColumn.setMinWidth(AISLE_COLUMN_WIDTH);
+        aisleColumn.setPrefWidth(AISLE_COLUMN_WIDTH);
+        gridPane.getColumnConstraints().add(aisleColumn);
+
+        for (int i = 0; i < 3; i++)
+        {
+            gridPane.getColumnConstraints().add(createSeatColumn());
+        }
+    }
+
+    private ColumnConstraints createSeatColumn()
+    {
+        ColumnConstraints column = new ColumnConstraints();
+        column.setMinWidth(SEAT_COLUMN_WIDTH);
+        column.setPrefWidth(SEAT_COLUMN_WIDTH);
+        column.setHalignment(HPos.CENTER);
+        return column;
+    }
+
+    private void addBusinessSeatRow(GridPane gridPane, int gridRow,
+                                    List<Seat> rowSeats,
+                                    Map<Seat, Button> seatButtons,
+                                    ObjectProperty<Seat> temporarySelection)
+    {
+        HBox leftPair = new HBox(BUSINESS_PAIR_GAP);
+        leftPair.setAlignment(Pos.CENTER);
+        HBox rightPair = new HBox(BUSINESS_PAIR_GAP);
+        rightPair.setAlignment(Pos.CENTER);
+
+        for (int i = 0; i < rowSeats.size(); i++)
+        {
+            Seat seat = rowSeats.get(i);
+            Button seatButton = createSeatButton(seat, seat.getSeatClass(),
+                    seatButtons, temporarySelection);
+
+            if (i < 2)
+            {
+                leftPair.getChildren().add(seatButton);
+            }
+            else
+            {
+                rightPair.getChildren().add(seatButton);
+            }
+        }
+
+        Region aisle = new Region();
+        aisle.setMinWidth(BUSINESS_AISLE_GAP);
+        aisle.setPrefWidth(BUSINESS_AISLE_GAP);
+        aisle.getStyleClass().add("seat-aisle");
+
+        HBox businessRow = new HBox(0, leftPair, aisle, rightPair);
+        businessRow.setAlignment(Pos.CENTER);
+        businessRow.setMinWidth(BUSINESS_ROW_WIDTH);
+        businessRow.setPrefWidth(BUSINESS_ROW_WIDTH);
+        businessRow.setMaxWidth(BUSINESS_ROW_WIDTH);
+        GridPane.setHalignment(businessRow, HPos.LEFT);
+
+        gridPane.add(businessRow, 1, gridRow, 7, 1);
+    }
+
+    private void addStandardSeatRow(GridPane gridPane, int gridRow,
+                                    List<Seat> rowSeats, SeatClass rowClass,
+                                    Map<Seat, Button> seatButtons,
+                                    ObjectProperty<Seat> temporarySelection)
+    {
+        int leftSideCount = calculateLeftSideSeatCount(rowClass,
+                rowSeats.size());
+        int gridColumn = 1;
+
+        for (int i = 0; i < rowSeats.size(); i++)
+        {
+            if (i == leftSideCount)
+            {
+                addAisle(gridPane, gridColumn++, gridRow);
+            }
+
+            gridColumn = addSeatButton(gridPane, gridRow, gridColumn,
+                    rowSeats.get(i), rowClass, seatButtons,
+                    temporarySelection);
+        }
+    }
+
+    private int addSeatButton(GridPane gridPane, int gridRow, int gridColumn,
+                              Seat seat, SeatClass rowClass,
+                              Map<Seat, Button> seatButtons,
+                              ObjectProperty<Seat> temporarySelection)
+    {
+        Button seatButton = createSeatButton(seat, rowClass, seatButtons,
+                temporarySelection);
+        GridPane.setHalignment(seatButton, HPos.CENTER);
+        gridPane.add(seatButton, gridColumn, gridRow);
+        return gridColumn + 1;
+    }
+
+    private Button createSeatButton(Seat seat, SeatClass rowClass,
+                                    Map<Seat, Button> seatButtons,
+                                    ObjectProperty<Seat> temporarySelection)
+    {
+        Button seatButton = new Button(seat.getSeatNumber());
+        configureSeatButtonSize(seatButton, rowClass);
+        seatButton.getStyleClass().add("seat-button");
+        seatButton.setOnAction(event -> temporarySelection.set(seat));
+        seatButtons.put(seat, seatButton);
+        return seatButton;
+    }
+
+    private void addAisle(GridPane gridPane, int gridColumn, int gridRow)
+    {
+        Region aisle = new Region();
+        aisle.setMinWidth(AISLE_COLUMN_WIDTH);
+        aisle.setPrefWidth(AISLE_COLUMN_WIDTH);
+        aisle.getStyleClass().add("seat-aisle");
+        gridPane.add(aisle, gridColumn, gridRow);
     }
 
     private Map<Integer, List<Seat>> groupSeatsByRow(List<Seat> seats)
@@ -205,16 +339,16 @@ public class SeatMapViewController {
     {
         if (rowClass instanceof BusinessClass)
         {
-            seatButton.setMinSize(48, 32);
-            seatButton.setPrefSize(48, 32);
-            seatButton.setMaxSize(48, 32);
+            seatButton.setMinSize(BUSINESS_SEAT_WIDTH, BUSINESS_SEAT_HEIGHT);
+            seatButton.setPrefSize(BUSINESS_SEAT_WIDTH, BUSINESS_SEAT_HEIGHT);
+            seatButton.setMaxSize(BUSINESS_SEAT_WIDTH, BUSINESS_SEAT_HEIGHT);
             seatButton.getStyleClass().add("business-seat-button");
         }
         else
         {
-            seatButton.setMinSize(40, 28);
-            seatButton.setPrefSize(40, 28);
-            seatButton.setMaxSize(40, 28);
+            seatButton.setMinSize(52, 44);
+            seatButton.setPrefSize(52, 44);
+            seatButton.setMaxSize(52, 44);
             seatButton.getStyleClass().add("economy-seat-button");
         }
     }

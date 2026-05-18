@@ -228,6 +228,9 @@
                                                 </VBox>
 
                                                 <VBox fx:id="flightSummaryCard" spacing="10.0" styleClass="summary-card" visible="false" managed="false">
+                                                    <VBox.margin>
+                                                        <Insets top="18.0"/>
+                                                    </VBox.margin>
                                                     <children>
                                                         <Label text="Flight Summary" styleClass="section-title"/>
                                                         <VBox spacing="14.0" styleClass="summary-inner">

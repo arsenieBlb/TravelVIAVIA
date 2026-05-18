@@ -230,6 +230,18 @@ public class FlightSceneViewController
         if (returnFlightsTable != null)
         {
             returnFlightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+            returnFlightsTable.setRowFactory(tv -> {
+                TableRow<Flight> row = new TableRow<>();
+                row.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+                    if (!row.isEmpty() && row.isSelected()) {
+                        returnFlightsTable.getSelectionModel().clearSelection();
+                        flightSceneViewModel.setSelectedReturnFlight(null);
+                        updateFlightSummary(flightSceneViewModel.getSelectedFlight());
+                        event.consume();
+                    }
+                });
+                return row;
+            });
             setupReturnTableColumns();
             returnFlightsTable.setItems(flightSceneViewModel.getReturnFlights());
             returnFlightsTable.getSelectionModel().selectedItemProperty().addListener(
@@ -243,6 +255,18 @@ public class FlightSceneViewController
     private void setupFlightTable()
     {
         flightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        flightsTable.setRowFactory(tv -> {
+            TableRow<Flight> row = new TableRow<>();
+            row.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+                if (!row.isEmpty() && row.isSelected()) {
+                    flightsTable.getSelectionModel().clearSelection();
+                    flightSceneViewModel.setSelectedFlight(null);
+                    updateFlightSummary(null);
+                    event.consume();
+                }
+            });
+            return row;
+        });
         routeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
                 cellData.getValue().getDepartureCity().getCityName() + " → "
                         + cellData.getValue().getArrivalCity().getCityName()));
