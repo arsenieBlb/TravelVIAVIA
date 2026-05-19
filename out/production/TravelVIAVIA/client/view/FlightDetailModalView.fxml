@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -69,12 +69,12 @@
                     </columnConstraints>
                     <VBox spacing="6" styleClass="card-grid-item" GridPane.columnIndex="0" GridPane.rowIndex="0">
                         <Label text="Economy" styleClass="card-label"/>
-                        <Label fx:id="economyPriceLabel" text="$280" styleClass="card-value"/>
+                        <Label fx:id="economyPriceLabel" text="\$280" styleClass="card-value"/>
                         <Label fx:id="economyAvailabilityLabel" text="149/156 available" styleClass="card-subvalue"/>
                     </VBox>
                     <VBox spacing="6" styleClass="card-grid-item" GridPane.columnIndex="1" GridPane.rowIndex="0">
                         <Label text="Business" styleClass="card-label"/>
-                        <Label fx:id="businessPriceLabel" text="$1200" styleClass="card-value"/>
+                        <Label fx:id="businessPriceLabel" text="\$1200" styleClass="card-value"/>
                         <Label fx:id="businessAvailabilityLabel" text="21/24 available" styleClass="card-subvalue"/>
                     </VBox>
                 </GridPane>

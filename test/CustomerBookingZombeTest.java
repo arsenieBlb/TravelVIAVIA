@@ -15,8 +15,11 @@ import client.model.Plane;
 import client.model.PlaneType;
 import client.model.SearchCriteria;
 import client.model.Seat;
+import client.model.SeatAssignment;
 import client.model.SeatClass;
 import client.model.User;
+import client.view.PassengerDetailsViewController;
+import client.viewmodel.BookingAdminViewModel;
 import client.viewmodel.FlightSceneViewModel;
 import client.viewmodel.PassengerDetailsViewModel;
 import client.viewmodel.SeatMapViewModel;
@@ -24,6 +27,8 @@ import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import server.network.dto.BookingDto;
+import server.network.dto.DtoMapper;
 
 import java.beans.PropertyChangeListener;
 import java.time.LocalDateTime;
@@ -36,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -165,6 +171,23 @@ public class CustomerBookingZombeTest
     assertEquals("Carry-on", captured.passengers().get(0)
         .getPassengerLuggage().get(0).getLuggageType().getName());
     assertEquals(List.of(selectedSeat), captured.outboundSeats());
+  }
+
+  @Test
+  public void bookingWithoutEverySeatShouldBeBlocked()
+  {
+    FlightSceneViewModel flightSceneViewModel = createFlightSceneViewModel();
+    flightSceneViewModel.setSelectedFlight(outbound);
+    PassengerDetailsViewModel passengerDetails =
+        flightSceneViewModel.getPassengerDetailsViewModel();
+    passengerDetails.prepare();
+
+    IllegalStateException error = assertThrows(IllegalStateException.class,
+        passengerDetails::confirmBooking);
+
+    assertEquals("Please choose a seat for every passenger and flight segment.",
+        error.getMessage());
+    assertEquals(0, model.createBookingCalls);
   }
 
   @Test
@@ -304,6 +327,8 @@ public class CustomerBookingZombeTest
         passengerDetails.getPassengerForms().get(0);
     PassengerDetailsViewModel.PassengerForm second =
         passengerDetails.getPassengerForms().get(1);
+    passengerDetails.selectSeatForPassenger(1, 0, economySeats(outbound).get(0));
+    passengerDetails.selectSeatForPassenger(2, 0, economySeats(outbound).get(1));
     first.setFirstName("");
     assertThrows(IllegalStateException.class, passengerDetails::confirmBooking);
 
@@ -325,6 +350,136 @@ public class CustomerBookingZombeTest
     assertThrows(IllegalArgumentException.class,
         () -> passengerDetails.selectSeatForPassenger(2, 0, sharedSeat));
     assertEquals(0, model.createBookingCalls);
+  }
+
+  @Test
+  public void bookingConfirmationMessageShouldUseReferenceCode()
+  {
+    Booking booking = new Booking(1234, customer, outbound,
+        List.of(new Passenger(2000, "Jane", "Doe")));
+
+    String message =
+        PassengerDetailsViewController.formatBookingSuccessMessage(booking);
+
+    assertEquals("Booking reference code: #1234 has been saved.", message);
+    assertTrue(message.contains("reference code"));
+  }
+
+  @Test
+  public void cancellingLoadedAssignmentShouldFreeOriginalSeat()
+  {
+    Passenger originalPassenger = new Passenger(2001, "Jane", "Doe");
+    Booking originalBooking = new Booking(customer, outbound,
+        List.of(originalPassenger));
+    Seat seat = firstSeat(outbound, EconomyClass.class);
+    new SeatAssignment(99, originalPassenger, seat, outbound);
+
+    assertFalse(outbound.getAvailableSeats().contains(seat));
+
+    Passenger loadedPassenger = new Passenger(originalPassenger.getPassengerId(),
+        "Jane", "Doe");
+    new Booking(originalBooking.getBookingId(), customer, outbound,
+        List.of(loadedPassenger));
+    SeatAssignment loadedAssignment = new SeatAssignment(outbound, seat,
+        loadedPassenger);
+    loadedPassenger.addSeatAssignment(loadedAssignment);
+    outbound.markSeatOccupied(seat);
+
+    loadedAssignment.release();
+
+    assertTrue(outbound.getAvailableSeats().contains(seat));
+  }
+
+  @Test
+  public void connectedRoundTripBookingShouldMatchSummaryTotal()
+  {
+    Flight returnFirst = createFlight(7, "VIA701", paris, rome, viaAir, 60,
+        returnFlight.getDepartureTime().plusHours(1));
+    Flight returnSecond = createFlight(8, "VIA702", rome, berlin, viaAir, 70,
+        returnFlight.getDepartureTime().plusHours(4));
+    ConnectingFlight returnConnection =
+        new ConnectingFlight(returnFirst, returnSecond);
+
+    FlightSceneViewModel flightSceneViewModel = createFlightSceneViewModel();
+    flightSceneViewModel.setSelectedFlight(connectingFlight);
+    flightSceneViewModel.setSelectedReturnFlight(returnConnection);
+    PassengerDetailsViewModel passengerDetails =
+        flightSceneViewModel.getPassengerDetailsViewModel();
+    passengerDetails.prepare();
+
+    PassengerDetailsViewModel.PassengerForm form =
+        passengerDetails.getPassengerForms().get(0);
+    form.seatClassProperty(1).set(new BusinessClass());
+
+    chooseSeat(passengerDetails, 1, 0,
+        firstSeat(connectingFlight.getFirstSegment(), EconomyClass.class));
+    chooseSeat(passengerDetails, 1, 1,
+        firstSeat(connectingFlight.getSecondSegment(), BusinessClass.class));
+    chooseSeat(passengerDetails, 1, 2,
+        firstSeat(returnFirst, EconomyClass.class));
+    chooseSeat(passengerDetails, 1, 3,
+        firstSeat(returnSecond, EconomyClass.class));
+
+    double expectedTotal = 75 + (95 * 2.5) + 60 + 70
+        + PassengerDetailsViewModel.CARRY_ON_UNIT_PRICE;
+    assertEquals(expectedTotal, passengerDetails.totalFareProperty().get(),
+        0.001);
+
+    Booking booking = passengerDetails.confirmBooking();
+
+    assertEquals(expectedTotal, booking.getTotalPrice(), 0.001);
+    assertTrue(booking.getBookingSummary().contains(
+        "Total price: EUR " + String.format("%.2f", expectedTotal)));
+  }
+
+  @Test
+  public void bookingDtoShouldKeepReturnFlightAndAllSeatAssignments()
+  {
+    Flight returnFirst = createFlight(7, "VIA701", paris, rome, viaAir, 60,
+        returnFlight.getDepartureTime().plusHours(1));
+    Flight returnSecond = createFlight(8, "VIA702", rome, berlin, viaAir, 70,
+        returnFlight.getDepartureTime().plusHours(4));
+    ConnectingFlight returnConnection =
+        new ConnectingFlight(returnFirst, returnSecond);
+    Passenger passenger = new Passenger(2002, "Jane", "Doe");
+    Booking booking = new Booking(3000, customer, connectingFlight,
+        List.of(passenger));
+    booking.setReturnFlight(returnConnection);
+
+    new SeatAssignment(1, passenger,
+        firstSeat(connectingFlight.getFirstSegment(), EconomyClass.class),
+        connectingFlight.getFirstSegment());
+    new SeatAssignment(2, passenger,
+        firstSeat(connectingFlight.getSecondSegment(), EconomyClass.class),
+        connectingFlight.getSecondSegment());
+    new SeatAssignment(3, passenger,
+        firstSeat(returnFirst, EconomyClass.class), returnFirst);
+    new SeatAssignment(4, passenger,
+        firstSeat(returnSecond, EconomyClass.class), returnSecond);
+
+    BookingDto dto = DtoMapper.toDto(booking);
+    Booking mappedBooking = DtoMapper.fromDto(dto);
+
+    assertNotNull(dto.returnFlight);
+    assertNotNull(mappedBooking.getReturnFlight());
+    assertEquals(4, mappedBooking.getPassengers().get(0)
+        .getSeatAssignments().size());
+  }
+
+  @Test
+  public void adminBookingTripTypeShouldUseReturnFlightOnly()
+  {
+    BookingAdminViewModel bookingAdminViewModel =
+        new BookingAdminViewModel(model);
+    Booking oneWay = new Booking(4000, customer, outbound,
+        List.of(new Passenger(2003, "One", "Way")));
+    Booking roundTrip = new Booking(4001, customer, outbound,
+        List.of(new Passenger(2004, "Round", "Trip")));
+    roundTrip.setReturnFlight(returnFlight);
+
+    assertEquals("One-way", bookingAdminViewModel.getTripType(oneWay));
+    assertEquals("Round trip", bookingAdminViewModel.getTripType(roundTrip));
+    assertEquals("#4000", bookingAdminViewModel.getBookingCode(oneWay));
   }
 
   private FlightSceneViewModel createFlightSceneViewModel()
@@ -431,6 +586,7 @@ public class CustomerBookingZombeTest
     private List<Seat> createdOutboundSeats = Collections.emptyList();
     private List<Seat> createdReturnSeats;
     private Booking createdBooking;
+    private int nextSeatAssignmentId = 1;
 
     private FakeModel(List<Flight> allFlights, List<City> cities,
         List<Carrier> carriers, List<LuggageType> luggageTypes,
@@ -512,7 +668,50 @@ public class CustomerBookingZombeTest
       createdBooking = new Booking((Customer) loggedInUser, flight,
           passengers);
       createdBooking.setReturnFlight(returnFlight);
+      assignSeats(passengers, getSegments(flight), selectedSeats);
+      if (returnFlight != null)
+      {
+        assignSeats(passengers, getSegments(returnFlight), returnSeats);
+      }
       return createdBooking;
+    }
+
+    private void assignSeats(List<Passenger> passengers, List<Flight> segments,
+        List<Seat> seats)
+    {
+      if (seats == null)
+      {
+        return;
+      }
+
+      int seatIndex = 0;
+      for (Passenger passenger : passengers)
+      {
+        for (Flight segment : segments)
+        {
+          if (seatIndex < seats.size() && seats.get(seatIndex) != null)
+          {
+            new SeatAssignment(nextSeatAssignmentId++, passenger,
+                seats.get(seatIndex), segment);
+          }
+          seatIndex++;
+        }
+      }
+    }
+
+    private List<Flight> getSegments(Flight flight)
+    {
+      List<Flight> segments = new ArrayList<>();
+      if (flight instanceof ConnectingFlight connectingFlight)
+      {
+        segments.add(connectingFlight.getFirstSegment());
+        segments.add(connectingFlight.getSecondSegment());
+      }
+      else if (flight != null)
+      {
+        segments.add(flight);
+      }
+      return segments;
     }
 
     @Override public void cancelBooking(Booking booking)
@@ -549,6 +748,19 @@ public class CustomerBookingZombeTest
     @Override public void removeFlight(Flight flight)
     {
       allFlights.remove(flight);
+    }
+
+    @Override public void editFlight(Flight flight)
+    {
+      for (int i = 0; i < allFlights.size(); i++)
+      {
+        if (allFlights.get(i).getFlightId() == flight.getFlightId())
+        {
+          allFlights.set(i, flight);
+          return;
+        }
+      }
+      allFlights.add(flight);
     }
 
     @Override public List<LuggageType> getLuggageTypes()
