@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           prefWidth="1365"
+           prefHeight="768"
+           stylesheets="@admin_theme.css"
+           styleClass="modal-overlay">
+
+    <ScrollPane fitToWidth="true"
+                hbarPolicy="NEVER"
+                vbarPolicy="AS_NEEDED"
+                maxWidth="980"
+                styleClass="modal-scroll">
+        <content>
+            <VBox spacing="18" styleClass="modal-card">
+                <padding>
+                    <Insets top="24" right="24" bottom="20" left="24"/>
+                </padding>
+
+                <HBox alignment="TOP_LEFT">
+                    <VBox spacing="2">
+                        <Label fx:id="flightIdLabel" text="AA101" styleClass="section-title"/>
+                        <Label fx:id="carrierAircraftLabel" text="American Airlines - Boeing 737" styleClass="modal-header-subtitle"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="closeTopButton" text="x" styleClass="close-icon-button"/>
+                </HBox>
+
+                <GridPane hgap="12" vgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints percentWidth="50"/>
+                    </columnConstraints>
+                    <VBox spacing="6" styleClass="card-grid-item" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="Route" styleClass="card-label"/>
+                        <Label fx:id="routeLabel" text="JFK -> LAX" styleClass="card-value"/>
+                    </VBox>
+                    <VBox spacing="6" styleClass="card-grid-item" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Duration" styleClass="card-label"/>
+                        <Label fx:id="durationLabel" text="3h 30m" styleClass="card-value"/>
+                    </VBox>
+                    <VBox spacing="6" styleClass="card-grid-item" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Label text="Departure" styleClass="card-label"/>
+                        <Label fx:id="departureLabel" text="Feb 20 08:00 AM" styleClass="card-value"/>
+                    </VBox>
+                    <VBox spacing="6" styleClass="card-grid-item" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Label text="Arrival" styleClass="card-label"/>
+                        <Label fx:id="arrivalLabel" text="Feb 20 11:30 AM" styleClass="card-value"/>
+                    </VBox>
+                </GridPane>
+
+                <GridPane hgap="12" vgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints percentWidth="50"/>
+                    </columnConstraints>
+                    <VBox spacing="6" styleClass="card-grid-item" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="Economy" styleClass="card-label"/>
+                        <Label fx:id="economyPriceLabel" text="$280" styleClass="card-value"/>
+                        <Label fx:id="economyAvailabilityLabel" text="149/156 available" styleClass="card-subvalue"/>
+                    </VBox>
+                    <VBox spacing="6" styleClass="card-grid-item" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Business" styleClass="card-label"/>
+                        <Label fx:id="businessPriceLabel" text="$1200" styleClass="card-value"/>
+                        <Label fx:id="businessAvailabilityLabel" text="21/24 available" styleClass="card-subvalue"/>
+                    </VBox>
+                </GridPane>
+
+                <Label text="Business Class Seats" styleClass="section-title-small"/>
+                <VBox spacing="14" styleClass="seat-panel">
+                    <VBox spacing="6" alignment="CENTER">
+                        <HBox spacing="10" alignment="CENTER">
+                            <Button text="1" styleClass="seat-available"/>
+                            <Button text="2" styleClass="seat-taken"/>
+                            <Region minWidth="10"/>
+                            <Button text="3" styleClass="seat-available"/>
+                            <Button text="4" styleClass="seat-available"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER">
+                            <Button text="5" styleClass="seat-available"/>
+                            <Button text="6" styleClass="seat-available"/>
+                            <Region minWidth="10"/>
+                            <Button text="7" styleClass="seat-available"/>
+                            <Button text="8" styleClass="seat-taken"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER">
+                            <Button text="9" styleClass="seat-available"/>
+                            <Button text="10" styleClass="seat-available"/>
+                            <Region minWidth="10"/>
+                            <Button text="11" styleClass="seat-available"/>
+                            <Button text="12" styleClass="seat-available"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER">
+                            <Button text="13" styleClass="seat-available"/>
+                            <Button text="14" styleClass="seat-available"/>
+                            <Region minWidth="10"/>
+                            <Button text="15" styleClass="seat-taken"/>
+                            <Button text="16" styleClass="seat-available"/>
+                        </HBox>
+                    </VBox>
+                    <HBox spacing="16" alignment="CENTER_LEFT">
+                        <HBox spacing="6" alignment="CENTER_LEFT">
+                            <Region styleClass="seat-legend-available"/>
+                            <Label text="Available" styleClass="legend-text"/>
+                        </HBox>
+                        <HBox spacing="6" alignment="CENTER_LEFT">
+                            <Region styleClass="seat-legend-taken"/>
+                            <Label text="Taken" styleClass="legend-text"/>
+                        </HBox>
+                    </HBox>
+                </VBox>
+
+                <Label text="Economy Class Seats" styleClass="section-title-small"/>
+                <VBox spacing="14" styleClass="seat-panel">
+                    <FlowPane fx:id="economySeatsPane"
+                              hgap="8"
+                              vgap="8"
+                              prefWrapLength="420"
+                              alignment="CENTER">
+                        <Button text="1" styleClass="seat-available"/>
+                        <Button text="2" styleClass="seat-available"/>
+                        <Button text="3" styleClass="seat-available"/>
+                        <Button text="4" styleClass="seat-available"/>
+                        <Button text="5" styleClass="seat-taken"/>
+                        <Button text="6" styleClass="seat-taken"/>
+                        <Button text="7" styleClass="seat-available"/>
+                        <Button text="8" styleClass="seat-available"/>
+                        <Button text="9" styleClass="seat-available"/>
+                        <Button text="10" styleClass="seat-available"/>
+                        <Button text="11" styleClass="seat-available"/>
+                        <Button text="12" styleClass="seat-taken"/>
+                        <Button text="13" styleClass="seat-available"/>
+                        <Button text="14" styleClass="seat-available"/>
+                        <Button text="15" styleClass="seat-available"/>
+                        <Button text="16" styleClass="seat-available"/>
+                        <Button text="17" styleClass="seat-available"/>
+                        <Button text="18" styleClass="seat-taken"/>
+                        <Button text="19" styleClass="seat-available"/>
+                        <Button text="20" styleClass="seat-available"/>
+                        <Button text="21" styleClass="seat-available"/>
+                        <Button text="22" styleClass="seat-available"/>
+                        <Button text="23" styleClass="seat-available"/>
+                        <Button text="24" styleClass="seat-available"/>
+                        <Button text="25" styleClass="seat-available"/>
+                        <Button text="26" styleClass="seat-available"/>
+                        <Button text="27" styleClass="seat-available"/>
+                        <Button text="28" styleClass="seat-available"/>
+                        <Button text="29" styleClass="seat-available"/>
+                        <Button text="30" styleClass="seat-available"/>
+                        <Button text="31" styleClass="seat-available"/>
+                        <Button text="32" styleClass="seat-available"/>
+                        <Button text="33" styleClass="seat-available"/>
+                        <Button text="34" styleClass="seat-available"/>
+                        <Button text="35" styleClass="seat-available"/>
+                        <Button text="36" styleClass="seat-available"/>
+                    </FlowPane>
+                    <HBox spacing="16" alignment="CENTER_LEFT">
+                        <HBox spacing="6" alignment="CENTER_LEFT">
+                            <Region styleClass="seat-legend-available"/>
+                            <Label text="Available" styleClass="legend-text"/>
+                        </HBox>
+                        <HBox spacing="6" alignment="CENTER_LEFT">
+                            <Region styleClass="seat-legend-taken"/>
+                            <Label text="Taken" styleClass="legend-text"/>
+                        </HBox>
+                    </HBox>
+                </VBox>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT" styleClass="separator-line">
+                    <padding>
+                        <Insets top="14" right="0" bottom="0" left="0"/>
+                    </padding>
+                    <Button fx:id="editButton" text="Edit" styleClass="outline-button"/>
+                    <Button fx:id="deleteButton" text="Delete" styleClass="outline-button"/>
+                    <Button fx:id="closeBottomButton" text="Close" styleClass="primary-button"/>
+                </HBox>
+            </VBox>
+        </content>
+    </ScrollPane>
+</StackPane>
+
+
+
+

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="addBookingModal"
+           fx:controller="client.view.AddBookingDialogController"
+           styleClass="modal-overlay"
+           xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1">
+
+    <children>
+        <VBox spacing="14.0" styleClass="modal-card" maxHeight="-Infinity">
+
+        <children>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Add New Booking" styleClass="modal-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="closeAddBookingButton" text="X" styleClass="btn-icon-plain"/>
+                    </children>
+                </HBox>
+
+                <VBox spacing="6.0">
+                    <children>
+                        <Label text="Booking Code" styleClass="input-label"/>
+                        <TextField fx:id="addBookingCodeField" promptText="e.g., BA1234" styleClass="field-input"/>
+                    </children>
+                </VBox>
+
+                <VBox spacing="6.0">
+                    <children>
+                        <Label text="Last Name" styleClass="input-label"/>
+                        <TextField fx:id="addBookingLastNameField" promptText="Enter your last name" styleClass="field-input"/>
+                    </children>
+                </VBox>
+
+                <Label fx:id="addBookingErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
+                <Region prefHeight="18.0"/>
+
+                <HBox spacing="14.0" alignment="CENTER">
+                    <children>
+                        <!-- TEAM TODO: close modal + clear form -->
+                        <Button fx:id="cancelAddBookingButton" text="Cancel" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="btn-outline"/>
+                        <!-- TEAM TODO: call booking create endpoint -->
+                        <Button fx:id="saveAddBookingButton" text="Add Booking" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="btn-primary"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</StackPane>
+

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fx:id="passengerContentPane"
+            fx:controller="client.view.PassengerDetailsViewController"
+            fitToWidth="true"
+            hbarPolicy="NEVER"
+            vbarPolicy="AS_NEEDED"
+            styleClass="page-scroll"
+            xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1">
+
+    <content>
+        <VBox spacing="18.0" styleClass="page-content">
+            <padding>
+                <Insets top="24.0" right="34.0" bottom="24.0" left="34.0"/>
+            </padding>
+            <children>
+                <VBox spacing="8.0" alignment="CENTER">
+                    <children>
+                        <Label text="Outbound Flight Details" styleClass="title-medium"/>
+                        <Label text="Complete your passenger information" styleClass="subtle-body"/>
+                    </children>
+                </VBox>
+
+                <VBox spacing="12.0" styleClass="card">
+                    <children>
+                        <Label text="Flight Timeline" styleClass="card-title"/>
+                        <ScrollPane fitToHeight="false" fitToWidth="false" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" styleClass="timeline-scroll">
+                            <content>
+                                <!-- TEAM TODO: generate timeline segments from selected itinerary -->
+                                <HBox fx:id="timelineContainer" spacing="0.0" styleClass="timeline-row">
+                                    <children>
+                                        <Label text="Berlin (TXL)" styleClass="timeline-chip"/>
+                                        <Label text="Paris (CDG)" styleClass="timeline-chip"/>
+                                        <Label text="Frankfurt (FRA)" styleClass="timeline-chip"/>
+                                        <Label text="Rome (FCO)" styleClass="timeline-chip"/>
+                                    </children>
+                                </HBox>
+                            </content>
+                        </ScrollPane>
+                        <HBox spacing="4.0">
+                            <children>
+                                <Label text="Total flight time:" styleClass="inline-label"/>
+                                <Label fx:id="timelineTotalTimeLabel" text="10h 30m" styleClass="result-pill-value"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+
+                <!-- TEAM TODO: dynamically inject one card per passenger -->
+                <VBox fx:id="passengersSection" spacing="12.0"/>
+
+                <VBox spacing="14.0" styleClass="card">
+                    <children>
+                        <Label text="FARE DETAILS" styleClass="card-title"/>
+                        <GridPane hgap="12.0" vgap="8.0">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                                <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+                            </columnConstraints>
+                            <children>
+                                <Label fx:id="fareBaseTextLabel" text="Base Fare (2 passengers)" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <Label fx:id="fareBaseLabel" text="EUR 1440" styleClass="fare-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                <Label fx:id="fareCarryOnTextLabel" text="Carry-on x2 @ EUR 15" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                <Label fx:id="fareCarryOnLabel" text="EUR 30" styleClass="fare-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                <Label fx:id="fareBaggageTextLabel" text="Baggage x2 @ EUR 65" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                <Label fx:id="fareBaggageLabel" text="EUR 130" styleClass="fare-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                                <Region GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2" styleClass="section-divider"/>
+
+                                <Label text="Total" styleClass="fare-total" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                                <Label fx:id="fareTotalLabel" text="EUR 1570" styleClass="fare-total-price" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
+
+                <HBox spacing="10.0" alignment="CENTER_RIGHT">
+                    <children>
+                        <!-- TEAM TODO: return to Book view -->
+                        <Button fx:id="cancelPassengerDetailsButton" text="Cancel" styleClass="btn-outline"/>
+                        <!-- TEAM TODO: validate + create booking -->
+                        <Button fx:id="confirmBookingButton" text="Confirm" styleClass="btn-dark"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </content>
+</ScrollPane>
+

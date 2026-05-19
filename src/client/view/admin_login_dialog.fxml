@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="adminModal"
+           fx:controller="client.view.AdminLoginDialogController"
+           styleClass="modal-overlay"
+           xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1">
+
+    <children>
+        <VBox spacing="14.0" styleClass="modal-card" maxHeight="-Infinity">
+        <children>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Admin Login" styleClass="modal-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="closeAdminButton" text="X" styleClass="btn-icon-plain"/>
+                    </children>
+                </HBox>
+
+                <VBox spacing="6.0">
+                    <children>
+                        <Label text="Admin Email" styleClass="input-label"/>
+                        <TextField fx:id="adminEmailField" promptText="admin@email.com" styleClass="field-input"/>
+                    </children>
+                </VBox>
+
+                <VBox spacing="6.0">
+                    <children>
+                        <Label text="Admin Password" styleClass="input-label"/>
+                        <PasswordField fx:id="adminPasswordField" promptText="Enter password" styleClass="field-input"/>
+                    </children>
+                </VBox>
+
+                <!-- TEAM TODO: admin auth + role routing -->
+            <HBox alignment="CENTER_RIGHT">
+                <Button fx:id="adminSubmitButton" text="Login as Admin" styleClass="btn-dark"/>
+            </HBox>
+            <Label fx:id="adminErrorLabel" text="" styleClass="error-label" visible="false" managed="false"/>
+
+                <Separator/>
+
+                <!-- TEAM TODO: back to Login dialog -->
+                <Button fx:id="backToLoginFromAdminButton" text="Back to Login" styleClass="btn-link-dark"/>
+            </children>
+        </VBox>
+    </children>
+</StackPane>
+
