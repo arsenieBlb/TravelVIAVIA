@@ -147,6 +147,7 @@ public class PassengerDetailsViewModel
     {
       throw new IllegalStateException("Please select a flight first.");
     }
+    requireAllSeatsSelected();
 
     List<Flight> segments = getFlightSegments();
     List<Passenger> passengers = new ArrayList<>();
@@ -202,6 +203,22 @@ public class PassengerDetailsViewModel
     clearPassengerForms();
     flightSceneViewModel.clear();
     return booking;
+  }
+
+  private void requireAllSeatsSelected()
+  {
+    int segmentCount = getAllSegments().size();
+    for (PassengerForm form : passengerForms)
+    {
+      for (int segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++)
+      {
+        if (form.getSelectedSeat(segmentIndex) == null)
+        {
+          throw new IllegalStateException(
+              "Please choose a seat for every passenger and flight segment.");
+        }
+      }
+    }
   }
 
     private void clearPassengerForms()

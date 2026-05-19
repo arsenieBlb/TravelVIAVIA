@@ -352,6 +352,7 @@ public final class DtoMapper
     dto.totalPrice = booking.getTotalPrice();
     dto.customer = toDto(booking.getCustomer());
     dto.flight = toDto(booking.getFlight());
+    dto.returnFlight = toDto(booking.getReturnFlight());
     dto.cancelled = booking.isCancelled();
     for (Passenger passenger : booking.getPassengers())
     {
@@ -368,9 +369,11 @@ public final class DtoMapper
     }
     Customer customer = customerFromDto(dto.customer);
     Flight flight = fromDto(dto.flight);
+    Flight returnFlight = fromDto(dto.returnFlight);
     List<Passenger> passengers = passengersFromDtos(dto.passengers);
     Booking booking = new Booking(dto.bookingId,
         parseDateTime(dto.bookingDate), customer, flight, passengers);
+    booking.setReturnFlight(returnFlight);
     applySeatAssignments(booking, dto.passengers);
     return booking;
   }
@@ -704,6 +707,7 @@ public final class DtoMapper
       return;
     }
     List<Flight> segments = getSegments(booking.getFlight());
+    segments.addAll(getSegments(booking.getReturnFlight()));
     List<Passenger> passengers = booking.getPassengers();
     for (int i = 0; i < passengerDtos.size() && i < passengers.size(); i++)
     {

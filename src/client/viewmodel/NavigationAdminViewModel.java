@@ -11,10 +11,12 @@ public class NavigationAdminViewModel {
 
     private final ObjectProperty<NavigationTab> currentTab = new SimpleObjectProperty<>(NavigationTab.DASHBOARD);
     private final Model model;
+    private final StringProperty authStatus = new SimpleStringProperty("Not signed in");
 
     private FlightsTabViewModel flightsTabViewModel;
     private BookingAdminViewModel bookingAdminViewModel;
     private DashboardViewModel dashboardViewModel;
+    private AddFlightTabViewModel addFlightTabViewModel;
 
     public enum NavigationTab {
         DASHBOARD, FLIGHTS, BOOKINGS
@@ -22,6 +24,7 @@ public class NavigationAdminViewModel {
 
     public NavigationAdminViewModel(Model model) {
         this.model = model;
+        updateAuthStatus();
     }
 
     public FlightsTabViewModel getFlightsTabViewModel() {
@@ -38,6 +41,13 @@ public class NavigationAdminViewModel {
         return bookingAdminViewModel;
     }
 
+    public AddFlightTabViewModel getAddFlightTabViewModel() {
+        if (addFlightTabViewModel == null) {
+            addFlightTabViewModel = new AddFlightTabViewModel(model);
+        }
+        return addFlightTabViewModel;
+    }
+
     public void navigateTo(NavigationTab tab) {
         currentTab.set(tab);
     }
@@ -47,7 +57,8 @@ public class NavigationAdminViewModel {
     }
 
     public ObservableList<String> getUniqueAircraftModels() {
-        return model.searchFlights(new client.model.SearchCriteria()).stream()
+        return model.getAllFlights().stream()
+                .filter(flight -> flight.getPlane() != null && flight.getPlane().getPlaneType() != null)
                 .map(flight -> flight.getPlane().getPlaneType().getModel())
                 .distinct()
                 .collect(java.util.stream.Collectors.toCollection(javafx.collections.FXCollections::observableArrayList));
@@ -56,18 +67,18 @@ public class NavigationAdminViewModel {
     public void logout()
     {
         model.logout();
+        updateAuthStatus();
     }
 
     public StringProperty authStatusProperty()
     {
-        if (model.getLoggedInUser() != null)
-        {
-            return new SimpleStringProperty("Logged in as Admin");
-        }
-        else
-        {
-            return new SimpleStringProperty("Not signed in");
-        }
+        return authStatus;
+    }
+
+    private void updateAuthStatus()
+    {
+        authStatus.set(model.getLoggedInUser() != null
+            ? "Logged in as Admin" : "Not signed in");
     }
 
     public DashboardViewModel getDashboardViewModel()

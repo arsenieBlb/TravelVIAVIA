@@ -61,14 +61,17 @@ public class BookingAdminViewModel
 
     loadTask.setOnSucceeded(event -> {
       List<Booking> bookings = loadTask.getValue();
-      allBookings.setAll(bookings);
+      allBookings.setAll(bookings.stream()
+          .filter(booking -> !booking.isCancelled())
+          .toList());
       updatePredicate();
     });
 
     loadTask.setOnFailed(event -> {
       Throwable e = loadTask.getException();
       if (e != null) {
-          e.printStackTrace();
+          System.err.println("Could not load admin bookings: "
+              + e.getMessage());
       }
     });
 
@@ -93,16 +96,52 @@ public class BookingAdminViewModel
     {
       boolean idMatches = rawBookingIdQuery.isEmpty()
           || (!bookingIdQuery.isEmpty()
-          && String.valueOf(booking.getBookingId()).contains(bookingIdQuery));
+          && getBookingCode(booking).replaceAll("[^0-9]", "")
+          .contains(bookingIdQuery));
       boolean emailMatches = emailQuery.isEmpty()
           || getCustomerEmail(booking).toLowerCase().contains(emailQuery);
       return idMatches && emailMatches;
     });
   }
 
-  private String getCustomerEmail(Booking booking)
+  public String getBookingCode(Booking booking)
   {
-    if (booking.getCustomer() == null || booking.getCustomer().getEmail() == null)
+    return booking == null ? "" : "#" + booking.getBookingId();
+  }
+
+  public String getRoute(Booking booking)
+  {
+    if (booking == null || booking.getFlight() == null)
+    {
+      return "N/A";
+    }
+    String route = booking.getFlight().getDepartureCity().getCityName()
+        + " -> " + booking.getFlight().getArrivalCity().getCityName();
+    if (booking.getReturnFlight() != null)
+    {
+      route += " / " + booking.getReturnFlight().getDepartureCity()
+          .getCityName() + " -> "
+          + booking.getReturnFlight().getArrivalCity().getCityName();
+    }
+    return route;
+  }
+
+  public String getTripType(Booking booking)
+  {
+    return booking != null && booking.getReturnFlight() != null
+        ? "Round trip" : "One-way";
+  }
+
+  public String getFormattedTotal(Booking booking)
+  {
+    return booking == null ? "EUR 0.00"
+        : String.format("EUR %.2f", booking.getTotalPrice());
+  }
+
+  public String getCustomerEmail(Booking booking)
+  {
+    if (booking == null || booking.getCustomer() == null
+        || booking.getCustomer().getEmail() == null)
     {
       return "";
     }

@@ -468,17 +468,40 @@ public class BookingDetailsDialogController
         {
             return;
         }
-        viewModel.cancelBooking(currentBooking);
-        viewModel.refresh();
+        cancelBookingFromDetailsButton.setDisable(true);
+        try
+        {
+            viewModel.cancelBooking(currentBooking);
+            viewModel.refresh();
 
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle("Booking Cancelled");
+            alert.setHeaderText(null);
+            alert.setContentText("Booking #" + currentBooking.getBookingId() + " has been cancelled.");
+            alert.showAndWait();
+
+            hide();
+        }
+        catch (RuntimeException e)
+        {
+            showError(e.getMessage());
+        }
+        finally
+        {
+            cancelBookingFromDetailsButton.setDisable(false);
+        }
+    }
+
+    private void showError(String message)
+    {
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-            javafx.scene.control.Alert.AlertType.INFORMATION);
-        alert.setTitle("Booking Cancelled");
+            javafx.scene.control.Alert.AlertType.ERROR);
+        alert.setTitle("Booking");
         alert.setHeaderText(null);
-        alert.setContentText("Booking #" + currentBooking.getBookingId() + " has been cancelled.");
+        alert.setContentText(message == null ? "Could not cancel booking."
+            : message);
         alert.showAndWait();
-
-        hide();
     }
 }
 

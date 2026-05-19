@@ -6,7 +6,6 @@ import javafx.collections.ObservableList;
 import client.model.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 public class AddFlightTabViewModel
 {
@@ -32,7 +31,6 @@ public class AddFlightTabViewModel
     {
         this.model = model;
         refreshData();
-        loadDataFromModel();
     }
 
     public void refreshData()
@@ -49,64 +47,47 @@ public class AddFlightTabViewModel
         flightId.set(String.valueOf(maxId + 1));
     }
 
-    private void loadDataFromModel()
-    {
-        List<City> cities = model.getCities();
-        if (cities != null)
-        {
-            citiesList.addAll(cities);
-        }
-
-        List<Plane> planes = model.getPlanes();
-        if (planes != null)
-        {
-            planesList.addAll(planes);
-        }
-
-        List<Carrier> carriers = model.getCarriers();
-        if (carriers != null)
-        {
-            carriersList.addAll(carriers);
-        }
-    }
-
     public void addFlight() throws Exception
     {
-        try
+        if (selectedOrigin.get() == null || selectedDestination.get() == null ||
+                selectedPlane.get() == null || selectedCarrier.get() == null)
         {
-            if (selectedOrigin.get() == null || selectedDestination.get() == null ||
-                    selectedPlane.get() == null || selectedCarrier.get() == null)
-            {
-                throw new Exception("Please select all fields (City, Plane, Carrier)");
-            }
-
-            LocalDateTime depTime = LocalDateTime.parse(departureTimeStr.get(), formatter);
-            LocalDateTime arrTime = LocalDateTime.parse(arrivalTimeStr.get(), formatter);
-
-            int id = Integer.parseInt(flightId.get().replaceAll("[^0-9]", ""));
-            double price = Double.parseDouble(economyPrice.get());
-
-            Flight newFlight = new Flight(
-                    id,
-                    "FL-" + id,
-                    depTime,
-                    arrTime,
-                    price,
-                    selectedCarrier.get(),
-                    selectedPlane.get(),
-                    selectedOrigin.get(),
-                    selectedDestination.get()
-            );
-
-            model.addFlight(newFlight);
-            clearFields();
-            refreshData();
+            throw new Exception("Please select all fields (City, Plane, Carrier)");
         }
-        catch (Exception e)
+
+        LocalDateTime depTime = LocalDateTime.parse(departureTimeStr.get(), formatter);
+        LocalDateTime arrTime = LocalDateTime.parse(arrivalTimeStr.get(), formatter);
+
+        int id = Integer.parseInt(flightId.get().replaceAll("[^0-9]", ""));
+        double price = Double.parseDouble(economyPrice.get());
+        double business = Double.parseDouble(businessPrice.get());
+
+        if (price < 0 || business < 0)
         {
-            e.printStackTrace();
-            throw e;
+            throw new Exception("Prices cannot be negative.");
         }
+
+        double savedBasePrice = price;
+        if (business > 0)
+        {
+            savedBasePrice = business / new BusinessClass().getPriceMultiplier();
+        }
+
+        Flight newFlight = new Flight(
+                id,
+                "FL-" + id,
+                depTime,
+                arrTime,
+                savedBasePrice,
+                selectedCarrier.get(),
+                selectedPlane.get(),
+                selectedOrigin.get(),
+                selectedDestination.get()
+        );
+
+        model.addFlight(newFlight);
+        clearFields();
+        refreshData();
     }
 
     public void clearFields()

@@ -72,7 +72,8 @@ public class ViewHandler
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            System.err.println("Could not load view " + fxmlFile + ": "
+                + e.getMessage());
             return null;
         }
     }

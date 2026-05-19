@@ -6,7 +6,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.Parent;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+import client.model.BusinessClass;
 import client.model.Carrier;
 import client.model.Flight;
 import client.model.Plane;
@@ -115,9 +118,9 @@ public class EditFlightDialogController
             LocalDateTime newArrival = LocalDateTime.parse(
                 arrivalField.getText().trim(), PARSE_FORMAT);
 
-            if (newArrival.isBefore(newDeparture))
+            if (!newArrival.isAfter(newDeparture))
             {
-                showAlert("Arrival time cannot be before departure time.");
+                showAlert("Arrival time must be after departure time.");
                 return;
             }
 
@@ -132,13 +135,68 @@ public class EditFlightDialogController
                 showAlert("Economy price must be a valid number.");
                 return;
             }
+            if (newBasePrice < 0)
+            {
+                showAlert("Economy price cannot be negative.");
+                return;
+            }
+
+            double businessPrice;
+            try
+            {
+                businessPrice = Double.parseDouble(
+                    businessPriceField.getText().trim());
+                if (businessPrice < 0)
+                {
+                    showAlert("Business price cannot be negative.");
+                    return;
+                }
+            }
+            catch (NumberFormatException e)
+            {
+                showAlert("Business price must be a valid number.");
+                return;
+            }
+
+            if (carrierCombo.getValue() == null)
+            {
+                showAlert("Please choose a carrier.");
+                return;
+            }
+            if (aircraftCombo.getValue() == null)
+            {
+                showAlert("Please choose an aircraft.");
+                return;
+            }
+            if (originCombo.getValue() == null)
+            {
+                showAlert("Please choose an origin.");
+                return;
+            }
+            if (destinationCombo.getValue() == null)
+            {
+                showAlert("Please choose a destination.");
+                return;
+            }
+            if (originCombo.getValue().equals(destinationCombo.getValue()))
+            {
+                showAlert("Origin and destination must be different.");
+                return;
+            }
+
+            double savedBasePrice = newBasePrice;
+            double businessMultiplier = new BusinessClass().getPriceMultiplier();
+            if (businessPrice > 0)
+            {
+                savedBasePrice = businessPrice / businessMultiplier;
+            }
 
             Flight updatedFlight = new Flight(
                 originalFlight.getFlightId(),
                 flightIdField.getText().trim(),
                 newDeparture,
                 newArrival,
-                newBasePrice,
+                savedBasePrice,
                 carrierCombo.getValue(),
                 aircraftCombo.getValue(),
                 originCombo.getValue(),
@@ -168,11 +226,21 @@ public class EditFlightDialogController
 
     private void closeModal()
     {
-        StackPane modal = (StackPane) cancelButton.getScene().getRoot();
-        if (modal.getChildren().size() > 1)
+        if (cancelButton.getScene() == null)
         {
-            modal.getChildren().remove(
-                modal.getChildren().size() - 1);
+            return;
+        }
+
+        Parent root = cancelButton.getScene().getRoot();
+        if (root instanceof StackPane modal && modal.getChildren().size() > 1)
+        {
+            modal.getChildren().remove(modal.getChildren().size() - 1);
+            return;
+        }
+
+        if (cancelButton.getScene().getWindow() instanceof Stage stage)
+        {
+            stage.close();
         }
     }
 

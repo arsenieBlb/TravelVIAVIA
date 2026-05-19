@@ -276,6 +276,7 @@ public class FlightSceneViewController
         {
             detailDateLabel.setText(flight.getDepartureTime()
                     .format(DateTimeFormatter.ofPattern("MMM dd, yyyy - HH:mm")));
+            detailPriceLabel.textProperty().unbind();
             detailPriceLabel.textProperty().bind(
                     flightSceneViewModel.totalPriceProperty().asString("EUR %.2f")
             );
@@ -496,9 +497,9 @@ public class FlightSceneViewController
             authStatusLabel.setText("Welcome, " + customer.getFirstName());
             authButton.setText("Logout");
         }
-        else if (user instanceof Admin admin)
+        else if (user instanceof Admin)
         {
-            authStatusLabel.setText("Logged in as Admin");
+            authStatusLabel.setText("Welcome, Admin");
             authButton.setText("Logout");
         }
         else

@@ -43,6 +43,11 @@ public class TwoClientBookingSimulation
 
   public static void startRandomClientsInBackground()
   {
+    if (!Boolean.getBoolean("travelviavia.randomClients"))
+    {
+      return;
+    }
+
     Thread simulationThread = new Thread(() -> {
       try
       {

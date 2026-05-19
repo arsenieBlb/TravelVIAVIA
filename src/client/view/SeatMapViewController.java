@@ -67,10 +67,14 @@ public class SeatMapViewController {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(message == null ? "Something went wrong." : message);
 
         DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        java.net.URL stylesheet = getClass().getResource("flight_scene.css");
+        if (stylesheet != null)
+        {
+            dialogPane.getStylesheets().add(stylesheet.toExternalForm());
+        }
         dialogPane.getStyleClass().add("card");
 
         alert.showAndWait();
@@ -288,6 +292,11 @@ public class SeatMapViewController {
     private void centerDialogOnOwner(Dialog<Seat> dialog)
     {
         dialog.setOnShown(event -> {
+            if (root == null || root.getScene() == null
+                    || dialog.getDialogPane().getScene() == null)
+            {
+                return;
+            }
             Window owner = root.getScene().getWindow();
             Window dialogWindow = dialog.getDialogPane().getScene().getWindow();
             dialogWindow.setX(owner.getX()

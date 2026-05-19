@@ -36,28 +36,56 @@ public class FlightsTabViewModel {
     }
 
     private void loadInitialData() {
-        List<Flight> all = model.getAllFlights();
-        allFlights.setAll(all);
+        javafx.concurrent.Task<java.util.List<Flight>> loadTask = new javafx.concurrent.Task<>() {
+            @Override
+            protected java.util.List<Flight> call() {
+                return model.getAllFlights();
+            }
+        };
+        loadTask.setOnSucceeded(event -> allFlights.setAll(loadTask.getValue()));
+        loadTask.setOnFailed(event -> {
+            Throwable e = loadTask.getException();
+            if (e != null) {
+                System.err.println("Could not load flights: " + e.getMessage());
+            }
+        });
+        Thread thread = new Thread(loadTask);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void updatePredicate() {
         filteredFlights.setPredicate(flight -> {
-            boolean originMatch = flight.getDepartureCity().getCityName().toLowerCase()
-                    .contains(originFilter.get().toLowerCase());
-            boolean destMatch = flight.getArrivalCity().getCityName().toLowerCase()
-                    .contains(destinationFilter.get().toLowerCase());
-            boolean carrierMatch = flight.getCarrier().getName().toLowerCase()
-                    .contains(carrierFilter.get().toLowerCase());
+            boolean originMatch = containsIgnoreCase(
+                    flight.getDepartureCity() == null ? "" : flight.getDepartureCity().getCityName(),
+                    originFilter.get());
+            boolean destMatch = containsIgnoreCase(
+                    flight.getArrivalCity() == null ? "" : flight.getArrivalCity().getCityName(),
+                    destinationFilter.get());
+            boolean carrierMatch = containsIgnoreCase(
+                    flight.getCarrier() == null ? "" : flight.getCarrier().getName(),
+                    carrierFilter.get());
             String selectedAircraft = aircraftFilter.get();
+            String aircraftModel = flight.getPlane() == null
+                    || flight.getPlane().getPlaneType() == null
+                    ? "" : flight.getPlane().getPlaneType().getModel();
             boolean aircraftMatch = selectedAircraft == null ||
                     selectedAircraft.equals("All") ||
                     selectedAircraft.isEmpty() ||
-                    flight.getPlane().getPlaneType().getModel().equals(selectedAircraft);
+                    aircraftModel.equals(selectedAircraft);
             boolean dateMatch = dateFilter.get() == null ||
-                    flight.getDepartureTime().toLocalDate().equals(dateFilter.get());
+                    (flight.getDepartureTime() != null
+                            && flight.getDepartureTime().toLocalDate().equals(dateFilter.get()));
 
             return originMatch && destMatch && carrierMatch && aircraftMatch && dateMatch;
         });
+    }
+
+    private boolean containsIgnoreCase(String value, String filter)
+    {
+        String safeValue = value == null ? "" : value.toLowerCase();
+        String safeFilter = filter == null ? "" : filter.toLowerCase();
+        return safeValue.contains(safeFilter);
     }
 
     public ObservableList<Flight> getFilteredFlights() { return filteredFlights; }
@@ -69,8 +97,22 @@ public class FlightsTabViewModel {
 
     public void refreshFromModel()
     {
-        List<Flight> all = model.getAllFlights();
-        allFlights.setAll(all);
+        javafx.concurrent.Task<java.util.List<Flight>> loadTask = new javafx.concurrent.Task<>() {
+            @Override
+            protected java.util.List<Flight> call() {
+                return model.getAllFlights();
+            }
+        };
+        loadTask.setOnSucceeded(event -> allFlights.setAll(loadTask.getValue()));
+        loadTask.setOnFailed(event -> {
+            Throwable e = loadTask.getException();
+            if (e != null) {
+                System.err.println("Could not refresh flights: " + e.getMessage());
+            }
+        });
+        Thread thread = new Thread(loadTask);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     public void removeFlight(Flight flight)

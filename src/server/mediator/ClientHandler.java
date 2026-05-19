@@ -69,8 +69,23 @@ public class ClientHandler implements Runnable, PropertyChangeListener
       String requestLine;
       while (running && (requestLine = in.readLine()) != null)
       {
-        NetworkPackage request = gson.fromJson(requestLine,
-            NetworkPackage.class);
+        NetworkPackage request;
+        try
+        {
+          request = gson.fromJson(requestLine, NetworkPackage.class);
+          if (request == null || request.type == null)
+          {
+            throw new IllegalArgumentException("Invalid request.");
+          }
+        }
+        catch (RuntimeException e)
+        {
+          logger.logTraffic(clientAddress(), "ERR",
+              "clientHandler client=" + clientLabel()
+                  + " message=" + quote("Invalid request data."));
+          continue;
+        }
+
         logger.logTraffic(clientAddress(), "RX", describeRequest(request));
         NetworkPackage reply;
         try
@@ -247,7 +262,12 @@ public class ClientHandler implements Runnable, PropertyChangeListener
         bookingRequest.passengers);
     List<Seat> selectedSeats = DtoMapper.seatsFromDtos(
         bookingRequest.selectedSeats);
-    Booking booking = model.createBooking(flight, passengers, selectedSeats);
+    Flight returnFlight = bookingRequest.returnFlight == null ? null
+        : resolveFlightFromModel(bookingRequest.returnFlight);
+    List<Seat> returnSeats = DtoMapper.seatsFromDtos(
+        bookingRequest.returnSeats);
+    Booking booking = model.createBooking(flight, passengers, selectedSeats,
+        returnFlight, returnSeats);
     String changeSummary = "{count=" + bookingCountBefore + "->"
         + (bookingCountBefore + 1)
         + ", seatsAvailable=" + availableSeatsBefore + "->"
@@ -615,7 +635,9 @@ public class ClientHandler implements Runnable, PropertyChangeListener
         BookingRequest.class);
     return "{flight=" + flightPayload(bookingRequest.flight)
         + ", passengers=" + sizeOf(bookingRequest.passengers)
-        + ", selectedSeats=" + sizeOf(bookingRequest.selectedSeats) + "}";
+        + ", selectedSeats=" + sizeOf(bookingRequest.selectedSeats)
+        + ", returnFlight=" + flightPayload(bookingRequest.returnFlight)
+        + ", returnSeats=" + sizeOf(bookingRequest.returnSeats) + "}";
   }
 
   private String addBookingByIdPayload(NetworkPackage request)

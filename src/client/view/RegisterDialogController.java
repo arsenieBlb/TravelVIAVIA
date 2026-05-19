@@ -64,7 +64,7 @@ public class RegisterDialogController
     }
 
     // email must end with @gmail.com
-    if (!email.contains("@gmail.com")) {
+    if (!email.endsWith("@gmail.com")) {
       showError("Email must be a valid @gmail.com address.");
       return;
     }
@@ -75,9 +75,17 @@ public class RegisterDialogController
       return;
     }
 
-    if (!owner.registerCustomer(firstName, lastName, email, password))
+    try
     {
-      showError("Could not create the account. Check the fields and try again.");
+      if (!owner.registerCustomer(firstName, lastName, email, password))
+      {
+        showError("Could not create the account. Check the fields and try again.");
+        return;
+      }
+    }
+    catch (RuntimeException e)
+    {
+      showError("Could not create the account. Please try again.");
       return;
     }
 

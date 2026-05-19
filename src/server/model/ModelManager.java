@@ -219,6 +219,15 @@ public class ModelManager implements Model
         Flight returnFlight, List<Seat> returnSeats)
     {
         Customer customer = getActiveCustomer(user);
+        List<Flight> outboundSegmentsBeforeBooking = getSegments(flight);
+        requireSelectedSeats(passengers, outboundSegmentsBeforeBooking,
+            selectedSeats);
+        if (returnFlight != null)
+        {
+            List<Flight> returnSegmentsBeforeBooking = getSegments(returnFlight);
+            requireSelectedSeats(passengers, returnSegmentsBeforeBooking,
+                returnSeats);
+        }
         Booking booking = customer.createBooking(flight, passengers);
 
         // assign outbound seats
@@ -305,6 +314,40 @@ public class ModelManager implements Model
         return booking;
     }
 
+    private void requireSelectedSeats(List<Passenger> passengers,
+        List<Flight> segments, List<Seat> seats)
+    {
+        int expectedSeatCount = passengers.size() * segments.size();
+        if (seats == null || seats.size() < expectedSeatCount)
+        {
+            throw new IllegalArgumentException(
+                "Please choose a seat for every passenger and flight segment.");
+        }
+        for (int i = 0; i < expectedSeatCount; i++)
+        {
+            if (seats.get(i) == null)
+            {
+                throw new IllegalArgumentException(
+                    "Please choose a seat for every passenger and flight segment.");
+            }
+        }
+    }
+
+    private List<Flight> getSegments(Flight flight)
+    {
+        List<Flight> segments = new ArrayList<>();
+        if (flight instanceof ConnectingFlight connectingFlight)
+        {
+            segments.add(connectingFlight.getFirstSegment());
+            segments.add(connectingFlight.getSecondSegment());
+        }
+        else
+        {
+            segments.add(flight);
+        }
+        return segments;
+    }
+
     @Override
     public void cancelBooking(Booking booking)
     {
@@ -317,6 +360,12 @@ public class ModelManager implements Model
         {
             try
             {
+                if (!bookingDAO.isBookingOwner(booking.getBookingId(),
+                    customer.getUserId()))
+                {
+                    throw new IllegalArgumentException(
+                        "Only the booking owner can cancel this booking.");
+                }
                 for (Passenger passenger : booking.getPassengers())
                 {
                     for (SeatAssignment assignment :
@@ -450,29 +499,31 @@ public class ModelManager implements Model
 
     public void addFlight(User user, Flight flight)
     {
-        if (user instanceof Admin admin)
+        if (!(user instanceof Admin admin))
         {
-            try
-            {
-                this.flightDAO.saveFlight(flight);
-                admin.createFlight(flight);
+            throw new IllegalStateException("An admin account is required.");
+        }
 
-                if (!allFlights.contains(flight))
-                {
-                    List<Flight> oldFlights = new ArrayList<>(allFlights);
-                    allFlights.add(flight);
-                    support.firePropertyChange("allFlights", oldFlights, allFlights);
-                }
-                logger.log("model", "ADD_FLIGHT", "OK",
-                    "flightId=" + flight.getFlightId()
-                        + ", admin=" + admin.getEmail());
-            }
-            catch (SQLException e)
+        try
+        {
+            this.flightDAO.saveFlight(flight);
+            admin.createFlight(flight);
+
+            if (!allFlights.contains(flight))
             {
-                logger.log("model", "ADD_FLIGHT", "ERROR",
-                    "Could not save flight: " + e.getMessage());
-                throw new RuntimeException("Could not save flight", e);
+                List<Flight> oldFlights = new ArrayList<>(allFlights);
+                allFlights.add(flight);
+                support.firePropertyChange("allFlights", oldFlights, allFlights);
             }
+            logger.log("model", "ADD_FLIGHT", "OK",
+                "flightId=" + flight.getFlightId()
+                    + ", admin=" + admin.getEmail());
+        }
+        catch (SQLException e)
+        {
+            logger.log("model", "ADD_FLIGHT", "ERROR",
+                "Could not save flight: " + e.getMessage());
+            throw new RuntimeException("Could not save flight", e);
         }
     }
 
@@ -484,25 +535,32 @@ public class ModelManager implements Model
 
     public void removeFlight(User user, Flight flight)
     {
-        if (user instanceof Admin admin)
+        if (!(user instanceof Admin admin))
         {
-            try
+            throw new IllegalStateException("An admin account is required.");
+        }
+
+        try
+        {
+            if (bookingDAO.hasBookingsForFlight(flight.getFlightId()))
             {
-                flightDAO.removeFlight(flight.getFlightId());
-                List<Flight> oldFlights = new ArrayList<>(allFlights);
-                admin.deleteFlight(flight);
-                allFlights.remove(flight);
-                logger.log("model", "REMOVE_FLIGHT", "OK",
-                    "flightId=" + flight.getFlightId()
-                        + ", admin=" + admin.getEmail());
-                support.firePropertyChange("allFlights", oldFlights, allFlights);
+                throw new IllegalStateException(
+                    "Flight cannot be deleted because it has existing bookings.");
             }
-            catch (SQLException e)
-            {
-                logger.log("model", "REMOVE_FLIGHT", "ERROR",
-                    "Could not remove flight: " + e.getMessage());
-                throw new RuntimeException("Could not remove flight", e);
-            }
+            flightDAO.removeFlight(flight.getFlightId());
+            List<Flight> oldFlights = new ArrayList<>(allFlights);
+            admin.deleteFlight(flight);
+            allFlights.remove(flight);
+            logger.log("model", "REMOVE_FLIGHT", "OK",
+                "flightId=" + flight.getFlightId()
+                    + ", admin=" + admin.getEmail());
+            support.firePropertyChange("allFlights", oldFlights, allFlights);
+        }
+        catch (SQLException e)
+        {
+            logger.log("model", "REMOVE_FLIGHT", "ERROR",
+                "Could not remove flight: " + e.getMessage());
+            throw new RuntimeException("Could not remove flight", e);
         }
     }
 
@@ -514,34 +572,36 @@ public class ModelManager implements Model
 
     public void editFlight(User user, Flight flight)
     {
-        if (user instanceof Admin admin)
+        if (!(user instanceof Admin admin))
         {
-            try
-            {
-                flightDAO.updateFlight(flight);
+            throw new IllegalStateException("An admin account is required.");
+        }
 
-                // replace the old flight in the in-memory list
-                for (int i = 0; i < allFlights.size(); i++)
+        try
+        {
+            flightDAO.updateFlight(flight);
+
+            // replace the old flight in the in-memory list
+            for (int i = 0; i < allFlights.size(); i++)
+            {
+                if (allFlights.get(i).getFlightId() == flight.getFlightId())
                 {
-                    if (allFlights.get(i).getFlightId() == flight.getFlightId())
-                    {
-                        allFlights.set(i, flight);
-                        break;
-                    }
+                    allFlights.set(i, flight);
+                    break;
                 }
+            }
 
-                admin.updateFlight(flight);
-                logger.log("model", "EDIT_FLIGHT", "OK",
-                    "flightId=" + flight.getFlightId()
-                        + ", admin=" + admin.getEmail());
-                support.firePropertyChange("allFlights", null, allFlights);
-            }
-            catch (SQLException e)
-            {
-                logger.log("model", "EDIT_FLIGHT", "ERROR",
-                    "Could not edit flight: " + e.getMessage());
-                throw new RuntimeException("Could not edit flight", e);
-            }
+            admin.updateFlight(flight);
+            logger.log("model", "EDIT_FLIGHT", "OK",
+                "flightId=" + flight.getFlightId()
+                    + ", admin=" + admin.getEmail());
+            support.firePropertyChange("allFlights", null, allFlights);
+        }
+        catch (SQLException e)
+        {
+            logger.log("model", "EDIT_FLIGHT", "ERROR",
+                "Could not edit flight: " + e.getMessage());
+            throw new RuntimeException("Could not edit flight", e);
         }
     }
     

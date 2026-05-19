@@ -437,12 +437,12 @@ public class PassengerDetailsViewController
 
   private void confirmBooking()
   {
+    confirmBookingButton.setDisable(true);
     try
     {
       Booking booking = viewModel.confirmBooking();
       parentController.getMyBookingsViewController().refresh();
-      showInformation("Booking confirmed",
-          "Booking #" + booking.getBookingId() + " has been saved.");
+      showInformation("Booking confirmed", formatBookingSuccessMessage(booking));
         parentController.showMyBookings();
     }
     catch (RuntimeException e)
@@ -450,11 +450,21 @@ public class PassengerDetailsViewController
       showError(e.getMessage());
       viewModel.prepare();
     }
+    finally
+    {
+      confirmBookingButton.setDisable(false);
+    }
   }
 
   private String formatCurrency(double value)
   {
     return String.format("EUR %.0f", value);
+  }
+
+  public static String formatBookingSuccessMessage(Booking booking)
+  {
+    return "Booking reference code: #" + booking.getBookingId()
+        + " has been saved.";
   }
 
   private void showInformation(String title, String message)

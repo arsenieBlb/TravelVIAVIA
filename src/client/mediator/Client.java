@@ -335,6 +335,8 @@ public class Client implements ServerModel, AutoCloseable
   {
     BookingRequest request = new BookingRequest(DtoMapper.toDto(flight),
         DtoMapper.passengerDtos(passengers), DtoMapper.seatDtos(selectedSeats));
+    request.returnFlight = DtoMapper.toDto(returnFlight);
+    request.returnSeats = DtoMapper.seatDtos(returnSeats);
     BookingDto dto = requestObject(RequestType.CREATE_BOOKING, request,
         BookingDto.class);
     Booking booking = DtoMapper.fromDto(dto);

@@ -312,38 +312,61 @@ public class FlightSceneViewModel {
     {
         if (selectedFlight.get() == null) return;
 
-        double base = selectedFlight.get().getBasePrice();
-        if (selectedReturnFlight.get() != null)
-        {
-            base += selectedReturnFlight.get().getBasePrice();
-        }
-
+        List<Flight> segments = getSelectedTripSegments();
         double currentTotal = 0;
 
-        SeatClass p1Class = (seatMapViewModel != null)
-                ? seatMapViewModel.getSeatClassForPassenger(1)
-                : new EconomyClass();
-
-        currentTotal += calculatePassengerPrice(base, p1Class, passengerOneBaggageCount.get());
+        currentTotal += calculatePassengerPrice(segments, 1,
+                passengerOneBaggageCount.get());
 
         if (hasPassengerTwoDetails())
         {
-            SeatClass p2Class = (seatMapViewModel != null)
-                    ? seatMapViewModel.getSeatClassForPassenger(2)
-                    : new EconomyClass();
-
-            currentTotal += calculatePassengerPrice(base, p2Class, passengerTwoBaggageCount.get());
+            currentTotal += calculatePassengerPrice(segments, 2,
+                    passengerTwoBaggageCount.get());
         }
 
         totalPrice.set(currentTotal);
     }
 
-    private double calculatePassengerPrice(double base, SeatClass seatClass, int baggageQuantity)
+    private double calculatePassengerPrice(List<Flight> segments,
+        int passengerNumber, int baggageQuantity)
     {
-        double price = base * seatClass.getPriceMultiplier();
-
+        double price = 0;
+        for (int i = 0; i < segments.size(); i++)
+        {
+            SeatClass seatClass = passengerDetailsViewModel == null
+                    ? new EconomyClass()
+                    : passengerDetailsViewModel.getSeatClassForPassenger(
+                    passengerNumber, i);
+            price += segments.get(i).getBasePrice()
+                    * seatClass.getPriceMultiplier();
+        }
         price += (baggageQuantity * 20.0);
         return price;
+    }
+
+    private List<Flight> getSelectedTripSegments()
+    {
+        List<Flight> segments = new ArrayList<>();
+        addSegments(selectedFlight.get(), segments);
+        addSegments(selectedReturnFlight.get(), segments);
+        return segments;
+    }
+
+    private void addSegments(Flight flight, List<Flight> segments)
+    {
+        if (flight == null)
+        {
+            return;
+        }
+        if (flight instanceof ConnectingFlight connectingFlight)
+        {
+            segments.add(connectingFlight.getFirstSegment());
+            segments.add(connectingFlight.getSecondSegment());
+        }
+        else
+        {
+            segments.add(flight);
+        }
     }
 
     public void sortFlights(String criteria) {

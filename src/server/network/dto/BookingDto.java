@@ -10,6 +10,7 @@ public class BookingDto
   public double totalPrice;
   public UserDto customer;
   public FlightDto flight;
+  public FlightDto returnFlight;
   public List<PassengerDto> passengers = new ArrayList<>();
   public boolean cancelled;
 

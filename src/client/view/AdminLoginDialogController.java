@@ -47,13 +47,20 @@ public class AdminLoginDialogController
 
   private void login()
   {
-    if (!owner.loginAdmin(adminEmailField.getText(),
-        adminPasswordField.getText()))
+    try
     {
-      showError("Please use a valid admin account.");
-      return;
+      if (!owner.loginAdmin(adminEmailField.getText(),
+          adminPasswordField.getText()))
+      {
+        showError("Please use a valid admin account.");
+        return;
+      }
+      hide();
     }
-    hide();
+    catch (RuntimeException e)
+    {
+      showError("Admin login failed. Please try again.");
+    }
   }
 
   private void showError(String message)

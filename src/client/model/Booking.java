@@ -269,11 +269,8 @@ public class Booking
                 }
             } else {
                 for (SeatAssignment sa : passenger.getSeatAssignments()) {
-                    double segmentPrice = sa.getFlight().getBasePrice();
-                    if (sa.getSeat().getSeatClass() instanceof BusinessClass) {
-                        segmentPrice *= 1.5;
-                    }
-                    passengerBasePrice += segmentPrice;
+                    passengerBasePrice += sa.getSeat().getPrice(
+                        sa.getFlight().getBasePrice());
                 }
             }
 

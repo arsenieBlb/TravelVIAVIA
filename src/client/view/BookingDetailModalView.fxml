@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -74,7 +74,7 @@
                         </VBox>
                         <Region HBox.hgrow="ALWAYS"/>
                         <VBox spacing="2" alignment="TOP_RIGHT">
-                            <Label fx:id="detailPriceLabel" text="$560" styleClass="details-title"/>
+                            <Label fx:id="detailPriceLabel" text="\$560" styleClass="details-title"/>
                             <Label fx:id="detailDurationLabel" text="3h 30m" styleClass="details-caption"/>
                         </VBox>
                     </HBox>
@@ -158,7 +158,7 @@
                         <HBox alignment="CENTER_LEFT">
                             <Label text="AA101 - 2 passengers" styleClass="details-caption"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="$560" styleClass="details-title"/>
+                            <Label text="\$560" styleClass="details-title"/>
                         </HBox>
                     </VBox>
 
@@ -167,20 +167,20 @@
                         <HBox alignment="CENTER_LEFT">
                             <Label text="John Doe - Checked" styleClass="details-caption"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="$30" styleClass="details-title"/>
+                            <Label text="\$30" styleClass="details-title"/>
                         </HBox>
                         <HBox styleClass="row-divider"/>
                         <HBox alignment="CENTER_LEFT">
                             <Label text="Jane Doe - Checked" styleClass="details-caption"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="$90" styleClass="details-title"/>
+                            <Label text="\$90" styleClass="details-title"/>
                         </HBox>
                     </VBox>
 
                     <HBox alignment="CENTER_LEFT" styleClass="summary-total">
                         <Label text="Total Amount" styleClass="total-text"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Label fx:id="totalAmountLabel" text="$680" styleClass="total-value"/>
+                        <Label fx:id="totalAmountLabel" text="\$680" styleClass="total-value"/>
                     </HBox>
                 </VBox>
 

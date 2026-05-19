@@ -52,6 +52,7 @@ public class AddBookingDialogController
 
     private void saveBooking()
     {
+        saveAddBookingButton.setDisable(true);
         try
         {
             viewModel.addBookingById(addBookingCodeField.getText(),
@@ -70,6 +71,10 @@ public class AddBookingDialogController
         catch (RuntimeException e)
         {
             showError(e.getMessage());
+        }
+        finally
+        {
+            saveAddBookingButton.setDisable(false);
         }
     }
 

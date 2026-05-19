@@ -45,14 +45,21 @@ public class LoginDialogController
 
   private void login()
   {
-    if (!owner.loginCustomer(loginEmailField.getText(),
-        loginPasswordField.getText()))
+    try
     {
-      showError("Please use a valid customer account.");
-      return;
+      if (!owner.loginCustomer(loginEmailField.getText(),
+          loginPasswordField.getText()))
+      {
+        showError("Please use a valid customer account.");
+        return;
+      }
+      showInfo("Welcome");
+      hide();
     }
-    showInfo("Welcome back!");
-    hide();
+    catch (RuntimeException e)
+    {
+      showError("Login failed. Please try again.");
+    }
   }
 
   private void showInfo(String message)

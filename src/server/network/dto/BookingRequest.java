@@ -8,6 +8,8 @@ public class BookingRequest
   public FlightDto flight;
   public List<PassengerDto> passengers = new ArrayList<>();
   public List<SeatDto> selectedSeats = new ArrayList<>();
+  public FlightDto returnFlight;
+  public List<SeatDto> returnSeats = new ArrayList<>();
 
   public BookingRequest()
   {
@@ -24,6 +26,18 @@ public class BookingRequest
     if (selectedSeats != null)
     {
       this.selectedSeats = selectedSeats;
+    }
+  }
+
+  public BookingRequest(FlightDto flight, List<PassengerDto> passengers,
+      List<SeatDto> selectedSeats, FlightDto returnFlight,
+      List<SeatDto> returnSeats)
+  {
+    this(flight, passengers, selectedSeats);
+    this.returnFlight = returnFlight;
+    if (returnSeats != null)
+    {
+      this.returnSeats = returnSeats;
     }
   }
 }

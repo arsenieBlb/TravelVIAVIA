@@ -68,7 +68,7 @@ public class Flight
     List<Seat> availableSeats = new ArrayList<>();
     for (Seat seat : getAvailableSeats())
     {
-      if (seat.getSeatClass() == seatClass)
+      if (seat.getSeatClass().getClass().equals(seatClass.getClass()))
       {
         availableSeats.add(seat);
       }
@@ -127,7 +127,11 @@ public class Flight
 
   void removeSeatAssignment(SeatAssignment seatAssignment)
   {
-    seatAssignments.remove(seatAssignment);
+    seatAssignments.removeIf(existingAssignment ->
+        existingAssignment == seatAssignment
+            || (existingAssignment.getSeat().equals(seatAssignment.getSeat())
+            && existingAssignment.getPassenger().equals(
+            seatAssignment.getPassenger())));
     if (seatAssignment.getSeat() != null) {
       occupiedSeats.remove(seatAssignment.getSeat());
     }
@@ -379,7 +383,8 @@ public class Flight
         boolean dateMatch = (criteria.getDepartureDate() == null) ||
                 this.getDepartureTime().toLocalDate().equals(criteria.getDepartureDate());
 
-        boolean seatMatch = this.getAvailableSeats().size() >= criteria.getPassengerCount();
+        boolean seatMatch = this.getAvailableSeatsByClass(
+            criteria.getSeatClass()).size() >= criteria.getPassengerCount();
 
         return originMatch && destMatch && dateMatch && seatMatch;
     }

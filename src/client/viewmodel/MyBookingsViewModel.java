@@ -67,7 +67,7 @@ public class MyBookingsViewModel implements BookingObserver
     loadTask.setOnFailed(event -> {
       Throwable e = loadTask.getException();
       if (e != null) {
-          e.printStackTrace();
+          System.err.println("Could not load bookings: " + e.getMessage());
       }
     });
 

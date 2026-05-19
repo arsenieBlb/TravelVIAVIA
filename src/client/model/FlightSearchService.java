@@ -163,8 +163,8 @@ public class FlightSearchService
                         // checking the layover time, it should be between 1 and 336 hours (14 days)
                         long layoverHours = java.time.Duration.between(first.getArrivalTime(), second.getDepartureTime()).toHours();
                         if (layoverHours >= 1 && layoverHours <= 336) {
-                            if (first.getAvailableSeats().size() >= criteria.getPassengerCount() &&
-                                second.getAvailableSeats().size() >= criteria.getPassengerCount()) {
+                            if (hasEnoughSeats(first, criteria) &&
+                                hasEnoughSeats(second, criteria)) {
                                 ConnectingFlight connection = new ConnectingFlight(first, second);
                                 results.add(connection);
                             }
@@ -176,6 +176,12 @@ public class FlightSearchService
 
         return results;
     }
+
+  private boolean hasEnoughSeats(Flight flight, SearchCriteria criteria)
+  {
+    return flight.getAvailableSeatsByClass(criteria.getSeatClass()).size()
+        >= criteria.getPassengerCount();
+  }
 
   public Flight viewFlightDetails(Flight flight)
   {
