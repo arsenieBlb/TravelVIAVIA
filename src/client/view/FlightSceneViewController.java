@@ -659,6 +659,12 @@ public class FlightSceneViewController
         return bookingsViewController;
     }
 
+    public Customer getLoggedInCustomer()
+    {
+        User user = flightSceneViewModel.getLoggedInUser();
+        return user instanceof Customer customer ? customer : null;
+    }
+
     private void showAlert(Alert.AlertType type, String title, String message)
     {
         Alert alert = new Alert(type);

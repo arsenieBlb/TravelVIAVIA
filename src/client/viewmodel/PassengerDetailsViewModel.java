@@ -130,14 +130,8 @@ public class PassengerDetailsViewModel
     }
 
     PassengerForm firstPassenger = passengerForms.get(0);
-    if (firstPassenger.getFirstName().isBlank())
-    {
-      firstPassenger.setFirstName(customer.getFirstName());
-    }
-    if (firstPassenger.getLastName().isBlank())
-    {
-      firstPassenger.setLastName(customer.getLastName());
-    }
+    firstPassenger.setFirstName(customer.getFirstName());
+    firstPassenger.setLastName(customer.getLastName());
   }
 
   public Booking confirmBooking()

@@ -20,6 +20,7 @@ public class Booking
   private Flight returnFlight;
   private final List<Passenger> passengers;
   private boolean cancelled;
+  private boolean ownedByCurrentUser;
   private BookingState state;
   private final List<BookingObserver> observers;
 
@@ -45,6 +46,7 @@ public class Booking
     setCustomer(customer);
     setFlight(flight);
     setPassengers(passengers);
+    ownedByCurrentUser = true;
     recalculateTotalPrice();
     this.customer.addBooking(this);
     this.flight.addBooking(this);
@@ -392,6 +394,16 @@ public class Booking
   public boolean isCancelled()
   {
     return cancelled;
+  }
+
+  public boolean isOwnedByCurrentUser()
+  {
+    return ownedByCurrentUser;
+  }
+
+  public void setOwnedByCurrentUser(boolean ownedByCurrentUser)
+  {
+    this.ownedByCurrentUser = ownedByCurrentUser;
   }
 
   @Override public String toString()

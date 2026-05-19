@@ -64,6 +64,7 @@ public class BookingDAO
             if (!passengers.isEmpty()) {
               Booking booking = new Booking(bookingId, LocalDateTime.now(),
                   customer, flight, passengers);
+              booking.setOwnedByCurrentUser(true);
 
               // load return flight
               int returnFlightId = resultSet.getInt("return_flight_id");
@@ -103,19 +104,23 @@ public class BookingDAO
 
     try (Connection connection = DatabaseConnection.getConnection())
     {
-      String sql = "SELECT b.booking_id, b.flight_id, "
+      ensurePassengerClaimColumn(connection);
+      String sql = "SELECT DISTINCT b.booking_id, b.flight_id, "
           + optionalBookingColumn(connection, "b", "second_flight_id") + ", "
           + optionalBookingColumn(connection, "b", "return_flight_id") + ", "
           + optionalBookingColumn(connection, "b", "second_return_flight_id")
           + ", b.created_by_customer_id, b.passenger_count, b.total_price "
           + "FROM flights.booking b "
-          + "JOIN flights.booking_customer bc "
-          + "ON b.booking_id = bc.booking_id "
-          + "WHERE bc.customer_id = ? "
+          + "LEFT JOIN flights.passenger p "
+          + "ON b.booking_id = p.booking_id "
+          + "AND p.claimed_by_customer_id = ? "
+          + "WHERE b.created_by_customer_id = ? "
+          + "OR p.passenger_id IS NOT NULL "
           + "ORDER BY b.booking_id DESC";
 
       PreparedStatement statement = connection.prepareStatement(sql);
       statement.setInt(1, customer.getUserId());
+      statement.setInt(2, customer.getUserId());
       ResultSet resultSet = statement.executeQuery();
 
       while (resultSet.next())
@@ -265,6 +270,138 @@ public class BookingDAO
     }
   }
 
+  public void claimPassengerForCustomer(int bookingId, String lastName,
+      int customerId) throws SQLException
+  {
+    if (lastName == null || lastName.isBlank())
+    {
+      throw new IllegalArgumentException("Account last name is required.");
+    }
+
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      connection.setAutoCommit(false);
+      try
+      {
+        ensurePassengerClaimColumn(connection);
+        if (hasPassengerClaimForCustomer(connection, bookingId, customerId))
+        {
+          throw new IllegalArgumentException(
+              "Booking is already added to your account.");
+        }
+
+        String selectSql = "SELECT passenger_id, claimed_by_customer_id "
+            + "FROM flights.passenger "
+            + "WHERE booking_id = ? AND LOWER(last_name) = LOWER(?) "
+            + "FOR UPDATE";
+        PreparedStatement selectStatement =
+            connection.prepareStatement(selectSql);
+        selectStatement.setInt(1, bookingId);
+        selectStatement.setString(2, lastName.trim());
+        ResultSet resultSet = selectStatement.executeQuery();
+
+        int matchingPassengers = 0;
+        int unclaimedPassengers = 0;
+        int claimedPassengers = 0;
+        int unclaimedPassengerId = 0;
+        while (resultSet.next())
+        {
+          matchingPassengers++;
+          int passengerId = resultSet.getInt("passenger_id");
+          resultSet.getInt("claimed_by_customer_id");
+          if (resultSet.wasNull())
+          {
+            unclaimedPassengers++;
+            unclaimedPassengerId = passengerId;
+          }
+          else
+          {
+            claimedPassengers++;
+          }
+        }
+
+        if (matchingPassengers == 0)
+        {
+          throw new IllegalArgumentException(
+              "The last name does not match this booking.");
+        }
+        if (unclaimedPassengers == 0 && claimedPassengers > 0)
+        {
+          throw new IllegalArgumentException(
+              "This passenger is already linked to another account.");
+        }
+        if (unclaimedPassengers > 1)
+        {
+          throw new IllegalArgumentException(
+              "More than one unclaimed passenger has your last name.");
+        }
+
+        String updateSql = "UPDATE flights.passenger "
+            + "SET claimed_by_customer_id = ? "
+            + "WHERE passenger_id = ? AND claimed_by_customer_id IS NULL";
+        PreparedStatement updateStatement =
+            connection.prepareStatement(updateSql);
+        updateStatement.setInt(1, customerId);
+        updateStatement.setInt(2, unclaimedPassengerId);
+        if (updateStatement.executeUpdate() != 1)
+        {
+          throw new IllegalArgumentException(
+              "This passenger is already linked to another account.");
+        }
+
+        linkBookingToCustomer(connection, bookingId, customerId);
+        connection.commit();
+      }
+      catch (SQLException | RuntimeException e)
+      {
+        connection.rollback();
+        throw e;
+      }
+    }
+  }
+
+  public boolean removeBookingFromCustomer(int bookingId, int customerId)
+      throws SQLException
+  {
+    try (Connection connection = DatabaseConnection.getConnection())
+    {
+      connection.setAutoCommit(false);
+      try
+      {
+        ensurePassengerClaimColumn(connection);
+        String clearClaimSql = "UPDATE flights.passenger "
+            + "SET claimed_by_customer_id = NULL "
+            + "WHERE booking_id = ? AND claimed_by_customer_id = ?";
+        PreparedStatement clearClaimStatement =
+            connection.prepareStatement(clearClaimSql);
+        clearClaimStatement.setInt(1, bookingId);
+        clearClaimStatement.setInt(2, customerId);
+        int clearedClaims = clearClaimStatement.executeUpdate();
+
+        String deleteLinkSql = "DELETE FROM flights.booking_customer "
+            + "WHERE booking_id = ? AND customer_id = ? "
+            + "AND NOT EXISTS ("
+            + "SELECT 1 FROM flights.booking "
+            + "WHERE booking_id = ? AND created_by_customer_id = ?)";
+        PreparedStatement deleteLinkStatement =
+            connection.prepareStatement(deleteLinkSql);
+        deleteLinkStatement.setInt(1, bookingId);
+        deleteLinkStatement.setInt(2, customerId);
+        deleteLinkStatement.setInt(3, bookingId);
+        deleteLinkStatement.setInt(4, customerId);
+        int deletedLinks = deleteLinkStatement.executeUpdate();
+
+        connection.commit();
+        return clearedClaims > 0 || deletedLinks > 0;
+      }
+      catch (SQLException | RuntimeException e)
+      {
+        connection.rollback();
+        throw e;
+      }
+    }
+  }
+
   private Booking createBookingFromResultSet(ResultSet resultSet,
       Customer customer, List<Flight> flights,
       List<LuggageType> luggageTypes, Connection connection)
@@ -296,6 +433,8 @@ public class BookingDAO
 
     Booking booking = new Booking(bookingId, LocalDateTime.now(), customer, flight,
         passengers);
+    int ownerCustomerId = resultSet.getInt("created_by_customer_id");
+    booking.setOwnedByCurrentUser(customer.getUserId() == ownerCustomerId);
 
     // load return flight if present
     int returnFlightId = resultSet.getInt("return_flight_id");
@@ -377,6 +516,7 @@ public class BookingDAO
       connection.setAutoCommit(false);
       try
       {
+        ensurePassengerClaimColumn(connection);
         int bookingId = getNextId(connection, "booking", "booking_id");
         booking.setBookingId(bookingId);
 
@@ -687,6 +827,61 @@ public class BookingDAO
     statement.setString(1, columnName);
     ResultSet resultSet = statement.executeQuery();
     return resultSet.next();
+  }
+
+  private void ensurePassengerClaimColumn(Connection connection)
+      throws SQLException
+  {
+    if (hasPassengerColumn(connection, "claimed_by_customer_id"))
+    {
+      return;
+    }
+
+    String sql = "ALTER TABLE flights.passenger "
+        + "ADD COLUMN IF NOT EXISTS claimed_by_customer_id INTEGER";
+    PreparedStatement statement = connection.prepareStatement(sql);
+    statement.executeUpdate();
+  }
+
+  private boolean hasPassengerColumn(Connection connection, String columnName)
+      throws SQLException
+  {
+    String sql = "SELECT 1 FROM information_schema.columns "
+        + "WHERE table_schema = 'flights' "
+        + "AND table_name = 'passenger' "
+        + "AND column_name = ?";
+    PreparedStatement statement = connection.prepareStatement(sql);
+    statement.setString(1, columnName);
+    ResultSet resultSet = statement.executeQuery();
+    return resultSet.next();
+  }
+
+  private boolean hasPassengerClaimForCustomer(Connection connection,
+      int bookingId, int customerId) throws SQLException
+  {
+    String sql = "SELECT 1 FROM flights.passenger "
+        + "WHERE booking_id = ? AND claimed_by_customer_id = ?";
+    PreparedStatement statement = connection.prepareStatement(sql);
+    statement.setInt(1, bookingId);
+    statement.setInt(2, customerId);
+    ResultSet resultSet = statement.executeQuery();
+    return resultSet.next();
+  }
+
+  private void linkBookingToCustomer(Connection connection, int bookingId,
+      int customerId) throws SQLException
+  {
+    String sql = "INSERT INTO flights.booking_customer "
+        + "(booking_id, customer_id) "
+        + "SELECT ?, ? WHERE NOT EXISTS ("
+        + "SELECT 1 FROM flights.booking_customer "
+        + "WHERE booking_id = ? AND customer_id = ?)";
+    PreparedStatement statement = connection.prepareStatement(sql);
+    statement.setInt(1, bookingId);
+    statement.setInt(2, customerId);
+    statement.setInt(3, bookingId);
+    statement.setInt(4, customerId);
+    statement.executeUpdate();
   }
 
   // finds a flight by ID in the provided list

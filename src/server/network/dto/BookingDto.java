@@ -13,6 +13,7 @@ public class BookingDto
   public FlightDto returnFlight;
   public List<PassengerDto> passengers = new ArrayList<>();
   public boolean cancelled;
+  public boolean ownedByCurrentUser;
 
   public BookingDto()
   {

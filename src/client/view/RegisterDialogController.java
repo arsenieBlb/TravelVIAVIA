@@ -79,7 +79,7 @@ public class RegisterDialogController
     {
       if (!owner.registerCustomer(firstName, lastName, email, password))
       {
-        showError("Could not create the account. Check the fields and try again.");
+        showError("An account with this email already exists.");
         return;
       }
     }

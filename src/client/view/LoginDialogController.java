@@ -1,5 +1,6 @@
 package client.view;
 
+import client.model.Customer;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -53,7 +54,9 @@ public class LoginDialogController
         showError("Please use a valid customer account.");
         return;
       }
-      showInfo("Welcome");
+      Customer customer = owner.getLoggedInCustomer();
+      String firstName = customer == null ? "" : ", " + customer.getFirstName();
+      showInfo("Welcome" + firstName);
       hide();
     }
     catch (RuntimeException e)

@@ -187,6 +187,8 @@ public class ClientHandler implements Runnable, PropertyChangeListener
           model.getUserBookings());
       case RequestType.ADD_BOOKING_TO_CURRENT_USER_BY_ID ->
           addBookingToCurrentUserById(request);
+      case RequestType.REMOVE_BOOKING_FROM_CURRENT_USER ->
+          removeBookingFromCurrentUser(request);
       case RequestType.ADD_FLIGHT -> addFlight(request);
       case RequestType.REMOVE_FLIGHT -> removeFlight(request);
       case RequestType.EDIT_FLIGHT -> editFlight(request);
@@ -312,8 +314,7 @@ public class ClientHandler implements Runnable, PropertyChangeListener
     int bookingCountBefore = bookingsBefore.size();
     boolean alreadyLinked = containsBooking(bookingsBefore,
         addRequest.bookingId);
-    Booking booking = model.addBookingToCurrentUserById(addRequest.bookingId,
-        addRequest.passengerLastName);
+    Booking booking = model.addBookingToCurrentUserById(addRequest.bookingId);
     int bookingCountAfter = alreadyLinked ? bookingCountBefore
         : bookingCountBefore + 1;
     String changeSummary = "{count=" + bookingCountBefore + "->"
@@ -322,6 +323,28 @@ public class ClientHandler implements Runnable, PropertyChangeListener
         "OK", "user=" + currentUserLabel() + ", change=" + changeSummary);
     server.broadcastPropertyChange("bookings", changeSummary);
     return DtoMapper.toDto(booking);
+  }
+
+  private Object removeBookingFromCurrentUser(NetworkPackage request)
+  {
+    IdRequest idRequest = gson.fromJson(request.contentJson, IdRequest.class);
+    List<Booking> bookingsBefore = model.getUserBookings();
+    int bookingCountBefore = bookingsBefore.size();
+    Booking booking = findBookingById(bookingsBefore, idRequest.id);
+    if (booking == null)
+    {
+      throw new IllegalArgumentException(
+          "Booking " + idRequest.id + " was not found for "
+              + currentUserLabel());
+    }
+    model.removeBookingFromCurrentUser(idRequest.id);
+    String changeSummary = "{count=" + bookingCountBefore + "->"
+        + Math.max(0, bookingCountBefore - 1)
+        + ", unlinked=" + bookingLogValue(booking) + "}";
+    logger.log(clientLabel(), RequestType.REMOVE_BOOKING_FROM_CURRENT_USER,
+        "OK", "user=" + currentUserLabel() + ", change=" + changeSummary);
+    server.broadcastPropertyChange("bookings", changeSummary);
+    return null;
   }
 
   private Object addFlight(NetworkPackage request)
@@ -579,6 +602,7 @@ public class ClientHandler implements Runnable, PropertyChangeListener
         case RequestType.REGISTER -> registerPayload(request);
         case RequestType.SEARCH_FLIGHTS -> searchPayload(request);
         case RequestType.GET_FLIGHT_DETAILS, RequestType.CANCEL_BOOKING,
+             RequestType.REMOVE_BOOKING_FROM_CURRENT_USER,
              RequestType.REMOVE_FLIGHT -> idPayload(request);
         case RequestType.CREATE_BOOKING -> bookingPayload(request);
         case RequestType.ADD_BOOKING_TO_CURRENT_USER_BY_ID ->
@@ -644,8 +668,7 @@ public class ClientHandler implements Runnable, PropertyChangeListener
   {
     AddBookingByIdRequest addRequest = gson.fromJson(request.contentJson,
         AddBookingByIdRequest.class);
-    return "{bookingId=" + addRequest.bookingId
-        + ", passengerLastName=" + quote(addRequest.passengerLastName) + "}";
+    return "{bookingId=" + addRequest.bookingId + "}";
   }
 
   private String describeResponsePayload(String action, Object response)
@@ -702,6 +725,8 @@ public class ClientHandler implements Runnable, PropertyChangeListener
           ? "Booking #" + booking.bookingId + " created."
           : "Booking created.";
       case RequestType.CANCEL_BOOKING -> "Booking cancelled.";
+      case RequestType.REMOVE_BOOKING_FROM_CURRENT_USER ->
+          "Booking removed from current user.";
       case RequestType.GET_ALL_BOOKINGS -> "Loaded " + count(response)
           + " booking(s).";
       case RequestType.GET_USER_BOOKINGS -> "Loaded " + count(response)

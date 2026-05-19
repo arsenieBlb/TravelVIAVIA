@@ -368,15 +368,20 @@ public class Client implements ServerModel, AutoCloseable
     return DtoMapper.bookingsFromDtos(dtos);
   }
 
-  @Override public Booking addBookingToCurrentUserById(int bookingId,
-      String passengerLastName)
+  @Override public Booking addBookingToCurrentUserById(int bookingId)
   {
     BookingDto dto = requestObject(RequestType.ADD_BOOKING_TO_CURRENT_USER_BY_ID,
-        new AddBookingByIdRequest(bookingId, passengerLastName),
-        BookingDto.class);
+        new AddBookingByIdRequest(bookingId), BookingDto.class);
     Booking booking = DtoMapper.fromDto(dto);
     support.firePropertyChange("bookings", null, booking);
     return booking;
+  }
+
+  @Override public void removeBookingFromCurrentUser(int bookingId)
+  {
+    request(RequestType.REMOVE_BOOKING_FROM_CURRENT_USER,
+        new IdRequest(bookingId));
+    support.firePropertyChange("bookings", null, null);
   }
 
   @Override public void addFlight(Flight flight)
