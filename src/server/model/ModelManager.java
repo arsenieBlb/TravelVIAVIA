@@ -380,6 +380,7 @@ public class ModelManager implements Model
                 }
                 bookingDAO.removeBooking(booking.getBookingId());
                 customer.cancelBooking(booking);
+                customer.removeBooking(booking);
                 logger.log("model", "CANCEL_BOOKING", "OK",
                     "bookingId=" + booking.getBookingId()
                         + ", customer=" + customer.getEmail());
@@ -444,15 +445,12 @@ public class ModelManager implements Model
     }
 
     @Override
-    public Booking addBookingToCurrentUserById(int bookingId,
-        String passengerLastName)
+    public Booking addBookingToCurrentUserById(int bookingId)
     {
-        return addBookingToCurrentUserById(currentUser, bookingId,
-            passengerLastName);
+        return addBookingToCurrentUserById(currentUser, bookingId);
     }
 
-    public Booking addBookingToCurrentUserById(User user, int bookingId,
-        String passengerLastName)
+    public Booking addBookingToCurrentUserById(User user, int bookingId)
     {
         Customer customer = getActiveCustomer(user);
         try
@@ -461,14 +459,14 @@ public class ModelManager implements Model
             {
                 throw new IllegalArgumentException("Booking ID was not found.");
             }
-            if (!bookingDAO.bookingHasPassengerLastName(bookingId,
-                passengerLastName))
+            if (bookingDAO.isBookingOwner(bookingId, customer.getUserId()))
             {
                 throw new IllegalArgumentException(
-                    "The last name does not match this booking.");
+                    "This booking is already in your account.");
             }
 
-            bookingDAO.linkBookingToCustomer(bookingId, customer.getUserId());
+            bookingDAO.claimPassengerForCustomer(bookingId,
+                customer.getLastName(), customer.getUserId());
             Booking booking = bookingDAO.getBookingById(bookingId, customer,
                 getLoadedFlights(), getLoadedLuggageTypes());
             if (booking == null)
@@ -488,6 +486,47 @@ public class ModelManager implements Model
                 "Could not link booking: " + e.getMessage());
             throw new IllegalStateException(
                 "Could not add booking from the database.", e);
+        }
+    }
+
+    @Override
+    public void removeBookingFromCurrentUser(int bookingId)
+    {
+        removeBookingFromCurrentUser(currentUser, bookingId);
+    }
+
+    public void removeBookingFromCurrentUser(User user, int bookingId)
+    {
+        Customer customer = getActiveCustomer(user);
+        try
+        {
+            if (!bookingDAO.bookingExists(bookingId))
+            {
+                throw new IllegalArgumentException("Booking ID was not found.");
+            }
+            if (bookingDAO.isBookingOwner(bookingId, customer.getUserId()))
+            {
+                throw new IllegalArgumentException(
+                    "Booking owners must cancel the booking instead.");
+            }
+            if (!bookingDAO.removeBookingFromCustomer(bookingId,
+                customer.getUserId()))
+            {
+                throw new IllegalArgumentException(
+                    "Booking was not found in your account.");
+            }
+
+            logger.log("model", "REMOVE_BOOKING_FROM_CURRENT_USER", "OK",
+                "bookingId=" + bookingId + ", customer="
+                    + customer.getEmail());
+            support.firePropertyChange("bookings", bookingId, null);
+        }
+        catch (SQLException e)
+        {
+            logger.log("model", "REMOVE_BOOKING_FROM_CURRENT_USER", "ERROR",
+                "Could not remove booking from account: " + e.getMessage());
+            throw new IllegalStateException(
+                "Could not remove booking from your account.", e);
         }
     }
 

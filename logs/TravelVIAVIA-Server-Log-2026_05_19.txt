@@ -1025,3 +1025,490 @@ SERVER [19/05/2026 03:43:12] client=1 request=LOGIN result=OK message=email=arte
 19/05/2026 03:43:13 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #26 success=true message="Loaded 0 booking(s)." payload={bookings=0}
 19/05/2026 03:43:14 | 127.0.0.1 | RX request GET_USER_BOOKINGS #27 client=1 user="artem" payload={}
 19/05/2026 03:43:15 | 127.0.0.1 | TX response GET_USER_BOOKINGS #27 success=true message="Loaded 10 user booking(s)." payload={bookings=10}
+19/05/2026 16:05:03 | server | START TravelVIAVIA server listening on port 8800
+19/05/2026 16:05:03 | server | WAIT Waiting for a client
+19/05/2026 16:05:03 | 127.0.0.1 | CONNECT client=1 remote=/127.0.0.1:63043
+19/05/2026 16:05:03 | server | WAIT Waiting for a client
+19/05/2026 16:05:04 | 127.0.0.1 | RX request GET_ALL_CITIES #1 client=1 user="anonymous" payload={}
+19/05/2026 16:05:04 | 127.0.0.1 | TX response GET_ALL_CITIES #1 success=true message="Loaded 6 city/cities." payload={cities=6}
+19/05/2026 16:05:04 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #2 client=1 user="anonymous" payload={}
+19/05/2026 16:05:04 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #2 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:05:04 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #3 client=1 user="anonymous" payload={}
+19/05/2026 16:05:04 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #3 success=true message="No user is logged in." payload={}
+19/05/2026 16:05:04 | 127.0.0.1 | RX request GET_CARRIERS #4 client=1 user="anonymous" payload={}
+19/05/2026 16:05:04 | 127.0.0.1 | TX response GET_CARRIERS #4 success=true message="Loaded 2 carrier(s)." payload={carriers=2}
+19/05/2026 16:05:20 | 127.0.0.1 | RX request REGISTER #5 client=1 user="anonymous" payload={firstName="fdsf", lastName="dsfsd", email="fdsfds@gmail.com", password="<redacted>"}
+SERVER [19/05/2026 16:05:20] client=model request=REGISTER result=ERROR message=email=fdsfds@gmail.com
+SERVER [19/05/2026 16:05:20] client=1 request=REGISTER result=ERROR message=email=fdsfds@gmail.com, result=false
+19/05/2026 16:05:20 | 127.0.0.1 | TX response REGISTER #5 success=true message="Registration rejected." payload={result=false}
+19/05/2026 16:05:22 | 127.0.0.1 | RX request REGISTER #6 client=1 user="anonymous" payload={firstName="fdsf", lastName="dsfsd", email="ffsafsadsfds@gmail.com", password="<redacted>"}
+SERVER [19/05/2026 16:05:22] client=model request=REGISTER result=OK message=email=ffsafsadsfds@gmail.com
+SERVER [19/05/2026 16:05:22] client=1 request=REGISTER result=OK message=email=ffsafsadsfds@gmail.com, result=true
+19/05/2026 16:05:22 | 127.0.0.1 | TX response REGISTER #6 success=true message="Customer registered." payload={result=true}
+19/05/2026 16:05:29 | 127.0.0.1 | RX request REGISTER #7 client=1 user="anonymous" payload={firstName="fdsf", lastName="dsfsd", email="ffsafsadsfds@gmail.com", password="<redacted>"}
+SERVER [19/05/2026 16:05:29] client=model request=REGISTER result=ERROR message=email=ffsafsadsfds@gmail.com
+SERVER [19/05/2026 16:05:29] client=1 request=REGISTER result=ERROR message=email=ffsafsadsfds@gmail.com, result=false
+19/05/2026 16:05:29 | 127.0.0.1 | TX response REGISTER #7 success=true message="Registration rejected." payload={result=false}
+19/05/2026 16:05:45 | 127.0.0.1 | RX request REGISTER #8 client=1 user="anonymous" payload={firstName="fdsf", lastName="dsfsd", email="ffsafsfafddsfds@gmail.com", password="<redacted>"}
+SERVER [19/05/2026 16:05:45] client=model request=REGISTER result=OK message=email=ffsafsfafddsfds@gmail.com
+SERVER [19/05/2026 16:05:45] client=1 request=REGISTER result=OK message=email=ffsafsfafddsfds@gmail.com, result=true
+19/05/2026 16:05:45 | 127.0.0.1 | TX response REGISTER #8 success=true message="Customer registered." payload={result=true}
+19/05/2026 16:05:52 | 127.0.0.1 | RX request LOGIN #9 client=1 user="anonymous" payload={email="artem", password="<redacted>"}
+19/05/2026 16:05:52 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=6, email="artem", type="Customer"}}}
+SERVER [19/05/2026 16:05:52] client=1 request=LOGIN result=OK message=email=artem, result=true
+19/05/2026 16:05:52 | 127.0.0.1 | TX response LOGIN #9 success=true message="Login accepted." payload={result=true}
+19/05/2026 16:05:52 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #10 client=1 user="artem" payload={}
+19/05/2026 16:05:52 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #10 success=true message="Current user loaded." payload={userId=6, email="artem", type="Customer", loggedIn=true}
+19/05/2026 16:05:52 | 127.0.0.1 | RX request LOGOUT #11 client=1 user="artem" payload={}
+19/05/2026 16:05:52 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=6, email="artem", type="Customer"}, new=null}}
+SERVER [19/05/2026 16:05:52] client=1 request=LOGOUT result=OK message=logged out artem
+19/05/2026 16:05:52 | 127.0.0.1 | TX response LOGOUT #11 success=true message="User logged out." payload={}
+19/05/2026 16:05:57 | 127.0.0.1 | RX request LOGIN #12 client=1 user="anonymous" payload={email="artem", password="<redacted>"}
+19/05/2026 16:05:57 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=6, email="artem", type="Customer"}}}
+SERVER [19/05/2026 16:05:57] client=1 request=LOGIN result=OK message=email=artem, result=true
+19/05/2026 16:05:57 | 127.0.0.1 | TX response LOGIN #12 success=true message="Login accepted." payload={result=true}
+19/05/2026 16:05:57 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #13 client=1 user="artem" payload={}
+19/05/2026 16:05:57 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #13 success=true message="Current user loaded." payload={userId=6, email="artem", type="Customer", loggedIn=true}
+19/05/2026 16:06:23 | 127.0.0.1 | RX request LOGOUT #14 client=1 user="artem" payload={}
+19/05/2026 16:06:23 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=6, email="artem", type="Customer"}, new=null}}
+SERVER [19/05/2026 16:06:23] client=1 request=LOGOUT result=OK message=logged out artem
+19/05/2026 16:06:23 | 127.0.0.1 | TX response LOGOUT #14 success=true message="User logged out." payload={}
+19/05/2026 16:08:08 | server | START TravelVIAVIA server listening on port 8800
+19/05/2026 16:08:08 | server | WAIT Waiting for a client
+19/05/2026 16:08:08 | 127.0.0.1 | CONNECT client=1 remote=/127.0.0.1:60028
+19/05/2026 16:08:08 | server | WAIT Waiting for a client
+19/05/2026 16:08:08 | 127.0.0.1 | RX request GET_ALL_CITIES #1 client=1 user="anonymous" payload={}
+19/05/2026 16:08:08 | 127.0.0.1 | TX response GET_ALL_CITIES #1 success=true message="Loaded 6 city/cities." payload={cities=6}
+19/05/2026 16:08:08 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #2 client=1 user="anonymous" payload={}
+19/05/2026 16:08:08 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #2 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:08:08 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #3 client=1 user="anonymous" payload={}
+19/05/2026 16:08:08 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #3 success=true message="No user is logged in." payload={}
+19/05/2026 16:08:09 | 127.0.0.1 | RX request GET_CARRIERS #4 client=1 user="anonymous" payload={}
+19/05/2026 16:08:09 | 127.0.0.1 | TX response GET_CARRIERS #4 success=true message="Loaded 2 carrier(s)." payload={carriers=2}
+19/05/2026 16:08:34 | 127.0.0.1 | RX request SEARCH_FLIGHTS #5 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=4, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:08:34 | 127.0.0.1 | TX response SEARCH_FLIGHTS #5 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:08:39 | 127.0.0.1 | RX request SEARCH_FLIGHTS #6 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=4, departureDate="2026-05-20", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:08:39 | 127.0.0.1 | TX response SEARCH_FLIGHTS #6 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:08:41 | 127.0.0.1 | RX request SEARCH_FLIGHTS #7 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=4, departureDate="2026-05-21", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:08:41 | 127.0.0.1 | TX response SEARCH_FLIGHTS #7 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:08:43 | 127.0.0.1 | RX request SEARCH_FLIGHTS #8 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=4, departureDate="2026-05-22", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:08:43 | 127.0.0.1 | TX response SEARCH_FLIGHTS #8 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:08:44 | 127.0.0.1 | RX request SEARCH_FLIGHTS #9 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=4, departureDate="2026-05-22", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:08:44 | 127.0.0.1 | TX response SEARCH_FLIGHTS #9 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:08:44 | 127.0.0.1 | RX request SEARCH_FLIGHTS #10 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=4, departureDate="2026-05-22", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:08:44 | 127.0.0.1 | TX response SEARCH_FLIGHTS #10 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:08:44 | 127.0.0.1 | RX request SEARCH_FLIGHTS #11 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=4, departureDate="2026-05-22", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:08:44 | 127.0.0.1 | TX response SEARCH_FLIGHTS #11 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:08:44 | 127.0.0.1 | RX request SEARCH_FLIGHTS #12 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=4, departureDate="2026-05-22", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:08:44 | 127.0.0.1 | TX response SEARCH_FLIGHTS #12 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:08:45 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #13 client=1 user="anonymous" payload={}
+19/05/2026 16:08:45 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #13 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:09:39 | 127.0.0.1 | RX request SEARCH_FLIGHTS #14 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=null, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:09:39 | 127.0.0.1 | TX response SEARCH_FLIGHTS #14 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:09:42 | 127.0.0.1 | RX request SEARCH_FLIGHTS #15 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=3, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:09:42 | 127.0.0.1 | TX response SEARCH_FLIGHTS #15 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:09:44 | 127.0.0.1 | RX request SEARCH_FLIGHTS #16 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=3, departureDate="2026-05-20", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:09:44 | 127.0.0.1 | TX response SEARCH_FLIGHTS #16 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:09:46 | 127.0.0.1 | RX request SEARCH_FLIGHTS #17 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=3, departureDate="2026-05-21", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:09:46 | 127.0.0.1 | TX response SEARCH_FLIGHTS #17 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:09:46 | 127.0.0.1 | RX request SEARCH_FLIGHTS #18 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=3, departureDate="2026-05-21", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:09:46 | 127.0.0.1 | TX response SEARCH_FLIGHTS #18 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:09:46 | 127.0.0.1 | RX request SEARCH_FLIGHTS #19 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=3, departureDate="2026-05-21", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:09:46 | 127.0.0.1 | TX response SEARCH_FLIGHTS #19 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:09:48 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #20 client=1 user="anonymous" payload={}
+19/05/2026 16:09:48 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #20 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:10:12 | 127.0.0.1 | RX request SEARCH_FLIGHTS #21 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=1, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:10:12 | 127.0.0.1 | TX response SEARCH_FLIGHTS #21 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:10:14 | 127.0.0.1 | RX request SEARCH_FLIGHTS #22 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=1, departureDate="2026-05-25", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:10:14 | 127.0.0.1 | TX response SEARCH_FLIGHTS #22 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 16:10:16 | 127.0.0.1 | RX request SEARCH_FLIGHTS #23 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=1, departureDate="2026-05-26", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:10:16 | 127.0.0.1 | TX response SEARCH_FLIGHTS #23 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:10:18 | 127.0.0.1 | RX request SEARCH_FLIGHTS #24 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=1, departureDate="2026-05-24", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:10:18 | 127.0.0.1 | TX response SEARCH_FLIGHTS #24 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:10:19 | 127.0.0.1 | RX request SEARCH_FLIGHTS #25 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=1, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:10:19 | 127.0.0.1 | TX response SEARCH_FLIGHTS #25 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:10:22 | 127.0.0.1 | RX request SEARCH_FLIGHTS #26 client=1 user="anonymous" payload={departureCityId=4, arrivalCityId=1, departureDate="2026-05-25", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:10:22 | 127.0.0.1 | TX response SEARCH_FLIGHTS #26 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 16:11:05 | 127.0.0.1 | RX request LOGIN #27 client=1 user="anonymous" payload={email="boss", password="<redacted>"}
+19/05/2026 16:11:06 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=7, email="boss", type="Admin"}}}
+SERVER [19/05/2026 16:11:06] client=1 request=LOGIN result=OK message=email=boss, result=true
+19/05/2026 16:11:06 | 127.0.0.1 | TX response LOGIN #27 success=true message="Login accepted." payload={result=true}
+19/05/2026 16:11:06 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #28 client=1 user="boss" payload={}
+19/05/2026 16:11:06 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #28 success=true message="Current user loaded." payload={userId=7, email="boss", type="Admin", loggedIn=true}
+19/05/2026 16:11:06 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #29 client=1 user="boss" payload={}
+19/05/2026 16:11:06 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #29 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:11:06 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #30 client=1 user="boss" payload={}
+19/05/2026 16:11:06 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #30 success=true message="Loaded 33 booking(s)." payload={bookings=33}
+19/05/2026 16:11:06 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #31 client=1 user="boss" payload={}
+19/05/2026 16:11:06 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #31 success=true message="Loaded 33 booking(s)." payload={bookings=33}
+19/05/2026 16:11:06 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #32 client=1 user="boss" payload={}
+19/05/2026 16:11:06 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #32 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:11:06 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #33 client=1 user="boss" payload={}
+19/05/2026 16:11:06 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #33 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:11:06 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #34 client=1 user="boss" payload={}
+19/05/2026 16:11:06 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #34 success=true message="Loaded 33 booking(s)." payload={bookings=33}
+19/05/2026 16:11:24 | 127.0.0.1 | RX request LOGOUT #35 client=1 user="boss" payload={}
+19/05/2026 16:11:24 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=7, email="boss", type="Admin"}, new=null}}
+SERVER [19/05/2026 16:11:24] client=1 request=LOGOUT result=OK message=logged out boss
+19/05/2026 16:11:24 | 127.0.0.1 | TX response LOGOUT #35 success=true message="User logged out." payload={}
+19/05/2026 16:11:24 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #36 client=1 user="anonymous" payload={}
+19/05/2026 16:11:24 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #36 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:11:24 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #37 client=1 user="anonymous" payload={}
+19/05/2026 16:11:24 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #37 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:11:28 | 127.0.0.1 | RX request SEARCH_FLIGHTS #38 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-25", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:11:28 | 127.0.0.1 | TX response SEARCH_FLIGHTS #38 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:11:31 | 127.0.0.1 | RX request SEARCH_FLIGHTS #39 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-25", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:11:31 | 127.0.0.1 | TX response SEARCH_FLIGHTS #39 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 16:11:33 | 127.0.0.1 | RX request SEARCH_FLIGHTS #40 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:11:33 | 127.0.0.1 | TX response SEARCH_FLIGHTS #40 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 16:14:21 | 127.0.0.1 | RX request LOGIN #41 client=1 user="anonymous" payload={email="artem", password="<redacted>"}
+19/05/2026 16:14:21 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new=null}}
+SERVER [19/05/2026 16:14:21] client=1 request=LOGIN result=ERROR message=email=artem, result=false
+19/05/2026 16:14:21 | 127.0.0.1 | TX response LOGIN #41 success=true message="Login rejected." payload={result=false}
+19/05/2026 16:14:21 | 127.0.0.1 | RX request LOGOUT #42 client=1 user="anonymous" payload={}
+19/05/2026 16:14:21 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new=null}}
+SERVER [19/05/2026 16:14:21] client=1 request=LOGOUT result=OK message=logged out anonymous
+19/05/2026 16:14:21 | 127.0.0.1 | TX response LOGOUT #42 success=true message="User logged out." payload={}
+19/05/2026 16:14:21 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #43 client=1 user="anonymous" payload={}
+19/05/2026 16:14:21 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #43 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:14:21 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #44 client=1 user="anonymous" payload={}
+19/05/2026 16:14:22 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #44 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:14:22 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #45 client=1 user="anonymous" payload={}
+19/05/2026 16:14:22 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #45 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:14:22 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #46 client=1 user="anonymous" payload={}
+19/05/2026 16:14:22 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #46 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:14:25 | 127.0.0.1 | RX request LOGIN #47 client=1 user="anonymous" payload={email="artem", password="<redacted>"}
+19/05/2026 16:14:26 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=6, email="artem", type="Customer"}}}
+SERVER [19/05/2026 16:14:26] client=1 request=LOGIN result=OK message=email=artem, result=true
+19/05/2026 16:14:26 | 127.0.0.1 | TX response LOGIN #47 success=true message="Login accepted." payload={result=true}
+19/05/2026 16:14:26 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #48 client=1 user="artem" payload={}
+19/05/2026 16:14:26 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #48 success=true message="Current user loaded." payload={userId=6, email="artem", type="Customer", loggedIn=true}
+19/05/2026 16:14:26 | 127.0.0.1 | RX request GET_LUGGAGE_TYPES #49 client=1 user="artem" payload={}
+19/05/2026 16:14:26 | 127.0.0.1 | TX response GET_LUGGAGE_TYPES #49 success=true message="Loaded 2 luggage type(s)." payload={luggageTypes=2}
+19/05/2026 16:14:26 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #50 client=1 user="artem" payload={}
+19/05/2026 16:14:26 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #50 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:14:26 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #51 client=1 user="artem" payload={}
+19/05/2026 16:14:26 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #51 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:18:46 | 127.0.0.1 | RX request CREATE_BOOKING #52 client=1 user="artem" payload={flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", carrier="Global Sky Airways", departureTime="2026-05-19T10:00"}, passengers=2, selectedSeats=2, returnFlight={}, returnSeats=0}
+SERVER [19/05/2026 16:18:47] client=model request=CREATE_BOOKING result=OK message=bookingId=34, customer=artem
+SERVER [19/05/2026 16:18:47] client=1 request=CREATE_BOOKING result=OK message=user=artem, change={count=4->5, seatsAvailable=61->59, added={bookingId=34, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=500.0, cancelled=false}}
+19/05/2026 16:18:47 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="bookings", change={count=4->5, seatsAvailable=61->59, added={bookingId=34, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=500.0, cancelled=false}}}
+19/05/2026 16:18:47 | 127.0.0.1 | TX response CREATE_BOOKING #52 success=true message="Booking #34 created." payload={bookingId=34, totalPrice=500.0, passengerCount=2, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", carrier="Global Sky Airways", departureTime="2026-05-19T10:00"}}
+19/05/2026 16:18:47 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #53 client=1 user="artem" payload={}
+19/05/2026 16:18:47 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #53 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:18:47 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #54 client=1 user="artem" payload={}
+19/05/2026 16:18:47 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #54 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:18:47 | 127.0.0.1 | RX request GET_USER_BOOKINGS #55 client=1 user="artem" payload={}
+19/05/2026 16:18:47 | 127.0.0.1 | TX response GET_USER_BOOKINGS #55 success=true message="Loaded 5 user booking(s)." payload={bookings=5}
+19/05/2026 16:18:47 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #56 client=1 user="artem" payload={}
+19/05/2026 16:18:47 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #56 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:18:47 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #57 client=1 user="artem" payload={}
+19/05/2026 16:18:47 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #57 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:18:47 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #58 client=1 user="artem" payload={}
+19/05/2026 16:18:47 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #58 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:18:47 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #59 client=1 user="artem" payload={}
+19/05/2026 16:18:47 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #59 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:18:47 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #60 client=1 user="artem" payload={}
+19/05/2026 16:18:47 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #60 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:18:48 | 127.0.0.1 | RX request GET_USER_BOOKINGS #61 client=1 user="artem" payload={}
+19/05/2026 16:18:48 | 127.0.0.1 | TX response GET_USER_BOOKINGS #61 success=true message="Loaded 5 user booking(s)." payload={bookings=5}
+19/05/2026 16:19:32 | 127.0.0.1 | RX request CANCEL_BOOKING #62 client=1 user="artem" payload={id=34}
+SERVER [19/05/2026 16:19:32] client=1 request=CANCEL_BOOKING result=OK message=destructive request user=artem, bookingId=34
+SERVER [19/05/2026 16:19:32] client=model request=CANCEL_BOOKING result=OK message=bookingId=34, customer=artem
+SERVER [19/05/2026 16:19:32] client=1 request=CANCEL_BOOKING result=OK message=user=artem, change={count=5->4, removed={bookingId=34, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=290.0, cancelled=true}}
+19/05/2026 16:19:32 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="bookings", change={count=5->4, removed={bookingId=34, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=290.0, cancelled=true}}}
+19/05/2026 16:19:32 | 127.0.0.1 | TX response CANCEL_BOOKING #62 success=true message="Booking cancelled." payload={}
+19/05/2026 16:19:32 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #63 client=1 user="artem" payload={}
+19/05/2026 16:19:32 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #63 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:32 | 127.0.0.1 | RX request GET_USER_BOOKINGS #65 client=1 user="artem" payload={}
+19/05/2026 16:19:32 | 127.0.0.1 | TX response GET_USER_BOOKINGS #65 success=true message="Loaded 4 user booking(s)." payload={bookings=4}
+19/05/2026 16:19:32 | 127.0.0.1 | RX request GET_USER_BOOKINGS #64 client=1 user="artem" payload={}
+19/05/2026 16:19:32 | 127.0.0.1 | TX response GET_USER_BOOKINGS #64 success=true message="Loaded 4 user booking(s)." payload={bookings=4}
+19/05/2026 16:19:32 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #66 client=1 user="artem" payload={}
+19/05/2026 16:19:32 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #66 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:32 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #67 client=1 user="artem" payload={}
+19/05/2026 16:19:32 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #67 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:19:32 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #68 client=1 user="artem" payload={}
+19/05/2026 16:19:32 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #68 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:19:32 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #69 client=1 user="artem" payload={}
+19/05/2026 16:19:32 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #69 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:32 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #70 client=1 user="artem" payload={}
+19/05/2026 16:19:32 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #70 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:39 | 127.0.0.1 | RX request SEARCH_FLIGHTS #71 client=1 user="artem" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:19:39 | 127.0.0.1 | TX response SEARCH_FLIGHTS #71 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 16:19:53 | 127.0.0.1 | RX request CREATE_BOOKING #72 client=1 user="artem" payload={flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", carrier="Global Sky Airways", departureTime="2026-05-19T10:00"}, passengers=2, selectedSeats=2, returnFlight={}, returnSeats=0}
+SERVER [19/05/2026 16:19:53] client=model request=CREATE_BOOKING result=OK message=bookingId=34, customer=artem
+SERVER [19/05/2026 16:19:53] client=1 request=CREATE_BOOKING result=OK message=user=artem, change={count=4->5, seatsAvailable=61->59, added={bookingId=34, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=270.0, cancelled=false}}
+19/05/2026 16:19:53 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="bookings", change={count=4->5, seatsAvailable=61->59, added={bookingId=34, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=270.0, cancelled=false}}}
+19/05/2026 16:19:53 | 127.0.0.1 | TX response CREATE_BOOKING #72 success=true message="Booking #34 created." payload={bookingId=34, totalPrice=270.0, passengerCount=2, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", carrier="Global Sky Airways", departureTime="2026-05-19T10:00"}}
+19/05/2026 16:19:53 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #73 client=1 user="artem" payload={}
+19/05/2026 16:19:53 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #73 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:53 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #74 client=1 user="artem" payload={}
+19/05/2026 16:19:53 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #74 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:19:53 | 127.0.0.1 | RX request GET_USER_BOOKINGS #75 client=1 user="artem" payload={}
+19/05/2026 16:19:53 | 127.0.0.1 | TX response GET_USER_BOOKINGS #75 success=true message="Loaded 5 user booking(s)." payload={bookings=5}
+19/05/2026 16:19:53 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #76 client=1 user="artem" payload={}
+19/05/2026 16:19:53 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #76 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:53 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #77 client=1 user="artem" payload={}
+19/05/2026 16:19:53 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #77 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:19:53 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #78 client=1 user="artem" payload={}
+19/05/2026 16:19:53 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #78 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:19:53 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #79 client=1 user="artem" payload={}
+19/05/2026 16:19:53 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #79 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:54 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #80 client=1 user="artem" payload={}
+19/05/2026 16:19:54 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #80 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:54 | 127.0.0.1 | RX request GET_USER_BOOKINGS #81 client=1 user="artem" payload={}
+19/05/2026 16:19:54 | 127.0.0.1 | TX response GET_USER_BOOKINGS #81 success=true message="Loaded 5 user booking(s)." payload={bookings=5}
+19/05/2026 16:19:59 | 127.0.0.1 | RX request CANCEL_BOOKING #82 client=1 user="artem" payload={id=15}
+SERVER [19/05/2026 16:19:59] client=1 request=CANCEL_BOOKING result=OK message=destructive request user=artem, bookingId=15
+SERVER [19/05/2026 16:19:59] client=model request=CANCEL_BOOKING result=OK message=bookingId=15, customer=artem
+SERVER [19/05/2026 16:19:59] client=1 request=CANCEL_BOOKING result=OK message=user=artem, change={count=5->4, removed={bookingId=15, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=1, totalPrice=120.0, cancelled=true}}
+19/05/2026 16:19:59 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="bookings", change={count=5->4, removed={bookingId=15, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=1, totalPrice=120.0, cancelled=true}}}
+19/05/2026 16:19:59 | 127.0.0.1 | TX response CANCEL_BOOKING #82 success=true message="Booking cancelled." payload={}
+19/05/2026 16:19:59 | 127.0.0.1 | RX request GET_USER_BOOKINGS #83 client=1 user="artem" payload={}
+19/05/2026 16:19:59 | 127.0.0.1 | TX response GET_USER_BOOKINGS #83 success=true message="Loaded 4 user booking(s)." payload={bookings=4}
+19/05/2026 16:19:59 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #84 client=1 user="artem" payload={}
+19/05/2026 16:19:59 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #84 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:59 | 127.0.0.1 | RX request GET_USER_BOOKINGS #85 client=1 user="artem" payload={}
+19/05/2026 16:19:59 | 127.0.0.1 | TX response GET_USER_BOOKINGS #85 success=true message="Loaded 4 user booking(s)." payload={bookings=4}
+19/05/2026 16:19:59 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #86 client=1 user="artem" payload={}
+19/05/2026 16:19:59 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #86 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:59 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #87 client=1 user="artem" payload={}
+19/05/2026 16:19:59 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #87 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:19:59 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #88 client=1 user="artem" payload={}
+19/05/2026 16:19:59 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #88 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:19:59 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #89 client=1 user="artem" payload={}
+19/05/2026 16:19:59 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #89 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:19:59 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #90 client=1 user="artem" payload={}
+19/05/2026 16:19:59 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #90 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:20:06 | 127.0.0.1 | RX request SEARCH_FLIGHTS #91 client=1 user="artem" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 16:20:06 | 127.0.0.1 | TX response SEARCH_FLIGHTS #91 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 16:21:08 | 127.0.0.1 | RX request GET_USER_BOOKINGS #92 client=1 user="artem" payload={}
+19/05/2026 16:21:08 | 127.0.0.1 | TX response GET_USER_BOOKINGS #92 success=true message="Loaded 4 user booking(s)." payload={bookings=4}
+19/05/2026 16:27:29 | 127.0.0.1 | RX request LOGOUT #93 client=1 user="artem" payload={}
+19/05/2026 16:27:29 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=6, email="artem", type="Customer"}, new=null}}
+SERVER [19/05/2026 16:27:29] client=1 request=LOGOUT result=OK message=logged out artem
+19/05/2026 16:27:29 | 127.0.0.1 | TX response LOGOUT #93 success=true message="User logged out." payload={}
+19/05/2026 16:27:29 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #94 client=1 user="anonymous" payload={}
+19/05/2026 16:27:29 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #94 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:27:29 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #95 client=1 user="anonymous" payload={}
+19/05/2026 16:27:29 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #95 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:27:54 | 127.0.0.1 | RX request REGISTER #96 client=1 user="anonymous" payload={firstName="arsenie", lastName="arsenie", email="arsenie@gmail.com", password="<redacted>"}
+SERVER [19/05/2026 16:27:54] client=model request=REGISTER result=OK message=email=arsenie@gmail.com
+SERVER [19/05/2026 16:27:54] client=1 request=REGISTER result=OK message=email=arsenie@gmail.com, result=true
+19/05/2026 16:27:54 | 127.0.0.1 | TX response REGISTER #96 success=true message="Customer registered." payload={result=true}
+19/05/2026 16:28:05 | 127.0.0.1 | RX request LOGIN #97 client=1 user="anonymous" payload={email="arsenie@gmail.com", password="<redacted>"}
+19/05/2026 16:28:05 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=14, email="arsenie@gmail.com", type="Customer"}}}
+SERVER [19/05/2026 16:28:05] client=1 request=LOGIN result=OK message=email=arsenie@gmail.com, result=true
+19/05/2026 16:28:05 | 127.0.0.1 | TX response LOGIN #97 success=true message="Login accepted." payload={result=true}
+19/05/2026 16:28:05 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #98 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:05 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #98 success=true message="Current user loaded." payload={userId=14, email="arsenie@gmail.com", type="Customer", loggedIn=true}
+19/05/2026 16:28:05 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #99 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:05 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #99 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:28:05 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #100 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:05 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #100 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:28:51 | 127.0.0.1 | RX request CREATE_BOOKING #101 client=1 user="arsenie@gmail.com" payload={flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", carrier="Global Sky Airways", departureTime="2026-05-19T10:00"}, passengers=2, selectedSeats=2, returnFlight={}, returnSeats=0}
+SERVER [19/05/2026 16:28:52] client=model request=CREATE_BOOKING result=OK message=bookingId=35, customer=arsenie@gmail.com
+SERVER [19/05/2026 16:28:52] client=1 request=CREATE_BOOKING result=OK message=user=arsenie@gmail.com, change={count=0->1, seatsAvailable=60->58, added={bookingId=35, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=270.0, cancelled=false}}
+19/05/2026 16:28:52 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="bookings", change={count=0->1, seatsAvailable=60->58, added={bookingId=35, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=270.0, cancelled=false}}}
+19/05/2026 16:28:52 | 127.0.0.1 | TX response CREATE_BOOKING #101 success=true message="Booking #35 created." payload={bookingId=35, totalPrice=270.0, passengerCount=2, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", carrier="Global Sky Airways", departureTime="2026-05-19T10:00"}}
+19/05/2026 16:28:52 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #102 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:52 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #102 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:28:52 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #103 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:52 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #103 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:28:52 | 127.0.0.1 | RX request GET_USER_BOOKINGS #104 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:52 | 127.0.0.1 | TX response GET_USER_BOOKINGS #104 success=true message="Loaded 1 user booking(s)." payload={bookings=1}
+19/05/2026 16:28:52 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #105 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:52 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #105 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:28:52 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #106 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:52 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #106 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:28:52 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #107 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:52 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #107 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 16:28:52 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #108 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:52 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #108 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:28:52 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #109 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:52 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #109 success=true message="Loaded 0 booking(s)." payload={bookings=0}
+19/05/2026 16:28:53 | 127.0.0.1 | RX request GET_USER_BOOKINGS #110 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 16:28:53 | 127.0.0.1 | TX response GET_USER_BOOKINGS #110 success=true message="Loaded 1 user booking(s)." payload={bookings=1}
+19/05/2026 17:01:31 | server | START TravelVIAVIA server listening on port 8800
+19/05/2026 17:01:31 | server | WAIT Waiting for a client
+19/05/2026 17:01:31 | 127.0.0.1 | CONNECT client=1 remote=/127.0.0.1:52403
+19/05/2026 17:01:31 | server | WAIT Waiting for a client
+19/05/2026 17:01:31 | 127.0.0.1 | RX request GET_ALL_CITIES #1 client=1 user="anonymous" payload={}
+19/05/2026 17:01:31 | 127.0.0.1 | TX response GET_ALL_CITIES #1 success=true message="Loaded 6 city/cities." payload={cities=6}
+19/05/2026 17:01:31 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #2 client=1 user="anonymous" payload={}
+19/05/2026 17:01:31 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #2 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 17:01:31 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #3 client=1 user="anonymous" payload={}
+19/05/2026 17:01:31 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #3 success=true message="No user is logged in." payload={}
+19/05/2026 17:01:31 | 127.0.0.1 | RX request GET_CARRIERS #4 client=1 user="anonymous" payload={}
+19/05/2026 17:01:31 | 127.0.0.1 | TX response GET_CARRIERS #4 success=true message="Loaded 2 carrier(s)." payload={carriers=2}
+19/05/2026 17:01:41 | 127.0.0.1 | RX request LOGIN #5 client=1 user="anonymous" payload={email="artem", password="<redacted>"}
+19/05/2026 17:01:41 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=6, email="artem", type="Customer"}}}
+SERVER [19/05/2026 17:01:41] client=1 request=LOGIN result=OK message=email=artem, result=true
+19/05/2026 17:01:41 | 127.0.0.1 | TX response LOGIN #5 success=true message="Login accepted." payload={result=true}
+19/05/2026 17:01:41 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #6 client=1 user="artem" payload={}
+19/05/2026 17:01:41 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #6 success=true message="Current user loaded." payload={userId=6, email="artem", type="Customer", loggedIn=true}
+19/05/2026 17:01:43 | 127.0.0.1 | RX request GET_USER_BOOKINGS #7 client=1 user="artem" payload={}
+19/05/2026 17:01:43 | 127.0.0.1 | TX response GET_USER_BOOKINGS #7 success=true message="Loaded 3 user booking(s)." payload={bookings=3}
+19/05/2026 17:01:52 | 127.0.0.1 | RX request LOGOUT #8 client=1 user="artem" payload={}
+19/05/2026 17:01:52 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=6, email="artem", type="Customer"}, new=null}}
+SERVER [19/05/2026 17:01:52] client=1 request=LOGOUT result=OK message=logged out artem
+19/05/2026 17:01:52 | 127.0.0.1 | TX response LOGOUT #8 success=true message="User logged out." payload={}
+19/05/2026 17:01:59 | 127.0.0.1 | RX request LOGIN #9 client=1 user="anonymous" payload={email="arsenie@gmail.com", password="<redacted>"}
+19/05/2026 17:01:59 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=14, email="arsenie@gmail.com", type="Customer"}}}
+SERVER [19/05/2026 17:01:59] client=1 request=LOGIN result=OK message=email=arsenie@gmail.com, result=true
+19/05/2026 17:01:59 | 127.0.0.1 | TX response LOGIN #9 success=true message="Login accepted." payload={result=true}
+19/05/2026 17:01:59 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #10 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:01:59 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #10 success=true message="Current user loaded." payload={userId=14, email="arsenie@gmail.com", type="Customer", loggedIn=true}
+19/05/2026 17:02:01 | 127.0.0.1 | RX request GET_USER_BOOKINGS #11 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:02:01 | 127.0.0.1 | TX response GET_USER_BOOKINGS #11 success=true message="Loaded 1 user booking(s)." payload={bookings=1}
+19/05/2026 17:02:02 | 127.0.0.1 | RX request LOGOUT #12 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:02:02 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=14, email="arsenie@gmail.com", type="Customer"}, new=null}}
+SERVER [19/05/2026 17:02:02] client=1 request=LOGOUT result=OK message=logged out arsenie@gmail.com
+19/05/2026 17:02:02 | 127.0.0.1 | TX response LOGOUT #12 success=true message="User logged out." payload={}
+19/05/2026 17:02:08 | 127.0.0.1 | RX request LOGIN #13 client=1 user="anonymous" payload={email="artem", password="<redacted>"}
+19/05/2026 17:02:08 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=6, email="artem", type="Customer"}}}
+SERVER [19/05/2026 17:02:08] client=1 request=LOGIN result=OK message=email=artem, result=true
+19/05/2026 17:02:08 | 127.0.0.1 | TX response LOGIN #13 success=true message="Login accepted." payload={result=true}
+19/05/2026 17:02:08 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #14 client=1 user="artem" payload={}
+19/05/2026 17:02:08 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #14 success=true message="Current user loaded." payload={userId=6, email="artem", type="Customer", loggedIn=true}
+19/05/2026 17:02:11 | 127.0.0.1 | RX request GET_USER_BOOKINGS #15 client=1 user="artem" payload={}
+19/05/2026 17:02:11 | 127.0.0.1 | TX response GET_USER_BOOKINGS #15 success=true message="Loaded 3 user booking(s)." payload={bookings=3}
+19/05/2026 17:02:15 | 127.0.0.1 | RX request ADD_BOOKING_TO_CURRENT_USER_BY_ID #16 client=1 user="artem" payload={bookingId=35}
+SERVER [19/05/2026 17:02:15] client=model request=ADD_BOOKING_TO_CURRENT_USER_BY_ID result=OK message=bookingId=35, customer=artem
+SERVER [19/05/2026 17:02:15] client=1 request=ADD_BOOKING_TO_CURRENT_USER_BY_ID result=OK message=user=artem, change={count=3->4, linked={bookingId=35, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=240.0, cancelled=false}}
+19/05/2026 17:02:15 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="bookings", change={count=3->4, linked={bookingId=35, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=240.0, cancelled=false}}}
+19/05/2026 17:02:15 | 127.0.0.1 | TX response ADD_BOOKING_TO_CURRENT_USER_BY_ID #16 success=true message="Booking linked to current user." payload={bookingId=35, totalPrice=240.0, passengerCount=2, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", carrier="Global Sky Airways", departureTime="2026-05-19T10:00"}}
+19/05/2026 17:02:15 | 127.0.0.1 | RX request GET_USER_BOOKINGS #17 client=1 user="artem" payload={}
+19/05/2026 17:02:15 | 127.0.0.1 | TX response GET_USER_BOOKINGS #17 success=true message="Loaded 4 user booking(s)." payload={bookings=4}
+19/05/2026 17:02:15 | 127.0.0.1 | RX request GET_USER_BOOKINGS #18 client=1 user="artem" payload={}
+19/05/2026 17:02:15 | 127.0.0.1 | TX response GET_USER_BOOKINGS #18 success=true message="Loaded 4 user booking(s)." payload={bookings=4}
+19/05/2026 17:02:34 | 127.0.0.1 | RX request REMOVE_BOOKING_FROM_CURRENT_USER #19 client=1 user="artem" payload={id=35}
+SERVER [19/05/2026 17:02:35] client=model request=REMOVE_BOOKING_FROM_CURRENT_USER result=OK message=bookingId=35, customer=artem
+SERVER [19/05/2026 17:02:35] client=1 request=REMOVE_BOOKING_FROM_CURRENT_USER result=OK message=user=artem, change={count=4->3, unlinked={bookingId=35, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=240.0, cancelled=false}}
+19/05/2026 17:02:35 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="bookings", change={count=4->3, unlinked={bookingId=35, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=240.0, cancelled=false}}}
+19/05/2026 17:02:35 | 127.0.0.1 | TX response REMOVE_BOOKING_FROM_CURRENT_USER #19 success=true message="Booking removed from current user." payload={}
+19/05/2026 17:02:35 | 127.0.0.1 | RX request GET_USER_BOOKINGS #20 client=1 user="artem" payload={}
+19/05/2026 17:02:35 | 127.0.0.1 | TX response GET_USER_BOOKINGS #20 success=true message="Loaded 3 user booking(s)." payload={bookings=3}
+19/05/2026 17:02:35 | 127.0.0.1 | RX request GET_USER_BOOKINGS #21 client=1 user="artem" payload={}
+19/05/2026 17:02:35 | 127.0.0.1 | TX response GET_USER_BOOKINGS #21 success=true message="Loaded 3 user booking(s)." payload={bookings=3}
+19/05/2026 17:02:38 | 127.0.0.1 | RX request LOGOUT #22 client=1 user="artem" payload={}
+19/05/2026 17:02:38 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=6, email="artem", type="Customer"}, new=null}}
+SERVER [19/05/2026 17:02:38] client=1 request=LOGOUT result=OK message=logged out artem
+19/05/2026 17:02:38 | 127.0.0.1 | TX response LOGOUT #22 success=true message="User logged out." payload={}
+19/05/2026 17:02:48 | 127.0.0.1 | RX request LOGIN #23 client=1 user="anonymous" payload={email="arsenie@gmail.com", password="<redacted>"}
+19/05/2026 17:02:48 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=14, email="arsenie@gmail.com", type="Customer"}}}
+SERVER [19/05/2026 17:02:48] client=1 request=LOGIN result=OK message=email=arsenie@gmail.com, result=true
+19/05/2026 17:02:48 | 127.0.0.1 | TX response LOGIN #23 success=true message="Login accepted." payload={result=true}
+19/05/2026 17:02:48 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #24 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:02:48 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #24 success=true message="Current user loaded." payload={userId=14, email="arsenie@gmail.com", type="Customer", loggedIn=true}
+19/05/2026 17:02:51 | 127.0.0.1 | RX request GET_USER_BOOKINGS #25 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:02:51 | 127.0.0.1 | TX response GET_USER_BOOKINGS #25 success=true message="Loaded 1 user booking(s)." payload={bookings=1}
+19/05/2026 17:02:54 | 127.0.0.1 | RX request CANCEL_BOOKING #26 client=1 user="arsenie@gmail.com" payload={id=35}
+SERVER [19/05/2026 17:02:54] client=1 request=CANCEL_BOOKING result=OK message=destructive request user=arsenie@gmail.com, bookingId=35
+SERVER [19/05/2026 17:02:54] client=model request=CANCEL_BOOKING result=OK message=bookingId=35, customer=arsenie@gmail.com
+SERVER [19/05/2026 17:02:54] client=1 request=CANCEL_BOOKING result=OK message=user=arsenie@gmail.com, change={count=1->0, removed={bookingId=35, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=240.0, cancelled=true}}
+19/05/2026 17:02:54 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="bookings", change={count=1->0, removed={bookingId=35, flight={flightId=10037, flightNumber="FL-104-2026-05-19", route="Paris -> Berlin", departureTime="2026-05-19T10:00"}, passengers=2, totalPrice=240.0, cancelled=true}}}
+19/05/2026 17:02:54 | 127.0.0.1 | TX response CANCEL_BOOKING #26 success=true message="Booking cancelled." payload={}
+19/05/2026 17:02:54 | 127.0.0.1 | RX request GET_USER_BOOKINGS #27 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:02:54 | 127.0.0.1 | TX response GET_USER_BOOKINGS #27 success=true message="Loaded 0 user booking(s)." payload={bookings=0}
+19/05/2026 17:02:54 | 127.0.0.1 | RX request GET_USER_BOOKINGS #28 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:02:54 | 127.0.0.1 | TX response GET_USER_BOOKINGS #28 success=true message="Loaded 0 user booking(s)." payload={bookings=0}
+19/05/2026 17:02:59 | 127.0.0.1 | RX request SEARCH_FLIGHTS #29 client=1 user="arsenie@gmail.com" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 17:02:59 | 127.0.0.1 | TX response SEARCH_FLIGHTS #29 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 17:03:01 | 127.0.0.1 | RX request GET_LUGGAGE_TYPES #30 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:03:01 | 127.0.0.1 | TX response GET_LUGGAGE_TYPES #30 success=true message="Loaded 2 luggage type(s)." payload={luggageTypes=2}
+19/05/2026 17:03:13 | 127.0.0.1 | RX request LOGOUT #31 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:03:13 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=14, email="arsenie@gmail.com", type="Customer"}, new=null}}
+SERVER [19/05/2026 17:03:13] client=1 request=LOGOUT result=OK message=logged out arsenie@gmail.com
+19/05/2026 17:03:13 | 127.0.0.1 | TX response LOGOUT #31 success=true message="User logged out." payload={}
+19/05/2026 17:03:21 | 127.0.0.1 | RX request LOGIN #32 client=1 user="anonymous" payload={email="artem", password="<redacted>"}
+19/05/2026 17:03:21 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=6, email="artem", type="Customer"}}}
+SERVER [19/05/2026 17:03:21] client=1 request=LOGIN result=OK message=email=artem, result=true
+19/05/2026 17:03:21 | 127.0.0.1 | TX response LOGIN #32 success=true message="Login accepted." payload={result=true}
+19/05/2026 17:03:21 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #33 client=1 user="artem" payload={}
+19/05/2026 17:03:21 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #33 success=true message="Current user loaded." payload={userId=6, email="artem", type="Customer", loggedIn=true}
+19/05/2026 17:05:36 | 127.0.0.1 | RX request LOGOUT #34 client=1 user="artem" payload={}
+19/05/2026 17:05:36 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=6, email="artem", type="Customer"}, new=null}}
+SERVER [19/05/2026 17:05:36] client=1 request=LOGOUT result=OK message=logged out artem
+19/05/2026 17:05:36 | 127.0.0.1 | TX response LOGOUT #34 success=true message="User logged out." payload={}
+19/05/2026 17:05:40 | 127.0.0.1 | RX request LOGIN #35 client=1 user="anonymous" payload={email="artem", password="<redacted>"}
+19/05/2026 17:05:40 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=6, email="artem", type="Customer"}}}
+SERVER [19/05/2026 17:05:40] client=1 request=LOGIN result=OK message=email=artem, result=true
+19/05/2026 17:05:40 | 127.0.0.1 | TX response LOGIN #35 success=true message="Login accepted." payload={result=true}
+19/05/2026 17:05:40 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #36 client=1 user="artem" payload={}
+19/05/2026 17:05:40 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #36 success=true message="Current user loaded." payload={userId=6, email="artem", type="Customer", loggedIn=true}
+19/05/2026 17:06:02 | server | START TravelVIAVIA server listening on port 8800
+19/05/2026 17:06:02 | server | WAIT Waiting for a client
+19/05/2026 17:06:02 | 127.0.0.1 | CONNECT client=1 remote=/127.0.0.1:52723
+19/05/2026 17:06:02 | server | WAIT Waiting for a client
+19/05/2026 17:06:02 | 127.0.0.1 | RX request GET_ALL_CITIES #1 client=1 user="anonymous" payload={}
+19/05/2026 17:06:02 | 127.0.0.1 | TX response GET_ALL_CITIES #1 success=true message="Loaded 6 city/cities." payload={cities=6}
+19/05/2026 17:06:02 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #2 client=1 user="anonymous" payload={}
+19/05/2026 17:06:02 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #2 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 17:06:02 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #3 client=1 user="anonymous" payload={}
+19/05/2026 17:06:02 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #3 success=true message="No user is logged in." payload={}
+19/05/2026 17:06:02 | 127.0.0.1 | RX request GET_CARRIERS #4 client=1 user="anonymous" payload={}
+19/05/2026 17:06:02 | 127.0.0.1 | TX response GET_CARRIERS #4 success=true message="Loaded 2 carrier(s)." payload={carriers=2}
+19/05/2026 17:06:07 | 127.0.0.1 | RX request LOGIN #5 client=1 user="anonymous" payload={email="artem", password="<redacted>"}
+19/05/2026 17:06:07 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=6, email="artem", type="Customer"}}}
+SERVER [19/05/2026 17:06:07] client=1 request=LOGIN result=OK message=email=artem, result=true
+19/05/2026 17:06:07 | 127.0.0.1 | TX response LOGIN #5 success=true message="Login accepted." payload={result=true}
+19/05/2026 17:06:07 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #6 client=1 user="artem" payload={}
+19/05/2026 17:06:07 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #6 success=true message="Current user loaded." payload={userId=6, email="artem", type="Customer", loggedIn=true}
+19/05/2026 17:06:10 | 127.0.0.1 | RX request GET_LUGGAGE_TYPES #7 client=1 user="artem" payload={}
+19/05/2026 17:06:10 | 127.0.0.1 | TX response GET_LUGGAGE_TYPES #7 success=true message="Loaded 2 luggage type(s)." payload={luggageTypes=2}
+19/05/2026 17:06:12 | 127.0.0.1 | RX request LOGOUT #8 client=1 user="artem" payload={}
+19/05/2026 17:06:12 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=6, email="artem", type="Customer"}, new=null}}
+SERVER [19/05/2026 17:06:12] client=1 request=LOGOUT result=OK message=logged out artem
+19/05/2026 17:06:12 | 127.0.0.1 | TX response LOGOUT #8 success=true message="User logged out." payload={}
+19/05/2026 17:06:20 | 127.0.0.1 | RX request LOGIN #9 client=1 user="anonymous" payload={email="arsenie@gmail.com", password="<redacted>"}
+19/05/2026 17:06:20 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=14, email="arsenie@gmail.com", type="Customer"}}}
+SERVER [19/05/2026 17:06:20] client=1 request=LOGIN result=OK message=email=arsenie@gmail.com, result=true
+19/05/2026 17:06:20 | 127.0.0.1 | TX response LOGIN #9 success=true message="Login accepted." payload={result=true}
+19/05/2026 17:06:20 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #10 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:06:20 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #10 success=true message="Current user loaded." payload={userId=14, email="arsenie@gmail.com", type="Customer", loggedIn=true}
+19/05/2026 17:06:24 | 127.0.0.1 | RX request LOGOUT #11 client=1 user="arsenie@gmail.com" payload={}
+19/05/2026 17:06:24 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=14, email="arsenie@gmail.com", type="Customer"}, new=null}}
+SERVER [19/05/2026 17:06:24] client=1 request=LOGOUT result=OK message=logged out arsenie@gmail.com
+19/05/2026 17:06:24 | 127.0.0.1 | TX response LOGOUT #11 success=true message="User logged out." payload={}
+19/05/2026 17:06:34 | 127.0.0.1 | RX request SEARCH_FLIGHTS #12 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 17:06:34 | 127.0.0.1 | TX response SEARCH_FLIGHTS #12 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 17:06:38 | 127.0.0.1 | RX request SEARCH_FLIGHTS #13 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 17:06:38 | 127.0.0.1 | TX response SEARCH_FLIGHTS #13 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 17:06:38 | 127.0.0.1 | RX request SEARCH_FLIGHTS #14 client=1 user="anonymous" payload={departureCityId=2, arrivalCityId=3, departureDate="2026-05-20", passengerCount=1, seatClass="Economy"}
+19/05/2026 17:06:38 | 127.0.0.1 | TX response SEARCH_FLIGHTS #14 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 17:06:41 | 127.0.0.1 | RX request SEARCH_FLIGHTS #15 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 17:06:41 | 127.0.0.1 | TX response SEARCH_FLIGHTS #15 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 17:06:41 | 127.0.0.1 | RX request SEARCH_FLIGHTS #16 client=1 user="anonymous" payload={departureCityId=2, arrivalCityId=3, departureDate="2026-05-22", passengerCount=1, seatClass="Economy"}
+19/05/2026 17:06:41 | 127.0.0.1 | TX response SEARCH_FLIGHTS #16 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 17:06:41 | 127.0.0.1 | RX request SEARCH_FLIGHTS #17 client=1 user="anonymous" payload={departureCityId=3, arrivalCityId=2, departureDate="2026-05-19", passengerCount=1, seatClass="Economy"}
+19/05/2026 17:06:41 | 127.0.0.1 | TX response SEARCH_FLIGHTS #17 success=true message="Found 1 flight(s)." payload={flights=1}
+19/05/2026 17:06:41 | 127.0.0.1 | RX request SEARCH_FLIGHTS #18 client=1 user="anonymous" payload={departureCityId=2, arrivalCityId=3, departureDate="2026-05-22", passengerCount=1, seatClass="Economy"}
+19/05/2026 17:06:41 | 127.0.0.1 | TX response SEARCH_FLIGHTS #18 success=true message="Found 0 flight(s)." payload={flights=0}
+19/05/2026 17:06:51 | 127.0.0.1 | RX request LOGIN #19 client=1 user="anonymous" payload={email="boss", password="<redacted>"}
+19/05/2026 17:06:51 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old=null, new={userId=7, email="boss", type="Admin"}}}
+SERVER [19/05/2026 17:06:51] client=1 request=LOGIN result=OK message=email=boss, result=true
+19/05/2026 17:06:51 | 127.0.0.1 | TX response LOGIN #19 success=true message="Login accepted." payload={result=true}
+19/05/2026 17:06:51 | 127.0.0.1 | RX request GET_LOGGED_IN_USER #20 client=1 user="boss" payload={}
+19/05/2026 17:06:51 | 127.0.0.1 | TX response GET_LOGGED_IN_USER #20 success=true message="Current user loaded." payload={userId=7, email="boss", type="Admin", loggedIn=true}
+19/05/2026 17:06:51 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #21 client=1 user="boss" payload={}
+19/05/2026 17:06:51 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #21 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 17:06:51 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #22 client=1 user="boss" payload={}
+19/05/2026 17:06:51 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #22 success=true message="Loaded 33 booking(s)." payload={bookings=33}
+19/05/2026 17:06:51 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #23 client=1 user="boss" payload={}
+19/05/2026 17:06:52 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #23 success=true message="Loaded 33 booking(s)." payload={bookings=33}
+19/05/2026 17:06:52 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #24 client=1 user="boss" payload={}
+19/05/2026 17:06:52 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #24 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 17:06:52 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #25 client=1 user="boss" payload={}
+19/05/2026 17:06:52 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #25 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 17:06:52 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #26 client=1 user="boss" payload={}
+19/05/2026 17:06:52 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #26 success=true message="Loaded 33 booking(s)." payload={bookings=33}
+19/05/2026 17:07:13 | 127.0.0.1 | RX request LOGOUT #27 client=1 user="boss" payload={}
+19/05/2026 17:07:13 | 127.0.0.1 | TX broadcast BROADCAST_PROPERTY_CHANGE client=1 payload={property="currentUser", change={old={userId=7, email="boss", type="Admin"}, new=null}}
+SERVER [19/05/2026 17:07:13] client=1 request=LOGOUT result=OK message=logged out boss
+19/05/2026 17:07:13 | 127.0.0.1 | TX response LOGOUT #27 success=true message="User logged out." payload={}
+19/05/2026 17:07:13 | 127.0.0.1 | RX request GET_ALL_FLIGHTS #28 client=1 user="anonymous" payload={}
+19/05/2026 17:07:13 | 127.0.0.1 | TX response GET_ALL_FLIGHTS #28 success=true message="Loaded 107 flight(s)." payload={flights=107}
+19/05/2026 17:07:13 | 127.0.0.1 | RX request GET_ALL_BOOKINGS #29 client=1 user="anonymous" payload={}
+19/05/2026 17:07:13 | 127.0.0.1 | TX response GET_ALL_BOOKINGS #29 success=true message="Loaded 0 booking(s)." payload={bookings=0}

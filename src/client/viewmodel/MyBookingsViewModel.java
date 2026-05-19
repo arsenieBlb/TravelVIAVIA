@@ -82,10 +82,10 @@ public class MyBookingsViewModel implements BookingObserver
     javafx.application.Platform.runLater(this::refresh);
   }
 
-  public Booking addBookingById(String bookingCode, String lastName)
+  public Booking addBookingById(String bookingCode)
   {
     int bookingId = parseBookingId(bookingCode);
-    Booking booking = model.addBookingToCurrentUserById(bookingId, lastName);
+    Booking booking = model.addBookingToCurrentUserById(bookingId);
     refresh();
     return booking;
   }
@@ -95,6 +95,27 @@ public class MyBookingsViewModel implements BookingObserver
     model.cancelBooking(booking);
     cancelledBookingIds.add(booking.getBookingId());
     refresh();
+  }
+
+  public void removeBookingFromCurrentUser(Booking booking)
+  {
+    if (booking == null)
+    {
+      return;
+    }
+    model.removeBookingFromCurrentUser(booking.getBookingId());
+    bookings.remove(booking);
+    refresh();
+  }
+
+  public String getCustomerLastName()
+  {
+    User user = model.getLoggedInUser();
+    if (user instanceof Customer customer)
+    {
+      return customer.getLastName();
+    }
+    return "";
   }
 
   private int parseBookingId(String bookingCode)

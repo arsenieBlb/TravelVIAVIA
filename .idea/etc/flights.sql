@@ -111,7 +111,9 @@ CREATE TABLE passenger(
     booking_id INTEGER,
     first_name VARCHAR(100),
     last_name VARCHAR(100),
-    FOREIGN KEY (booking_id) REFERENCES booking(booking_id)
+    claimed_by_customer_id INTEGER,
+    FOREIGN KEY (booking_id) REFERENCES booking(booking_id),
+    FOREIGN KEY (claimed_by_customer_id) REFERENCES customer(customer_id)
 );
 
 CREATE TABLE passenger_luggage(

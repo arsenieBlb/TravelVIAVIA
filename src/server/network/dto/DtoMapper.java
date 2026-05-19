@@ -354,6 +354,7 @@ public final class DtoMapper
     dto.flight = toDto(booking.getFlight());
     dto.returnFlight = toDto(booking.getReturnFlight());
     dto.cancelled = booking.isCancelled();
+    dto.ownedByCurrentUser = booking.isOwnedByCurrentUser();
     for (Passenger passenger : booking.getPassengers())
     {
       dto.passengers.add(toDto(passenger));
@@ -374,6 +375,7 @@ public final class DtoMapper
     Booking booking = new Booking(dto.bookingId,
         parseDateTime(dto.bookingDate), customer, flight, passengers);
     booking.setReturnFlight(returnFlight);
+    booking.setOwnedByCurrentUser(dto.ownedByCurrentUser);
     applySeatAssignments(booking, dto.passengers);
     return booking;
   }

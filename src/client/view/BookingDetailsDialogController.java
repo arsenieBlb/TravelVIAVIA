@@ -43,13 +43,14 @@ public class BookingDetailsDialogController
 
     closeBookingDetailsButton.setOnAction(event -> hide());
     closeBookingDetailsActionButton.setOnAction(event -> hide());
-    cancelBookingFromDetailsButton.setOnAction(event -> cancelBooking());
+    cancelBookingFromDetailsButton.setOnAction(event -> handleBookingAction());
   }
 
   public void show(Booking booking)
   {
     currentBooking = booking;
     renderBookingDetails();
+    configureActionButton();
     wrapper.setVisible(true);
     wrapper.setManaged(true);
   }
@@ -96,6 +97,29 @@ public class BookingDetailsDialogController
     bookingDetailsContent.getChildren().add(createPassengersPanel(segments));
 
     bookingDetailsContent.getChildren().add(createFareSummaryPanel());
+  }
+
+  private void configureActionButton()
+  {
+    if (currentBooking == null || currentBooking.isOwnedByCurrentUser())
+    {
+      cancelBookingFromDetailsButton.setText("Cancel Booking");
+      cancelBookingFromDetailsButton.getStyleClass().remove("btn-outline");
+      if (!cancelBookingFromDetailsButton.getStyleClass().contains(
+          "btn-danger"))
+      {
+        cancelBookingFromDetailsButton.getStyleClass().add("btn-danger");
+      }
+      return;
+    }
+
+    cancelBookingFromDetailsButton.setText("Remove Booking from my account");
+    cancelBookingFromDetailsButton.getStyleClass().remove("btn-danger");
+    if (!cancelBookingFromDetailsButton.getStyleClass().contains(
+        "btn-outline"))
+    {
+      cancelBookingFromDetailsButton.getStyleClass().add("btn-outline");
+    }
   }
 
   private VBox createBookingCodePanel()
@@ -462,6 +486,22 @@ public class BookingDetailsDialogController
     return panel;
   }
 
+    private void handleBookingAction()
+    {
+        if (currentBooking == null)
+        {
+            return;
+        }
+        if (currentBooking.isOwnedByCurrentUser())
+        {
+            cancelBooking();
+        }
+        else
+        {
+            removeBookingFromAccount();
+        }
+    }
+
     private void cancelBooking()
     {
         if (currentBooking == null)
@@ -493,13 +533,45 @@ public class BookingDetailsDialogController
         }
     }
 
+    private void removeBookingFromAccount()
+    {
+        if (currentBooking == null)
+        {
+            return;
+        }
+        cancelBookingFromDetailsButton.setDisable(true);
+        try
+        {
+            viewModel.removeBookingFromCurrentUser(currentBooking);
+            viewModel.refresh();
+
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle("Booking Removed");
+            alert.setHeaderText(null);
+            alert.setContentText("Booking #" + currentBooking.getBookingId()
+                + " has been removed from your account.");
+            alert.showAndWait();
+
+            hide();
+        }
+        catch (RuntimeException e)
+        {
+            showError(e.getMessage());
+        }
+        finally
+        {
+            cancelBookingFromDetailsButton.setDisable(false);
+        }
+    }
+
     private void showError(String message)
     {
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
             javafx.scene.control.Alert.AlertType.ERROR);
         alert.setTitle("Booking");
         alert.setHeaderText(null);
-        alert.setContentText(message == null ? "Could not cancel booking."
+        alert.setContentText(message == null ? "Could not update booking."
             : message);
         alert.showAndWait();
     }

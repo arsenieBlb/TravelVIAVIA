@@ -191,6 +191,26 @@ public class CustomerBookingZombeTest
   }
 
   @Test
+  public void firstPassengerAutofillShouldRefreshFromLoggedInCustomer()
+  {
+    FlightSceneViewModel flightSceneViewModel = createFlightSceneViewModel();
+    flightSceneViewModel.setSelectedFlight(outbound);
+    PassengerDetailsViewModel passengerDetails =
+        flightSceneViewModel.getPassengerDetailsViewModel();
+    passengerDetails.prepare();
+
+    PassengerDetailsViewModel.PassengerForm firstPassenger =
+        passengerDetails.getPassengerForms().get(0);
+    firstPassenger.setFirstName("Old");
+    firstPassenger.setLastName("Memory");
+
+    passengerDetails.prepare();
+
+    assertEquals("Jane", firstPassenger.getFirstName());
+    assertEquals("Doe", firstPassenger.getLastName());
+  }
+
+  @Test
   public void manyPassengersShouldKeepSeatsLuggageAndFareTotals()
   {
     // M - Many: testing several passengers, several luggage choices, and seat order.
@@ -467,6 +487,20 @@ public class CustomerBookingZombeTest
   }
 
   @Test
+  public void bookingDtoShouldKeepCurrentUserOwnerAccess()
+  {
+    Booking booking = new Booking(3001, customer, outbound,
+        List.of(new Passenger(2005, "Jane", "Doe")));
+    booking.setOwnedByCurrentUser(false);
+
+    BookingDto dto = DtoMapper.toDto(booking);
+    Booking mappedBooking = DtoMapper.fromDto(dto);
+
+    assertFalse(dto.ownedByCurrentUser);
+    assertFalse(mappedBooking.isOwnedByCurrentUser());
+  }
+
+  @Test
   public void adminBookingTripTypeShouldUseReturnFlightOnly()
   {
     BookingAdminViewModel bookingAdminViewModel =
@@ -733,11 +767,16 @@ public class CustomerBookingZombeTest
       return Collections.emptyList();
     }
 
-    @Override public Booking addBookingToCurrentUserById(int bookingId,
-        String passengerLastName)
+    @Override public Booking addBookingToCurrentUserById(int bookingId)
     {
       throw new UnsupportedOperationException(
           "Adding existing bookings is outside this test fake.");
+    }
+
+    @Override public void removeBookingFromCurrentUser(int bookingId)
+    {
+      throw new UnsupportedOperationException(
+          "Removing existing bookings is outside this test fake.");
     }
 
     @Override public void addFlight(Flight flight)
