@@ -136,13 +136,13 @@ CREATE TABLE flight_seat(
 );
 
 INSERT INTO users (user_id, email, password_hash, user_type) VALUES
-(1, 'admin@skyline.com', '1234a', 'Admin'),
-(2, 'j.doe@gmail.com', '1234b', 'Customer'),
-(3, 'alice.smith@outlook.com', '1234c', 'Customer'),
-(4, 'support_team@carrier.com', '1234d', 'Admin'),
-(5, 'bob.builder@yahoo.com', '1234e', 'Customer'),
-(6, 'artem', 'artem', 'Customer'),
-(7, 'boss', 'boss', 'Admin');
+(1, 'admin@skyline.com', 'Admin1234', 'Admin'),
+(2, 'j.doe@gmail.com', 'Customer1234', 'Customer'),
+(3, 'alice.smith@gmail.com', 'Alice1234', 'Customer'),
+(4, 'support.team@carrier.com', 'Support1234', 'Admin'),
+(5, 'bob.builder@gmail.com', 'Builder1234', 'Customer'),
+(6, 'artem.customer@gmail.com', 'Artem1234', 'Customer'),
+(7, 'operations.admin@skyline.com', 'Operations1234', 'Admin');
 
 INSERT INTO admin (admin_id) VALUES
 (1),
@@ -165,7 +165,7 @@ INSERT INTO carrier(carrier_id, carrier_name) VALUES
 (7, 'KLM Royal Dutch Airlines');
 
 INSERT INTO luggage_type(luggage_type_id, name, description, max_weight_kg, extra_price) VALUES
-(1, 'Carry-on', 'Free under-seat bag', 8, 0.00),
+(1, 'Carry-on', 'Carry-on bag', 8, 15.00),
 (2, 'Baggage', 'Checked-in baggage', 23, 25.00);
 
 INSERT INTO section(id, num_of_seats, type) VALUES
@@ -354,3 +354,27 @@ UPDATE flight SET arrival_time = '2026-08-01 09:25:00' WHERE flight_id = 141;
 UPDATE flight SET arrival_time = '2026-08-05 17:00:00' WHERE flight_id = 150;
 UPDATE flight SET arrival_time = '2026-08-06 20:00:00' WHERE flight_id = 152;
 UPDATE flight SET arrival_time = '2026-08-04 09:05:00' WHERE flight_id = 133;
+
+INSERT INTO booking(booking_id, flight_id, second_flight_id,
+                    return_flight_id, second_return_flight_id,
+                    created_by_customer_id, passenger_count, total_price) VALUES
+(1, 104, NULL, NULL, NULL, 2, 1, 120.00),
+(2, 105, NULL, NULL, NULL, 3, 1, 55.00);
+
+INSERT INTO booking_customer(booking_id, customer_id) VALUES
+(1, 2),
+(2, 3);
+
+INSERT INTO passenger(passenger_id, booking_id, first_name, last_name,
+                      claimed_by_customer_id) VALUES
+(1, 1, 'John', 'Doe', 2),
+(2, 2, 'Mara', 'Linker', NULL);
+
+INSERT INTO passenger_luggage(passenger_luggage_id, passenger_id,
+                              luggage_type_id, quantity) VALUES
+(1, 1, 1, 1),
+(2, 2, 2, 1);
+
+INSERT INTO flight_seat(flight_id, seat_id, passenger_id, is_occupied) VALUES
+(104, 21, 1, TRUE),
+(105, 22, 2, TRUE);

@@ -32,7 +32,7 @@ public interface Model
 
     List<Booking> getUserBookings();
 
-    Booking addBookingToCurrentUserById(int bookingId);
+    Booking addBookingToCurrentUserById(int bookingId, String passengerLastName);
 
     void removeBookingFromCurrentUser(int bookingId);
 

@@ -26,6 +26,12 @@ public class MyBookingsViewModel implements BookingObserver
   public MyBookingsViewModel(Model model)
   {
     this.model = model;
+    this.model.addPropertyChangeListener(event -> {
+      if ("bookings".equals(event.getPropertyName()))
+      {
+        javafx.application.Platform.runLater(this::refresh);
+      }
+    });
     refresh();
   }
 
@@ -82,10 +88,11 @@ public class MyBookingsViewModel implements BookingObserver
     javafx.application.Platform.runLater(this::refresh);
   }
 
-  public Booking addBookingById(String bookingCode)
+  public Booking addBookingById(String bookingCode, String passengerLastName)
   {
     int bookingId = parseBookingId(bookingCode);
-    Booking booking = model.addBookingToCurrentUserById(bookingId);
+    String lastName = parsePassengerLastName(passengerLastName);
+    Booking booking = model.addBookingToCurrentUserById(bookingId, lastName);
     refresh();
     return booking;
   }
@@ -122,15 +129,25 @@ public class MyBookingsViewModel implements BookingObserver
   {
     if (bookingCode == null || bookingCode.isBlank())
     {
-      throw new IllegalArgumentException("Booking ID is required.");
+      throw new IllegalArgumentException("Booking code is required.");
     }
 
     String digitsOnly = bookingCode.replaceAll("[^0-9]", "");
     if (digitsOnly.isBlank())
     {
-      throw new IllegalArgumentException("Booking ID must contain a number.");
+      throw new IllegalArgumentException(
+          "Booking code must contain a number.");
     }
     return Integer.parseInt(digitsOnly);
+  }
+
+  private String parsePassengerLastName(String passengerLastName)
+  {
+    if (passengerLastName == null || passengerLastName.isBlank())
+    {
+      throw new IllegalArgumentException("Passenger last name is required.");
+    }
+    return passengerLastName.trim();
   }
 
   public ObservableList<Booking> getBookings()

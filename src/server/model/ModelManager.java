@@ -50,6 +50,8 @@ public class ModelManager implements Model
                 List<Flight> recurring = FlightSearchService.generateRecurringFlights(
                     databaseLoader.getFlights());
                 this.allFlights.addAll(recurring);
+                this.flightSearchService = new FlightSearchService(
+                    this.allFlights);
             }
         }
         catch (SQLException e)
@@ -81,8 +83,7 @@ public class ModelManager implements Model
             System.out.println("Could not load demo customer from database");
         }
 
-        currentUser = new Customer(2, "j.doe@gmail.com", "1234b", "John",
-            "Doe", flightSearchService);
+        currentUser = null;
     }
 
     private Customer getActiveCustomer()
@@ -114,8 +115,12 @@ public class ModelManager implements Model
     @Override
     public List<Flight> searchFlights(SearchCriteria criteria)
     {
+        int flightCountBefore = allFlights.size();
         List<Flight> found = flightSearchService.searchFlights(this.allFlights, criteria);
-
+        if (allFlights.size() != flightCountBefore)
+        {
+            support.firePropertyChange("allFlights", null, allFlights);
+        }
         return found;
     }
 
@@ -161,9 +166,16 @@ public class ModelManager implements Model
 
     @Override
     public boolean register(String firstName, String lastName, String email, String password) {
+        if (!isValidRegistration(firstName, lastName, email, password))
+        {
+            logger.log("model", "REGISTER", "ERROR",
+                "invalid registration data");
+            return false;
+        }
+
         try {
-            boolean registered = userDAO.registerCustomer(firstName, lastName,
-                email, password);
+            boolean registered = userDAO.registerCustomer(firstName.trim(),
+                lastName.trim(), email.trim(), password);
             logger.log("model", "REGISTER", registered ? "OK" : "ERROR",
                 "email=" + email);
             return registered;
@@ -173,6 +185,38 @@ public class ModelManager implements Model
             System.out.println("Registration error connecting to database");
             return false;
         }
+    }
+
+    private boolean isValidRegistration(String firstName, String lastName,
+        String email, String password)
+    {
+        if (firstName == null || lastName == null || email == null
+            || password == null)
+        {
+            return false;
+        }
+        if (firstName.isBlank() || lastName.isBlank()
+            || containsDigit(firstName) || containsDigit(lastName))
+        {
+            return false;
+        }
+        if (!email.trim().endsWith("@gmail.com"))
+        {
+            return false;
+        }
+        return password.length() >= 8;
+    }
+
+    private boolean containsDigit(String text)
+    {
+        for (char c : text.toCharArray())
+        {
+            if (Character.isDigit(c))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -297,6 +341,11 @@ public class ModelManager implements Model
 
         // saves the booking to the database
         try {
+            saveSegmentsIfMissing(flight);
+            if (returnFlight != null)
+            {
+                saveSegmentsIfMissing(returnFlight);
+            }
             bookingDAO.saveBooking(booking);
             booking.confirmBooking();
             logger.log("model", "CREATE_BOOKING", "OK",
@@ -445,19 +494,29 @@ public class ModelManager implements Model
     }
 
     @Override
-    public Booking addBookingToCurrentUserById(int bookingId)
+    public Booking addBookingToCurrentUserById(int bookingId,
+        String passengerLastName)
     {
-        return addBookingToCurrentUserById(currentUser, bookingId);
+        return addBookingToCurrentUserById(currentUser, bookingId,
+            passengerLastName);
     }
 
-    public Booking addBookingToCurrentUserById(User user, int bookingId)
+    public Booking addBookingToCurrentUserById(User user, int bookingId,
+        String passengerLastName)
     {
         Customer customer = getActiveCustomer(user);
+        if (passengerLastName == null || passengerLastName.isBlank())
+        {
+            throw new IllegalArgumentException(
+                "Passenger last name is required.");
+        }
+
         try
         {
             if (!bookingDAO.bookingExists(bookingId))
             {
-                throw new IllegalArgumentException("Booking ID was not found.");
+                throw new IllegalArgumentException(
+                    "No matching booking was found.");
             }
             if (bookingDAO.isBookingOwner(bookingId, customer.getUserId()))
             {
@@ -466,7 +525,7 @@ public class ModelManager implements Model
             }
 
             bookingDAO.claimPassengerForCustomer(bookingId,
-                customer.getLastName(), customer.getUserId());
+                passengerLastName.trim(), customer.getUserId());
             Booking booking = bookingDAO.getBookingById(bookingId, customer,
                 getLoadedFlights(), getLoadedLuggageTypes());
             if (booking == null)
@@ -586,6 +645,7 @@ public class ModelManager implements Model
                 throw new IllegalStateException(
                     "Flight cannot be deleted because it has existing bookings.");
             }
+            saveFlightIfMissing(flight);
             flightDAO.removeFlight(flight.getFlightId());
             List<Flight> oldFlights = new ArrayList<>(allFlights);
             admin.deleteFlight(flight);
@@ -618,6 +678,7 @@ public class ModelManager implements Model
 
         try
         {
+            saveFlightIfMissing(flight);
             flightDAO.updateFlight(flight);
 
             // replace the old flight in the in-memory list
@@ -652,6 +713,22 @@ public class ModelManager implements Model
     public FlightSearchService getFlightSearchService()
     {
         return flightSearchService;
+    }
+
+    private void saveFlightIfMissing(Flight flight) throws SQLException
+    {
+        if (!flightDAO.flightExists(flight.getFlightId()))
+        {
+            flightDAO.saveFlight(flight);
+        }
+    }
+
+    private void saveSegmentsIfMissing(Flight flight) throws SQLException
+    {
+        for (Flight segment : getSegments(flight))
+        {
+            saveFlightIfMissing(segment);
+        }
     }
 
     @Override

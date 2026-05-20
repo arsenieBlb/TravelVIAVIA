@@ -162,6 +162,17 @@ public class FlightDAO {
     }
   }
 
+  public boolean flightExists(int flightId) throws SQLException {
+    String sql = "SELECT 1 FROM flights.flight WHERE flight_id = ?";
+
+    try (Connection connection = DatabaseConnection.getConnection();
+        PreparedStatement stmt = connection.prepareStatement(sql)) {
+      stmt.setInt(1, flightId);
+      ResultSet resultSet = stmt.executeQuery();
+      return resultSet.next();
+    }
+  }
+
   public void removeFlight(int flightId) throws SQLException {
     String sql = "UPDATE flights.flight SET flight_status = ? "
         + "WHERE flight_id = ?";

@@ -20,13 +20,16 @@ import client.model.SeatClass;
 import client.model.User;
 import client.view.PassengerDetailsViewController;
 import client.viewmodel.BookingAdminViewModel;
+import client.viewmodel.FlightsTabViewModel;
 import client.viewmodel.FlightSceneViewModel;
+import client.viewmodel.MyBookingsViewModel;
 import client.viewmodel.PassengerDetailsViewModel;
 import client.viewmodel.SeatMapViewModel;
 import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import server.network.dto.AddBookingByIdRequest;
 import server.network.dto.BookingDto;
 import server.network.dto.DtoMapper;
 
@@ -46,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CustomerBookingZombeTest
+public class CustomerBookingZombieTest
 {
   private FakeModel model;
   private City berlin;
@@ -516,6 +519,131 @@ public class CustomerBookingZombeTest
     assertEquals("#4000", bookingAdminViewModel.getBookingCode(oneWay));
   }
 
+  @Test
+  public void addBookingRequestShouldCarryTypedLastName()
+  {
+    AddBookingByIdRequest request = new AddBookingByIdRequest(4321,
+        "Smith");
+
+    assertEquals(4321, request.bookingId);
+    assertEquals("Smith", request.lastName);
+  }
+
+  @Test
+  public void addingBookingShouldValidateCodeAndTypedLastName()
+  {
+    MyBookingsViewModel myBookingsViewModel = new MyBookingsViewModel(model);
+
+    IllegalArgumentException missingCode = assertThrows(
+        IllegalArgumentException.class,
+        () -> myBookingsViewModel.addBookingById("", "Doe"));
+    assertEquals("Booking code is required.", missingCode.getMessage());
+
+    IllegalArgumentException missingLastName = assertThrows(
+        IllegalArgumentException.class,
+        () -> myBookingsViewModel.addBookingById("#4000", ""));
+    assertEquals("Passenger last name is required.",
+        missingLastName.getMessage());
+  }
+
+  @Test
+  public void exactDateSearchShouldGenerateReusableFlightForMissingRoute()
+  {
+    City brussels = new City(18, "Brussels", "Belgium");
+    City frankfurt = new City(24, "Frankfurt", "Germany");
+    LocalDateTime departureTime = LocalDateTime.now().plusDays(10)
+        .withHour(6).withMinute(0).withSecond(0).withNano(0);
+    List<Flight> serviceFlights = new ArrayList<>();
+    serviceFlights.add(createFlight(9001, "HUB-1", paris, frankfurt, viaAir,
+        100, departureTime));
+    FlightSearchService searchService = new FlightSearchService(
+        serviceFlights);
+
+    SearchCriteria criteria = new SearchCriteria();
+    criteria.setDepartureCity(brussels);
+    criteria.setArrivalCity(berlin);
+    criteria.setDepartureDate(departureTime.toLocalDate());
+    criteria.setPassengerCount(1);
+
+    List<Flight> results = searchService.searchFlights(serviceFlights,
+        criteria);
+
+    assertFalse(results.isEmpty());
+    assertTrue(results.stream().allMatch(flight ->
+        flight.getDepartureTime().toLocalDate().equals(
+            departureTime.toLocalDate())));
+
+    Flight generatedDirect = findFlight(serviceFlights, brussels, berlin,
+        departureTime.toLocalDate());
+    assertNotNull(generatedDirect);
+    int generatedId = generatedDirect.getFlightId();
+
+    searchService.searchFlights(serviceFlights, criteria);
+    assertEquals(generatedId, findFlight(serviceFlights, brussels, berlin,
+        departureTime.toLocalDate()).getFlightId());
+  }
+
+  @Test
+  public void directOnlySearchShouldNotReturnGeneratedConnection()
+  {
+    City brussels = new City(18, "Brussels", "Belgium");
+    City frankfurt = new City(24, "Frankfurt", "Germany");
+    LocalDateTime departureTime = LocalDateTime.now().plusDays(11)
+        .withHour(6).withMinute(0).withSecond(0).withNano(0);
+    List<Flight> serviceFlights = new ArrayList<>();
+    serviceFlights.add(createFlight(9101, "HUB-2", paris, frankfurt, viaAir,
+        100, departureTime));
+    FlightSearchService searchService = new FlightSearchService(
+        serviceFlights);
+
+    SearchCriteria criteria = new SearchCriteria();
+    criteria.setDepartureCity(brussels);
+    criteria.setArrivalCity(berlin);
+    criteria.setDepartureDate(departureTime.toLocalDate());
+    criteria.setPassengerCount(1);
+    criteria.setDirectOnly(true);
+
+    List<Flight> results = searchService.searchFlights(serviceFlights,
+        criteria);
+
+    assertFalse(results.isEmpty());
+    assertFalse(results.stream().anyMatch(
+        ConnectingFlight.class::isInstance));
+  }
+
+  @Test
+  public void adminFlightsShouldLimitVisibleRowsAndFilterFullList()
+      throws InterruptedException
+  {
+    City brussels = new City(18, "Brussels", "Belgium");
+    List<Flight> manyFlights = new ArrayList<>();
+    LocalDateTime departureTime = LocalDateTime.now().plusDays(12)
+        .withHour(8).withMinute(0).withSecond(0).withNano(0);
+    for (int i = 0; i < 120; i++)
+    {
+      manyFlights.add(createFlight(3000 + i, "CAP-" + i, paris, rome,
+          viaAir, 80, departureTime.plusHours(i)));
+    }
+    Flight specialFlight = createFlight(5000, "SPECIAL", brussels, berlin,
+        skyLine, 90, departureTime.plusDays(1));
+    manyFlights.add(specialFlight);
+    FakeModel adminModel = new FakeModel(manyFlights,
+        List.of(berlin, paris, rome, brussels), List.of(viaAir, skyLine),
+        List.of(carryOn, checkedBaggage), customer);
+
+    FlightsTabViewModel viewModel = new FlightsTabViewModel(adminModel);
+
+    waitUntil(() -> viewModel.getFilteredFlights().size() == 100);
+    assertEquals(100, viewModel.getFilteredFlights().size());
+
+    viewModel.originFilterProperty().set("Brussels");
+    viewModel.destinationFilterProperty().set("Berlin");
+
+    waitUntil(() -> viewModel.getFilteredFlights().contains(specialFlight));
+    assertEquals(1, viewModel.getFilteredFlights().size());
+    assertSame(specialFlight, viewModel.getFilteredFlights().get(0));
+  }
+
   private FlightSceneViewModel createFlightSceneViewModel()
   {
     return new FlightSceneViewModel(model);
@@ -564,6 +692,36 @@ public class CustomerBookingZombeTest
     }
     results.sort(Comparator.comparing(Flight::getDepartureTime));
     return results;
+  }
+
+  private Flight findFlight(List<Flight> flights, City departureCity,
+      City arrivalCity, java.time.LocalDate date)
+  {
+    for (Flight flight : flights)
+    {
+      if (flight.getDepartureCity().equals(departureCity)
+          && flight.getArrivalCity().equals(arrivalCity)
+          && flight.getDepartureTime().toLocalDate().equals(date))
+      {
+        return flight;
+      }
+    }
+    return null;
+  }
+
+  private void waitUntil(java.util.function.BooleanSupplier condition)
+      throws InterruptedException
+  {
+    long end = System.currentTimeMillis() + 3000;
+    while (System.currentTimeMillis() < end)
+    {
+      if (condition.getAsBoolean())
+      {
+        return;
+      }
+      Thread.sleep(25);
+    }
+    assertTrue(condition.getAsBoolean());
   }
 
   private Seat firstSeat(Flight flight,
@@ -767,7 +925,8 @@ public class CustomerBookingZombeTest
       return Collections.emptyList();
     }
 
-    @Override public Booking addBookingToCurrentUserById(int bookingId)
+    @Override public Booking addBookingToCurrentUserById(int bookingId,
+        String passengerLastName)
     {
       throw new UnsupportedOperationException(
           "Adding existing bookings is outside this test fake.");

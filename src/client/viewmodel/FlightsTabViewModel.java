@@ -3,18 +3,17 @@ package client.viewmodel;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import client.model.Flight;
 import client.model.Model;
-import client.model.SearchCriteria;
 import java.util.List;
 
 import java.time.LocalDate;
 
 public class FlightsTabViewModel {
+    private static final int MAX_VISIBLE_FLIGHTS = 100;
     private final Model model;
     private final ObservableList<Flight> allFlights = FXCollections.observableArrayList();
-    private final FilteredList<Flight> filteredFlights;
+    private final ObservableList<Flight> visibleFlights = FXCollections.observableArrayList();
     private final ObjectProperty<LocalDate> dateFilter = new SimpleObjectProperty<>(null);
 
     private final StringProperty originFilter = new SimpleStringProperty("");
@@ -24,9 +23,14 @@ public class FlightsTabViewModel {
 
     public FlightsTabViewModel(Model model) {
         this.model = model;
-        this.filteredFlights = new FilteredList<>(allFlights, p -> true);
 
         loadInitialData();
+        model.addPropertyChangeListener(event -> {
+            if ("allFlights".equals(event.getPropertyName()))
+            {
+                refreshFromModel();
+            }
+        });
 
         originFilter.addListener((obs, old, val) -> updatePredicate());
         destinationFilter.addListener((obs, old, val) -> updatePredicate());
@@ -42,7 +46,10 @@ public class FlightsTabViewModel {
                 return model.getAllFlights();
             }
         };
-        loadTask.setOnSucceeded(event -> allFlights.setAll(loadTask.getValue()));
+        loadTask.setOnSucceeded(event -> {
+            allFlights.setAll(loadTask.getValue());
+            updatePredicate();
+        });
         loadTask.setOnFailed(event -> {
             Throwable e = loadTask.getException();
             if (e != null) {
@@ -55,30 +62,44 @@ public class FlightsTabViewModel {
     }
 
     private void updatePredicate() {
-        filteredFlights.setPredicate(flight -> {
-            boolean originMatch = containsIgnoreCase(
-                    flight.getDepartureCity() == null ? "" : flight.getDepartureCity().getCityName(),
-                    originFilter.get());
-            boolean destMatch = containsIgnoreCase(
-                    flight.getArrivalCity() == null ? "" : flight.getArrivalCity().getCityName(),
-                    destinationFilter.get());
-            boolean carrierMatch = containsIgnoreCase(
-                    flight.getCarrier() == null ? "" : flight.getCarrier().getName(),
-                    carrierFilter.get());
-            String selectedAircraft = aircraftFilter.get();
-            String aircraftModel = flight.getPlane() == null
-                    || flight.getPlane().getPlaneType() == null
-                    ? "" : flight.getPlane().getPlaneType().getModel();
-            boolean aircraftMatch = selectedAircraft == null ||
-                    selectedAircraft.equals("All") ||
-                    selectedAircraft.isEmpty() ||
-                    aircraftModel.equals(selectedAircraft);
-            boolean dateMatch = dateFilter.get() == null ||
-                    (flight.getDepartureTime() != null
-                            && flight.getDepartureTime().toLocalDate().equals(dateFilter.get()));
+        visibleFlights.clear();
+        for (Flight flight : allFlights)
+        {
+            if (matchesFilters(flight))
+            {
+                visibleFlights.add(flight);
+                if (visibleFlights.size() == MAX_VISIBLE_FLIGHTS)
+                {
+                    return;
+                }
+            }
+        }
+    }
 
-            return originMatch && destMatch && carrierMatch && aircraftMatch && dateMatch;
-        });
+    private boolean matchesFilters(Flight flight)
+    {
+        boolean originMatch = containsIgnoreCase(
+                flight.getDepartureCity() == null ? "" : flight.getDepartureCity().getCityName(),
+                originFilter.get());
+        boolean destMatch = containsIgnoreCase(
+                flight.getArrivalCity() == null ? "" : flight.getArrivalCity().getCityName(),
+                destinationFilter.get());
+        boolean carrierMatch = containsIgnoreCase(
+                flight.getCarrier() == null ? "" : flight.getCarrier().getName(),
+                carrierFilter.get());
+        String selectedAircraft = aircraftFilter.get();
+        String aircraftModel = flight.getPlane() == null
+                || flight.getPlane().getPlaneType() == null
+                ? "" : flight.getPlane().getPlaneType().getModel();
+        boolean aircraftMatch = selectedAircraft == null ||
+                selectedAircraft.equals("All") ||
+                selectedAircraft.isEmpty() ||
+                aircraftModel.equals(selectedAircraft);
+        boolean dateMatch = dateFilter.get() == null ||
+                (flight.getDepartureTime() != null
+                        && flight.getDepartureTime().toLocalDate().equals(dateFilter.get()));
+
+        return originMatch && destMatch && carrierMatch && aircraftMatch && dateMatch;
     }
 
     private boolean containsIgnoreCase(String value, String filter)
@@ -88,7 +109,7 @@ public class FlightsTabViewModel {
         return safeValue.contains(safeFilter);
     }
 
-    public ObservableList<Flight> getFilteredFlights() { return filteredFlights; }
+    public ObservableList<Flight> getFilteredFlights() { return visibleFlights; }
     public StringProperty originFilterProperty() { return originFilter; }
     public StringProperty destinationFilterProperty() { return destinationFilter; }
     public StringProperty carrierFilterProperty() { return carrierFilter; }
@@ -103,7 +124,10 @@ public class FlightsTabViewModel {
                 return model.getAllFlights();
             }
         };
-        loadTask.setOnSucceeded(event -> allFlights.setAll(loadTask.getValue()));
+        loadTask.setOnSucceeded(event -> {
+            allFlights.setAll(loadTask.getValue());
+            updatePredicate();
+        });
         loadTask.setOnFailed(event -> {
             Throwable e = loadTask.getException();
             if (e != null) {
@@ -119,6 +143,7 @@ public class FlightsTabViewModel {
     {
         model.removeFlight(flight);
         allFlights.remove(flight);
+        updatePredicate();
     }
 
     public void editFlight(Flight flight)

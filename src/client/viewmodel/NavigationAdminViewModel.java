@@ -57,9 +57,9 @@ public class NavigationAdminViewModel {
     }
 
     public ObservableList<String> getUniqueAircraftModels() {
-        return model.getAllFlights().stream()
-                .filter(flight -> flight.getPlane() != null && flight.getPlane().getPlaneType() != null)
-                .map(flight -> flight.getPlane().getPlaneType().getModel())
+        return model.getPlanes().stream()
+                .filter(plane -> plane != null && plane.getPlaneType() != null)
+                .map(plane -> plane.getPlaneType().getModel())
                 .distinct()
                 .collect(java.util.stream.Collectors.toCollection(javafx.collections.FXCollections::observableArrayList));
     }

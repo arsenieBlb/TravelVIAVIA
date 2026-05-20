@@ -31,15 +31,13 @@ public class AddBookingDialogController
     closeAddBookingButton.setOnAction(event -> hide());
     cancelAddBookingButton.setOnAction(event -> hide());
     saveAddBookingButton.setOnAction(event -> saveBooking());
-    addBookingLastNameField.setEditable(false);
-    addBookingLastNameField.setFocusTraversable(false);
     hideError();
   }
 
   public void show()
   {
     addBookingCodeField.clear();
-    addBookingLastNameField.setText(viewModel.getCustomerLastName());
+    addBookingLastNameField.clear();
     hideError();
     wrapper.setVisible(true);
     wrapper.setManaged(true);
@@ -57,7 +55,8 @@ public class AddBookingDialogController
         saveAddBookingButton.setDisable(true);
         try
         {
-            viewModel.addBookingById(addBookingCodeField.getText());
+            viewModel.addBookingById(addBookingCodeField.getText(),
+                addBookingLastNameField.getText());
             viewModel.refresh();
 
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(

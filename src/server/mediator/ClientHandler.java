@@ -244,7 +244,13 @@ public class ClientHandler implements Runnable, PropertyChangeListener
         SearchFlightsRequest.class);
     SearchCriteria criteria = DtoMapper.toCriteria(searchRequest,
         model.getAllCities());
-    return DtoMapper.flightDtos(model.searchFlights(criteria));
+    int flightCountBefore = model.getAllFlights().size();
+    List<Flight> flights = model.searchFlights(criteria);
+    if (model.getAllFlights().size() > flightCountBefore)
+    {
+      server.broadcastPropertyChange("allFlights", "{generated=true}");
+    }
+    return DtoMapper.flightDtos(flights);
   }
 
   private Object getFlightDetails(NetworkPackage request)
@@ -314,7 +320,8 @@ public class ClientHandler implements Runnable, PropertyChangeListener
     int bookingCountBefore = bookingsBefore.size();
     boolean alreadyLinked = containsBooking(bookingsBefore,
         addRequest.bookingId);
-    Booking booking = model.addBookingToCurrentUserById(addRequest.bookingId);
+    Booking booking = model.addBookingToCurrentUserById(addRequest.bookingId,
+        addRequest.lastName);
     int bookingCountAfter = alreadyLinked ? bookingCountBefore
         : bookingCountBefore + 1;
     String changeSummary = "{count=" + bookingCountBefore + "->"
@@ -644,7 +651,8 @@ public class ClientHandler implements Runnable, PropertyChangeListener
         + ", arrivalCityId=" + searchRequest.arrivalCityId
         + ", departureDate=" + quote(searchRequest.departureDate)
         + ", passengerCount=" + searchRequest.passengerCount
-        + ", seatClass=" + quote(searchRequest.seatClass) + "}";
+        + ", seatClass=" + quote(searchRequest.seatClass)
+        + ", directOnly=" + searchRequest.directOnly + "}";
   }
 
   private String idPayload(NetworkPackage request)
@@ -668,7 +676,8 @@ public class ClientHandler implements Runnable, PropertyChangeListener
   {
     AddBookingByIdRequest addRequest = gson.fromJson(request.contentJson,
         AddBookingByIdRequest.class);
-    return "{bookingId=" + addRequest.bookingId + "}";
+    return "{bookingId=" + addRequest.bookingId
+        + ", lastName=" + quote(addRequest.lastName) + "}";
   }
 
   private String describeResponsePayload(String action, Object response)

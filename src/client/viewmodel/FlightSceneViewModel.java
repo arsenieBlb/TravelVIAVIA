@@ -144,6 +144,7 @@ public class FlightSceneViewModel {
             criteria.setDepartureCity(departureCity.get());
             criteria.setArrivalCity(arrivalCity.get());
             criteria.setDepartureDate(travelDate.get());
+            criteria.setDirectOnly(directOnly.get());
             flights = model.searchFlights(criteria);
         }
 
@@ -171,6 +172,7 @@ public class FlightSceneViewModel {
             returnCriteria.setDepartureCity(arrivalCity.get());
             returnCriteria.setArrivalCity(departureCity.get());
             returnCriteria.setDepartureDate(returnDate.get());
+            returnCriteria.setDirectOnly(directOnly.get());
 
             List<Flight> returnResults = model.searchFlights(returnCriteria);
             if (returnResults != null) {

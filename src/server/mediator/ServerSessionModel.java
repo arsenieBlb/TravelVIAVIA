@@ -128,11 +128,13 @@ public class ServerSessionModel implements Model
     }
   }
 
-  @Override public Booking addBookingToCurrentUserById(int bookingId)
+  @Override public Booking addBookingToCurrentUserById(int bookingId,
+      String passengerLastName)
   {
     synchronized (serverModel)
     {
-      return serverModel.addBookingToCurrentUserById(currentUser, bookingId);
+      return serverModel.addBookingToCurrentUserById(currentUser, bookingId,
+          passengerLastName);
     }
   }
 

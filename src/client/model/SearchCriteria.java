@@ -10,11 +10,13 @@ public class SearchCriteria
   private LocalDate departureDate;
   private int passengerCount;
   private SeatClass seatClass;
+  private boolean directOnly;
 
   public SearchCriteria()
   {
     passengerCount = 1;
     this.seatClass = new EconomyClass();
+    this.directOnly = false;
   }
 
   public SearchCriteria(City departureCity, City arrivalCity,
@@ -80,6 +82,16 @@ public class SearchCriteria
   {
     this.seatClass = Objects.requireNonNull(seatClass,
         "Seat class is required.");
+  }
+
+  public boolean isDirectOnly()
+  {
+    return directOnly;
+  }
+
+  public void setDirectOnly(boolean directOnly)
+  {
+    this.directOnly = directOnly;
   }
 }
 

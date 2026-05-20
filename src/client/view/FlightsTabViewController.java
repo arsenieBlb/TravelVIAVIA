@@ -366,7 +366,7 @@ public class FlightsTabViewController {
         availability.add(createAvailabilityCard("Taken seats",
             String.valueOf(countSeats(flight, null, false)
                 - countSeats(flight, null, true))), 1, 0);
-        availability.add(createAvailabilityCard("Free seats",
+        availability.add(createAvailabilityCard("Available seats",
             String.valueOf(countSeats(flight, null, true))), 0, 1);
         availability.add(createAvailabilityCard("Economy",
             availabilityText(flight, EconomyClass.class)), 1, 1);
@@ -573,9 +573,9 @@ public class FlightsTabViewController {
         Class<?> seatClassType)
     {
         int total = countSeats(flight, seatClassType, false);
-        int free = countSeats(flight, seatClassType, true);
-        int taken = total - free;
-        return free + " free / " + taken + " taken";
+        int available = countSeats(flight, seatClassType, true);
+        int taken = total - available;
+        return available + " available / " + taken + " taken";
     }
 
     private int countSeats(Flight flight, Class<?> seatClassType,
@@ -717,9 +717,11 @@ public class FlightsTabViewController {
                 return;
             }
 
-            double savedBasePrice = economyPrice;
             double businessMultiplier = new BusinessClass().getPriceMultiplier();
-            if (businessPrice > 0)
+            double originalBusinessPrice =
+                originalFlight.getBasePrice() * businessMultiplier;
+            double savedBasePrice = economyPrice;
+            if (Math.abs(businessPrice - originalBusinessPrice) > 0.01)
             {
                 savedBasePrice = businessPrice / businessMultiplier;
             }

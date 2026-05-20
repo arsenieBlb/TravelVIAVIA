@@ -323,7 +323,7 @@ public class BookingDAO
         if (matchingPassengers == 0)
         {
           throw new IllegalArgumentException(
-              "The last name does not match this booking.");
+              "Passenger last name does not match this booking.");
         }
         if (unclaimedPassengers == 0 && claimedPassengers > 0)
         {

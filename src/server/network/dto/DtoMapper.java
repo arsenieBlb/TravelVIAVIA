@@ -452,7 +452,8 @@ public final class DtoMapper
     String seatClass = criteria.getSeatClass() == null ? "Economy"
         : criteria.getSeatClass().getClassName();
     return new SearchFlightsRequest(departureCityId, arrivalCityId,
-        departureDate, criteria.getPassengerCount(), seatClass);
+        departureDate, criteria.getPassengerCount(), seatClass,
+        criteria.isDirectOnly());
   }
 
   public static SearchCriteria toCriteria(SearchFlightsRequest request,
@@ -472,6 +473,7 @@ public final class DtoMapper
     criteria.setPassengerCount(request.passengerCount <= 0 ? 1
         : request.passengerCount);
     criteria.setSeatClass(seatClassFromName(request.seatClass));
+    criteria.setDirectOnly(request.directOnly);
     return criteria;
   }
 

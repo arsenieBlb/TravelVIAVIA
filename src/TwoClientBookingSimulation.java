@@ -20,14 +20,14 @@ import java.util.concurrent.TimeUnit;
 public class TwoClientBookingSimulation
 {
   private static final String HOST = "localhost";
-  private static final int RANDOM_CLIENT_COUNT = 2;
+  private static final int RANDOM_CLIENT_COUNT = 10;
   private static final int MAX_PASSENGERS_PER_BOOKING = 3;
   private static final int MAX_LUGGAGE_QUANTITY = 3;
   private static final int MAX_BOOKING_ATTEMPTS = 3;
   private static final int MAX_REGISTRATION_ATTEMPTS = 5;
   private static final long BACKGROUND_START_DELAY_MILLIS = 1500;
-  private static final String RANDOM_PASSWORD = "random1234";
-  private static final String RANDOM_EMAIL_DOMAIN = "travelvia.local";
+  private static final String RANDOM_PASSWORD = "Random1234";
+  private static final String RANDOM_EMAIL_DOMAIN = "gmail.com";
   private static final String[] RANDOM_FIRST_NAMES = {
       "Maya", "Noah", "Lina", "Oscar", "Sofia", "Theo", "Nora", "Leo"
   };
@@ -43,7 +43,7 @@ public class TwoClientBookingSimulation
 
   public static void startRandomClientsInBackground()
   {
-    if (!Boolean.getBoolean("travelviavia.randomClients"))
+    if (Boolean.getBoolean("travelviavia.disableRandomClients"))
     {
       return;
     }
