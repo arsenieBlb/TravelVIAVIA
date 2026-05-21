@@ -8,15 +8,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Handles flight search logic for the project.
+ * It can find direct flights, build connecting flights, and create generated
+ * flights when there is no matching route for the chosen date.
+ */
 public class FlightSearchService
 {
   private final List<Flight> flights;
 
+  /**
+   * Creates an empty flight search service.
+   */
   public FlightSearchService()
   {
     flights = new ArrayList<>();
   }
 
+  /**
+   * Creates a flight search service with the flights that are already loaded.
+   *
+   * @param flights the flights that should be available for searching
+   */
   public FlightSearchService(List<Flight> flights)
   {
     this();
@@ -29,6 +42,11 @@ public class FlightSearchService
     }
   }
 
+  /**
+   * Adds a flight to this service if it is not already stored.
+   *
+   * @param flight the flight that should be added
+   */
   public void addFlight(Flight flight)
   {
     Objects.requireNonNull(flight, "Flight is required.");
@@ -38,22 +56,33 @@ public class FlightSearchService
     }
   }
 
-  // takes the DB flights as templates and creates copies on a weekly schedule
+  /**
+   * Creates extra recurring flights based on the normal flights from the
+   * database. Already generated flights are skipped, because they should not be
+   * used as templates for even more generated flights.
+   *
+   * @param templateFlights the original flights used as templates
+   * @return the original flights together with the generated recurring flights
+   */
+  // takes the database flights as templates and creates weekly copies
   public static List<Flight> generateRecurringFlights(List<Flight> templateFlights)
   {
     List<Flight> allFlights = new ArrayList<>(templateFlights);
     int nextId = 10000;
 
-    // Use a fixed anchor date so generated flight IDs remain deterministic across server restarts.
-    // This ensures database bookings always map to the correct dynamically generated flight.
+    // keeps generated flight numbers stable after restarting the server
     LocalDate today = LocalDate.of(2026, 5, 1);
     LocalDate endDate = today.plusMonths(4);
 
     for (int flightIndex = 0; flightIndex < templateFlights.size(); flightIndex++)
     {
       Flight template = templateFlights.get(flightIndex);
+      if (isGeneratedFlight(template))
+      {
+        continue;
+      }
       DayOfWeek originalDay = template.getDepartureTime().getDayOfWeek();
-      // create a schedule based on the original day so connections stay valid
+      // keeps the copied flights close to the original weekday
       DayOfWeek[] schedule = {
           originalDay,
           originalDay.plus(2),
@@ -79,6 +108,10 @@ public class FlightSearchService
           LocalDateTime newDeparture = current.atTime(
               template.getDepartureTime().toLocalTime());
           LocalDateTime newArrival = newDeparture.plus(flightDuration);
+          while (containsFlightId(allFlights, nextId))
+          {
+            nextId++;
+          }
 
           Flight copy = new Flight(nextId++,
               template.getFlightNumber() + "-" + current.toString(),
@@ -97,11 +130,21 @@ public class FlightSearchService
     return allFlights;
   }
 
+  /**
+   * Adds a new flight to the search service.
+   *
+   * @param flight the flight that should be registered
+   */
   public void registerFlight(Flight flight)
   {
     addFlight(flight);
   }
 
+  /**
+   * Replaces an existing flight with updated information.
+   *
+   * @param flight the updated flight
+   */
   public void updateFlight(Flight flight)
   {
     Objects.requireNonNull(flight, "Flight is required.");
@@ -116,6 +159,11 @@ public class FlightSearchService
     throw new IllegalArgumentException("Flight was not found.");
   }
 
+  /**
+   * Removes a flight from the search service.
+   *
+   * @param flight the flight that should be removed
+   */
   public void removeFlight(Flight flight)
   {
     Objects.requireNonNull(flight, "Flight is required.");
@@ -125,6 +173,16 @@ public class FlightSearchService
     }
   }
 
+  /**
+   * Searches for flights that match the selected search criteria.
+   * Direct flights are checked first, then connecting flights are checked.
+   * If nothing is found, the service tries to create generated flights for the
+   * selected route and date.
+   *
+   * @param allFlights all flights that can be searched
+   * @param criteria the search values entered by the user
+   * @return the matching direct flights and connecting flights
+   */
     public List<Flight> searchFlights(List<Flight> allFlights, SearchCriteria criteria) {
         if (allFlights == null) return new ArrayList<>();
         if (criteria == null) criteria = new SearchCriteria();
@@ -143,7 +201,7 @@ public class FlightSearchService
             return results;
         }
 
-        // then look for 1-stop connecting flights
+        // then look for connecting flights
         if (!criteria.isDirectOnly()) {
             for (Flight first : allFlights) {
                 boolean originMatch = (criteria.getDepartureCity() == null) ||
@@ -182,6 +240,14 @@ public class FlightSearchService
         return results;
     }
 
+  /**
+   * Creates generated flights for a route and date when no normal flights were
+   * found.
+   *
+   * @param allFlights all flights currently loaded in the system
+   * @param criteria the search values entered by the user
+   * @return generated flights that can be shown in the search results
+   */
   private List<Flight> createFallbackFlights(List<Flight> allFlights,
       SearchCriteria criteria)
   {
@@ -222,6 +288,55 @@ public class FlightSearchService
     return generatedFlights;
   }
 
+  /**
+   * Checks if a flight was created by the program instead of being one of the
+   * normal seed or administrator flights.
+   *
+   * @param flight the flight to check
+   * @return true if the flight is generated
+   */
+  public static boolean isGeneratedFlight(Flight flight)
+  {
+    return flight != null && isGeneratedFlightId(flight.getFlightId());
+  }
+
+  /**
+   * Checks if a flight identifier belongs to a generated flight.
+   *
+   * @param flightId the flight identifier
+   * @return true if the identifier is in the generated flight range
+   */
+  public static boolean isGeneratedFlightId(int flightId)
+  {
+    return flightId >= 10000;
+  }
+
+  /**
+   * Checks if the list already contains a flight with the same identifier.
+   *
+   * @param flights the flights to check
+   * @param flightId the flight identifier
+   * @return true if a matching flight exists
+   */
+  private static boolean containsFlightId(List<Flight> flights, int flightId)
+  {
+    for (Flight flight : flights)
+    {
+      if (flight.getFlightId() == flightId)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the search has enough information to create a generated flight.
+   *
+   * @param allFlights all flights currently loaded in the system
+   * @param criteria the search values entered by the user
+   * @return true if a generated flight can be created
+   */
   private boolean canGenerateFallback(List<Flight> allFlights,
       SearchCriteria criteria)
   {
@@ -232,6 +347,18 @@ public class FlightSearchService
         && !criteria.getDepartureCity().equals(criteria.getArrivalCity());
   }
 
+  /**
+   * Finds an existing generated flight, or creates it if it does not exist yet.
+   *
+   * @param allFlights all flights currently loaded in the system
+   * @param departureCity the city where the flight starts
+   * @param arrivalCity the city where the flight ends
+   * @param date the flight date
+   * @param departureHour the hour when the flight starts
+   * @param durationHours the flight duration in hours
+   * @param part the route part used to make a stable generated identifier
+   * @return the generated flight, or null if it cannot be created
+   */
   private Flight getOrCreateGeneratedFlight(List<Flight> allFlights,
       City departureCity, City arrivalCity, LocalDate date, int departureHour,
       int durationHours, int part)
@@ -267,6 +394,16 @@ public class FlightSearchService
     return flight;
   }
 
+  /**
+   * Builds a stable identifier for a generated flight.
+   * The same route, date, and route part should always give the same result.
+   *
+   * @param departureCity the city where the flight starts
+   * @param arrivalCity the city where the flight ends
+   * @param date the flight date
+   * @param part the route part used for direct and connecting flights
+   * @return the generated flight identifier
+   */
   private int generatedFlightId(City departureCity, City arrivalCity,
       LocalDate date, int part)
   {
@@ -275,12 +412,26 @@ public class FlightSearchService
     return 200000 + ((key.hashCode() & 0x7fffffff) % 900000);
   }
 
+  /**
+   * Calculates a simple generated price from the two city identifiers.
+   *
+   * @param departureCity the city where the flight starts
+   * @param arrivalCity the city where the flight ends
+   * @return the generated base price
+   */
   private double generatedPrice(City departureCity, City arrivalCity)
   {
     return 80 + Math.abs(departureCity.getCityId()
         - arrivalCity.getCityId()) * 5;
   }
 
+  /**
+   * Finds a flight by its identifier in a list.
+   *
+   * @param allFlights the flights to search through
+   * @param flightId the flight identifier
+   * @return the matching flight, or null if it was not found
+   */
   private Flight findFlightById(List<Flight> allFlights, int flightId)
   {
     for (Flight flight : allFlights)
@@ -293,6 +444,14 @@ public class FlightSearchService
     return null;
   }
 
+  /**
+   * Chooses a city that can be used between the departure and arrival cities.
+   *
+   * @param allFlights all flights currently loaded in the system
+   * @param departureCity the city where the trip starts
+   * @param arrivalCity the final city of the trip
+   * @return a usable connection city, or null if none is found
+   */
   private City pickHubCity(List<Flight> allFlights, City departureCity,
       City arrivalCity)
   {
@@ -322,6 +481,13 @@ public class FlightSearchService
     return null;
   }
 
+  /**
+   * Finds a city by name from the loaded flights.
+   *
+   * @param allFlights all flights currently loaded in the system
+   * @param cityName the city name to search for
+   * @return the matching city, or null if it was not found
+   */
   private City findCityByName(List<Flight> allFlights, String cityName)
   {
     for (Flight flight : allFlights)
@@ -338,12 +504,27 @@ public class FlightSearchService
     return null;
   }
 
+  /**
+   * Checks if a city can be used as a connection city.
+   *
+   * @param city the city that might be used as a connection
+   * @param departureCity the city where the trip starts
+   * @param arrivalCity the final city of the trip
+   * @return true if the city is different from the start and final city
+   */
   private boolean isUsableHub(City city, City departureCity, City arrivalCity)
   {
     return city != null && !city.equals(departureCity)
         && !city.equals(arrivalCity);
   }
 
+  /**
+   * Chooses a plane for a generated flight.
+   *
+   * @param allFlights all flights currently loaded in the system
+   * @param flightId the generated flight identifier
+   * @return a plane, or null if no plane is available
+   */
   private Plane pickPlane(List<Flight> allFlights, int flightId)
   {
     List<Plane> planes = new ArrayList<>();
@@ -361,6 +542,12 @@ public class FlightSearchService
     return planes.get(Math.abs(flightId) % planes.size());
   }
 
+  /**
+   * Chooses the first carrier that can be found from the loaded flights.
+   *
+   * @param allFlights all flights currently loaded in the system
+   * @return a carrier, or null if no carrier is available
+   */
   private Carrier pickCarrier(List<Flight> allFlights)
   {
     for (Flight flight : allFlights)
@@ -373,18 +560,37 @@ public class FlightSearchService
     return null;
   }
 
+  /**
+   * Checks if a flight has enough available seats for the passenger count.
+   *
+   * @param flight the flight that should be checked
+   * @param criteria the search values entered by the user
+   * @return true if the flight has enough seats in the selected class
+   */
   private boolean hasEnoughSeats(Flight flight, SearchCriteria criteria)
   {
     return flight.getAvailableSeatsByClass(criteria.getSeatClass()).size()
         >= criteria.getPassengerCount();
   }
 
+  /**
+   * Gets the full flight details for a flight object.
+   *
+   * @param flight the flight that should be shown
+   * @return the matching stored flight
+   */
   public Flight viewFlightDetails(Flight flight)
   {
     Objects.requireNonNull(flight, "Flight is required.");
     return viewFlightDetails(flight.getFlightId());
   }
 
+  /**
+   * Gets the full flight details by flight identifier.
+   *
+   * @param flightId the flight identifier
+   * @return the matching stored flight
+   */
   public Flight viewFlightDetails(int flightId)
   {
     for (Flight flight : flights)
@@ -397,6 +603,11 @@ public class FlightSearchService
     throw new IllegalArgumentException("Flight was not found.");
   }
 
+  /**
+   * Gets the flights stored inside this search service.
+   *
+   * @return the stored flights
+   */
   public List<Flight> getFlights()
   {
     return flights;

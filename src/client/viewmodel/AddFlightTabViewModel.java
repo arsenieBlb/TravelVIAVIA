@@ -40,6 +40,7 @@ public class AddFlightTabViewModel
         carriersList.setAll(model.getCarriers());
 
         int maxId = model.getAllFlights().stream()
+                .filter(flight -> !FlightSearchService.isGeneratedFlight(flight))
                 .mapToInt(Flight::getFlightId)
                 .max()
                 .orElse(100);

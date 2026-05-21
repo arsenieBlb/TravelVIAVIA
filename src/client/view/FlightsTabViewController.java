@@ -382,7 +382,15 @@ public class FlightsTabViewController {
 
         Button editButton = new Button("Edit");
         editButton.getStyleClass().add("outline-button");
-        editButton.setOnAction(event -> showFlightEditContent(overlay, flight));
+        editButton.setOnAction(event -> {
+            if (hasTakenSeats(flight))
+            {
+                showAlert(Alert.AlertType.ERROR, "Cannot Edit Flight",
+                    "Flight cannot be edited because it has existing bookings.");
+                return;
+            }
+            showFlightEditContent(overlay, flight);
+        });
         Button deleteButton = new Button("Remove");
         deleteButton.getStyleClass().add("outline-button");
         deleteButton.setOnAction(event -> confirmRemoveFlight(flight, overlay));
@@ -750,9 +758,21 @@ public class FlightsTabViewController {
         }
         catch (Exception e)
         {
+            String message = e.getMessage() == null
+                ? "Could not save changes." : e.getMessage();
+            if (message.contains("existing bookings"))
+            {
+                showAlert(Alert.AlertType.ERROR, "Cannot Edit Flight", message);
+                return;
+            }
             showAlert(Alert.AlertType.ERROR, "Error",
-                "Could not save changes: " + e.getMessage());
+                "Could not save changes: " + message);
         }
+    }
+
+    private boolean hasTakenSeats(Flight flight)
+    {
+        return countSeats(flight, null, false) > countSeats(flight, null, true);
     }
 
     private StackPane getSceneStackRoot()

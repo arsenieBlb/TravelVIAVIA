@@ -26,7 +26,7 @@ public class InitDB {
                 stmt.execute(sql);
 
                 System.out.println("✅ Database successfully initialized from flights.sql!");
-                System.out.println("You can now start the ServerMain and log in as 'admin@skyline.com' / 'Admin1234' or 'j.doe@gmail.com' / 'Customer1234'.");
+                System.out.println("You can now start the ServerMain and log in as 'admin.skyline@gmail.com' / 'Admin1234' or 'j.doe@gmail.com' / 'Customer1234'.");
             }
         } catch (Exception e) {
             System.err.println("❌ Failed to initialize the database: " + e.getMessage());

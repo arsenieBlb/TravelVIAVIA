@@ -5,6 +5,7 @@ import client.model.Booking;
 import client.model.City;
 import client.model.ConnectingFlight;
 import client.model.Flight;
+import client.model.FlightSearchService;
 import client.model.Model;
 import client.model.Passenger;
 import client.model.SearchCriteria;
@@ -244,12 +245,7 @@ public class ClientHandler implements Runnable, PropertyChangeListener
         SearchFlightsRequest.class);
     SearchCriteria criteria = DtoMapper.toCriteria(searchRequest,
         model.getAllCities());
-    int flightCountBefore = model.getAllFlights().size();
     List<Flight> flights = model.searchFlights(criteria);
-    if (model.getAllFlights().size() > flightCountBefore)
-    {
-      server.broadcastPropertyChange("allFlights", "{generated=true}");
-    }
     return DtoMapper.flightDtos(flights);
   }
 
@@ -284,6 +280,10 @@ public class ClientHandler implements Runnable, PropertyChangeListener
     logger.log(clientLabel(), RequestType.CREATE_BOOKING, "OK",
         "user=" + currentUserLabel() + ", change=" + changeSummary);
     server.broadcastPropertyChange("bookings", changeSummary);
+    if (hasGeneratedSegment(flight) || hasGeneratedSegment(returnFlight))
+    {
+      server.broadcastPropertyChange("allFlights", "{bookedGenerated=true}");
+    }
     return DtoMapper.toDto(booking);
   }
 
@@ -530,19 +530,44 @@ public class ClientHandler implements Runnable, PropertyChangeListener
     if (flightDto.connecting && flightDto.firstSegment != null
         && flightDto.secondSegment != null)
     {
-      Flight firstSegment = findFlightById(model.getAllFlights(),
-          flightDto.firstSegment.flightId);
-      Flight secondSegment = findFlightById(model.getAllFlights(),
-          flightDto.secondSegment.flightId);
+      Flight firstSegment = findLoadedFlightById(flightDto.firstSegment.flightId);
+      Flight secondSegment = findLoadedFlightById(flightDto.secondSegment.flightId);
       if (firstSegment != null && secondSegment != null)
       {
         return new ConnectingFlight(firstSegment, secondSegment);
       }
     }
 
-    Flight loadedFlight = findFlightById(model.getAllFlights(),
-        flightDto.flightId);
+    Flight loadedFlight = findLoadedFlightById(flightDto.flightId);
     return loadedFlight == null ? DtoMapper.fromDto(flightDto) : loadedFlight;
+  }
+
+  private Flight findLoadedFlightById(int flightId)
+  {
+    Flight visibleFlight = findFlightById(model.getAllFlights(), flightId);
+    if (visibleFlight != null)
+    {
+      return visibleFlight;
+    }
+    if (model instanceof ServerSessionModel sessionModel)
+    {
+      return sessionModel.findLoadedFlightById(flightId);
+    }
+    return null;
+  }
+
+  private boolean hasGeneratedSegment(Flight flight)
+  {
+    if (flight == null)
+    {
+      return false;
+    }
+    if (flight instanceof ConnectingFlight connectingFlight)
+    {
+      return hasGeneratedSegment(connectingFlight.getFirstSegment())
+          || hasGeneratedSegment(connectingFlight.getSecondSegment());
+    }
+    return FlightSearchService.isGeneratedFlight(flight);
   }
 
   private BufferedReader createSocketReader(Socket socket) throws IOException

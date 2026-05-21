@@ -230,6 +230,7 @@ public class FlightSceneViewController
         if (returnFlightsTable != null)
         {
             returnFlightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+            applyConnectionRowStyle(returnFlightsTable);
             setupReturnTableColumns();
             returnFlightsTable.setItems(flightSceneViewModel.getReturnFlights());
             returnFlightsTable.getSelectionModel().selectedItemProperty().addListener(
@@ -243,6 +244,7 @@ public class FlightSceneViewController
     private void setupFlightTable()
     {
         flightsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        applyConnectionRowStyle(flightsTable);
         routeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
                 cellData.getValue().getDepartureCity().getCityName() + " → "
                         + cellData.getValue().getArrivalCity().getCityName()));
@@ -333,6 +335,23 @@ public class FlightSceneViewController
         });
         returnPriceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
                 String.format("EUR %.0f", cellData.getValue().getBasePrice())));
+    }
+
+    private void applyConnectionRowStyle(TableView<Flight> table)
+    {
+        table.setRowFactory(tableView -> new TableRow<>()
+        {
+            @Override
+            protected void updateItem(Flight flight, boolean empty)
+            {
+                super.updateItem(flight, empty);
+                getStyleClass().remove("connecting-flight-row");
+                if (!empty && flight instanceof ConnectingFlight)
+                {
+                    getStyleClass().add("connecting-flight-row");
+                }
+            }
+        });
     }
 
     private void setupFilters()

@@ -115,13 +115,7 @@ public class ModelManager implements Model
     @Override
     public List<Flight> searchFlights(SearchCriteria criteria)
     {
-        int flightCountBefore = allFlights.size();
-        List<Flight> found = flightSearchService.searchFlights(this.allFlights, criteria);
-        if (allFlights.size() != flightCountBefore)
-        {
-            support.firePropertyChange("allFlights", null, allFlights);
-        }
-        return found;
+        return flightSearchService.searchFlights(this.allFlights, criteria);
     }
 
     @Override
@@ -678,6 +672,11 @@ public class ModelManager implements Model
 
         try
         {
+            if (bookingDAO.hasBookingsForFlight(flight.getFlightId()))
+            {
+                throw new IllegalStateException(
+                    "Flight cannot be edited because it has existing bookings.");
+            }
             saveFlightIfMissing(flight);
             flightDAO.updateFlight(flight);
 
@@ -763,7 +762,38 @@ public class ModelManager implements Model
     @Override
     public List<Flight> getAllFlights()
     {
-        return Objects.requireNonNullElse(allFlights, new ArrayList<>());
+        List<Flight> visibleFlights = new ArrayList<>();
+        for (Flight flight : getLoadedFlights())
+        {
+            if (!FlightSearchService.isGeneratedFlight(flight)
+                || hasTakenSeat(flight))
+            {
+                visibleFlights.add(flight);
+            }
+        }
+        return visibleFlights;
+    }
+
+    public Flight findLoadedFlightById(int flightId)
+    {
+        for (Flight flight : getLoadedFlights())
+        {
+            if (flight.getFlightId() == flightId)
+            {
+                return flight;
+            }
+        }
+        return null;
+    }
+
+    private boolean hasTakenSeat(Flight flight)
+    {
+        if (flight == null || flight.getPlane() == null)
+        {
+            return false;
+        }
+        return flight.getAvailableSeats().size()
+            < flight.getPlane().getSeats().size();
     }
 
     @Override

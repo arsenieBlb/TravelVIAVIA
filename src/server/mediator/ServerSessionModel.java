@@ -218,6 +218,14 @@ public class ServerSessionModel implements Model
     }
   }
 
+  public Flight findLoadedFlightById(int flightId)
+  {
+    synchronized (serverModel)
+    {
+      return serverModel.findLoadedFlightById(flightId);
+    }
+  }
+
   @Override public boolean isLoggedIn()
   {
     return currentUser != null;

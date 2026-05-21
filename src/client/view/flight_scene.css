@@ -345,6 +345,11 @@
     -fx-background-color: white;
     -fx-border-color: #e2e8f0;
     -fx-border-width: 0 0 1 0;
+    -fx-cell-size: 48;
+}
+
+.flight-table .table-row-cell.connecting-flight-row {
+    -fx-cell-size: 64;
 }
 
 .flight-table .table-row-cell:hover {
@@ -358,8 +363,12 @@
 .flight-table .table-cell {
     -fx-text-fill: #1e293b;
     -fx-font-size: 13px;
-    -fx-padding: 10 5 10 5;
+    -fx-padding: 12 8 12 8;
     -fx-alignment: CENTER-LEFT;
+}
+
+.flight-table .connecting-flight-row .table-cell {
+    -fx-padding: 16 10 16 10;
 }
 
 .flight-table .table-cell .text {
@@ -427,8 +436,9 @@
 }
 
 .timeline-row {
-    -fx-padding: 8 0 8 0;
+    -fx-padding: 12 0 12 0;
     -fx-alignment: center-left;
+    -fx-spacing: 4;
 }
 
 .timeline-terminal-stop,
@@ -485,10 +495,10 @@
 
 .timeline-segment-card {
     -fx-background-color: #f1f5f9;
-    -fx-background-radius: 4;
-    -fx-padding: 8 12 8 12;
-    -fx-min-width: 96;
-    -fx-pref-width: 96;
+    -fx-background-radius: 8;
+    -fx-padding: 10 16 10 16;
+    -fx-min-width: 128;
+    -fx-pref-width: 128;
 }
 
 .timeline-line {
@@ -501,8 +511,8 @@
 }
 
 .timeline-line-wrapper {
-    -fx-min-width: 102;
-    -fx-pref-width: 102;
+    -fx-min-width: 112;
+    -fx-pref-width: 112;
 }
 
 .timeline-scroll {
@@ -605,7 +615,7 @@
 
 .passenger-form-panel {
     -fx-background-color: white;
-    -fx-padding: 0 0 4 0;
+    -fx-padding: 18 24 18 24;
 }
 
 .passenger-form-title {

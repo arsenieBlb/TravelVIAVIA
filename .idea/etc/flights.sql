@@ -136,13 +136,13 @@ CREATE TABLE flight_seat(
 );
 
 INSERT INTO users (user_id, email, password_hash, user_type) VALUES
-(1, 'admin@skyline.com', 'Admin1234', 'Admin'),
+(1, 'admin.skyline@gmail.com', 'Admin1234', 'Admin'),
 (2, 'j.doe@gmail.com', 'Customer1234', 'Customer'),
 (3, 'alice.smith@gmail.com', 'Alice1234', 'Customer'),
-(4, 'support.team@carrier.com', 'Support1234', 'Admin'),
+(4, 'support.team@gmail.com', 'Support1234', 'Admin'),
 (5, 'bob.builder@gmail.com', 'Builder1234', 'Customer'),
 (6, 'artem.customer@gmail.com', 'Artem1234', 'Customer'),
-(7, 'operations.admin@skyline.com', 'Operations1234', 'Admin');
+(7, 'operations.admin@gmail.com', 'Operations1234', 'Admin');
 
 INSERT INTO admin (admin_id) VALUES
 (1),
